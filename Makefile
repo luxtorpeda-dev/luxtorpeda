@@ -23,6 +23,9 @@ dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
 build:
 	cargo build
 
+release:
+	cargo build --release
+
 test:
 	cargo test
 
