@@ -12,18 +12,16 @@ use users::get_current_uid;
 ///
 pub fn assure_xdg_runtime_dir() -> Result<(), std::io::Error> {
     let xdg_dirs = xdg::BaseDirectories::new()?;
-
     if xdg_dirs.has_runtime_directory() {
-        Ok(())
-    } else {
-        let runtime_dir = format!("/tmp/luxtorpeda_{}", get_current_uid());
-        if !Path::new(&runtime_dir).is_dir() {
-            fs::create_dir(&runtime_dir)?;
-        }
-        fs::set_permissions(&runtime_dir, fs::Permissions::from_mode(0o700))?;
-        env::set_var("XDG_RUNTIME_DIR", &runtime_dir);
-        Ok(())
+        return Ok(());
     }
+    let runtime_dir = format!("/tmp/luxtorpeda_{}", get_current_uid());
+    if !Path::new(&runtime_dir).is_dir() {
+        fs::create_dir(&runtime_dir)?;
+    }
+    fs::set_permissions(&runtime_dir, fs::Permissions::from_mode(0o700))?;
+    env::set_var("XDG_RUNTIME_DIR", &runtime_dir);
+    Ok(())
 }
 
 /// Return `SteamAppId` environment variable or `"0"` as a fallback.
