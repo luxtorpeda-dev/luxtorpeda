@@ -26,6 +26,9 @@ build:
 release:
 	cargo build --release
 
+lint:
+	cargo clippy -- -D warnings
+
 test:
 	cargo test
 

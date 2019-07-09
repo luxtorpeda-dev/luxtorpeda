@@ -1,0 +1,2 @@
+blacklisted-names = ["foo", "bar", "baz"]
+cognitive-complexity-threshold = 30
