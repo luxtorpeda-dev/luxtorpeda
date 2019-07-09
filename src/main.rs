@@ -24,6 +24,6 @@ fn main() {
     match cmd.as_str() {
         "run" => run(cmd_args),
         "wait-before-run" => { wait(); run(cmd_args) },
-        _ => usage(),
-    };
+        _ => { usage(); ::std::process::exit(1) },
+    }
 }

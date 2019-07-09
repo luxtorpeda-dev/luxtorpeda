@@ -1,0 +1,13 @@
+"compatibilitytools"
+{
+  "compat_tools"
+  {
+    "luxtorpeda_dev" // Internal name of this tool
+    {
+      "install_path" "."
+      "display_name" "Luxtorpeda (dev)"
+      "from_oslist"  "windows"
+      "to_oslist"    "linux"
+    }
+  }
+}

@@ -6,3 +6,13 @@ Compatibility tool to run games on Steam using native Linux engines.
 
 This is a sister project of [steam-dos](https://github.com/dreamer/steam-dos/).
 Join our [Discord server](https://discord.gg/8mFhUPX) to help with development.
+
+## Development
+
+Use `cargo` to build and test.
+
+To install and test in Steam:
+
+    $ make user-install
+
+Then restart Steam client and select "Luxtorpeda (dev)".
