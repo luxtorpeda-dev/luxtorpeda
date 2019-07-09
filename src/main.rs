@@ -1,5 +1,7 @@
 use std::env;
 
+mod user_env;
+
 fn usage() {
     println!("usage: lux [run | wait-before-run]");
 }
@@ -8,7 +10,9 @@ fn wait() {
 }
 
 fn run(args: &[String]) {
-    println!("{:?}", args);
+    println!("working dir: {:?}", env::current_dir());
+    println!("args: {:?}", args);
+    println!("steam_app_id: {:?}", user_env::steam_app_id())
 }
 
 fn main() {

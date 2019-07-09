@@ -1,4 +1,4 @@
-.PHONY: build test clean user-install user-uninstall
+.PHONY: build test clean doc user-install user-uninstall
 
 # Default names for installation directories:
 #
@@ -28,6 +28,9 @@ test:
 
 clean:
 	cargo clean
+
+doc:
+	cargo doc --document-private-items --open
 
 target/debug/%: %
 	cp --reflink=auto $< $@
