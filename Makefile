@@ -51,3 +51,6 @@ user-install: build \
 
 user-uninstall:
 	rm -rf $(dev_install_dir)
+
+check-formatting:
+	cargo fmt -- --check
