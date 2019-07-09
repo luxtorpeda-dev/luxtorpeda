@@ -7,6 +7,10 @@ Compatibility tool to run games on Steam using native Linux engines.
 This is a sister project of [steam-dos](https://github.com/dreamer/steam-dos/).
 Join our [Discord server](https://discord.gg/8mFhUPX) to help with development.
 
+Official mirrors:
+[GitHub](https://github.com/dreamer/luxtorpeda),
+[GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
+
 ## Development
 
 Use `cargo` to build and test.
