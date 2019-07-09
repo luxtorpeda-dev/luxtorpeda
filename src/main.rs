@@ -3,13 +3,11 @@ use std::env;
 mod pid_file;
 mod user_env;
 
-
 fn usage() {
     println!("usage: lux [run | wait-before-run]");
 }
 
-fn wait() {
-}
+fn wait() {}
 
 fn run(args: &[String]) {
     let _pid_file = pid_file::new();
@@ -32,8 +30,18 @@ fn main() -> Result<(), std::io::Error> {
     user_env::assure_xdg_runtime_dir()?;
 
     match cmd.as_str() {
-        "run" => { run(cmd_args); Ok(()) },
-        "wait-before-run" => { wait(); run(cmd_args); Ok(()) },
-        _ => { usage(); std::process::exit(1) },
+        "run" => {
+            run(cmd_args);
+            Ok(())
+        }
+        "wait-before-run" => {
+            wait();
+            run(cmd_args);
+            Ok(())
+        }
+        _ => {
+            usage();
+            std::process::exit(1)
+        }
     }
 }

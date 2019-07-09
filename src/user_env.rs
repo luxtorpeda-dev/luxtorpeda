@@ -1,5 +1,5 @@
-extern crate xdg;
 extern crate users;
+extern crate xdg;
 
 use std::env;
 use std::fs;
@@ -7,7 +7,6 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
 use users::get_current_uid;
-
 
 /// Assure, that XDG_RUNTIME_DIR is set with correct access mode.
 ///

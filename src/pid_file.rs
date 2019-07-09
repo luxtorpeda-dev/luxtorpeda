@@ -4,7 +4,6 @@ use std::path::PathBuf;
 
 use crate::user_env;
 
-
 pub struct PidFile {
     name: PathBuf,
 }
@@ -25,9 +24,7 @@ pub fn new() -> PidFile {
 }
 
 impl Drop for PidFile {
-
     fn drop(&mut self) {
         println!("dropping: {:?}", self.name);
     }
-
 }
