@@ -2,9 +2,10 @@ extern crate psutil;
 extern crate xdg;
 
 use std::fs;
+use std::io;
 use std::path::PathBuf;
 
-use psutil::pidfile::{read_pidfile, write_pidfile};
+use psutil::pidfile::write_pidfile;
 use psutil::process::Process;
 
 use crate::user_env;
@@ -21,24 +22,22 @@ fn pid_file_path() -> PathBuf {
     path.unwrap()
 }
 
-pub fn new() -> PidFile {
+pub fn new() -> io::Result<PidFile> {
     let path = pid_file_path();
     println!("creating: {:?}", path);
 
-    let pid = match read_pidfile(&path) {
-        Err(_) => 0,
-        Ok(pid) => pid,
-    };
-
-    let is_alive = match Process::new(pid) {
+    let is_other_process_alive = match Process::from_pidfile(&path) {
         Ok(p) => p.is_alive(),
         Err(_) => false,
     };
 
-    println!("is alive: {}", is_alive);
+    if is_other_process_alive {
+        let err = io::Error::new(io::ErrorKind::Other, "Other process is alive");
+        return Err(err);
+    }
 
-    write_pidfile(&path).expect("can't write a pid file");
-    PidFile { path }
+    write_pidfile(&path)?;
+    Ok(PidFile { path })
 }
 
 impl Drop for PidFile {

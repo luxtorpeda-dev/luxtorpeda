@@ -1,4 +1,5 @@
 use std::env;
+use std::io;
 
 mod pid_file;
 mod user_env;
@@ -9,14 +10,15 @@ fn usage() {
 
 fn wait() {}
 
-fn run(args: &[String]) {
-    let _pid_file = pid_file::new();
+fn run(args: &[String]) -> io::Result<()> {
+    let _pid_file = pid_file::new()?;
     println!("working dir: {:?}", env::current_dir());
     println!("args: {:?}", args);
     println!("steam_app_id: {:?}", user_env::steam_app_id());
+    Ok(())
 }
 
-fn main() -> Result<(), std::io::Error> {
+fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
@@ -31,12 +33,12 @@ fn main() -> Result<(), std::io::Error> {
 
     match cmd.as_str() {
         "run" => {
-            run(cmd_args);
+            run(cmd_args)?;
             Ok(())
         }
         "wait-before-run" => {
             wait();
-            run(cmd_args);
+            run(cmd_args)?;
             Ok(())
         }
         _ => {
