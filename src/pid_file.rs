@@ -76,8 +76,9 @@ pub fn wait_while_exists() {
         .add_watch(&path, WatchMask::DELETE)
         .expect("failed to add inotify watch");
 
-    println!("waiting for process {:?} to stop \
-              and delete file {:?}", pid, path);
+    #[rustfmt::skip]
+    println!("waiting for process {:?} to stop and delete file {:?}",
+             pid, path);
 
     let mut buffer = [0; 128];
     inotify

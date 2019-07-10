@@ -37,14 +37,10 @@ fn main() -> io::Result<()> {
     user_env::assure_xdg_runtime_dir()?;
 
     match cmd.as_str() {
-        "run" => {
-            run(cmd_args)?;
-            Ok(())
-        }
+        "run" => run(cmd_args),
         "wait-before-run" => {
             pid_file::wait_while_exists();
-            run(cmd_args)?;
-            Ok(())
+            run(cmd_args)
         }
         _ => {
             usage();
