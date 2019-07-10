@@ -1,3 +1,4 @@
+extern crate inotify;
 extern crate psutil;
 extern crate xdg;
 
@@ -5,7 +6,9 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-use psutil::pidfile::write_pidfile;
+use inotify::{Inotify, WatchMask};
+
+use psutil::pidfile;
 use psutil::process::Process;
 
 use crate::user_env;
@@ -36,7 +39,7 @@ pub fn new() -> io::Result<PidFile> {
         return Err(err);
     }
 
-    write_pidfile(&path)?;
+    pidfile::write_pidfile(&path)?;
     Ok(PidFile { path })
 }
 
@@ -48,4 +51,36 @@ impl Drop for PidFile {
             Ok(()) => {}
         }
     }
+}
+
+/// Wait until pid file is deleted by previous Luxtorpeda invocation.
+///
+pub fn wait_while_exists() {
+    let path = pid_file_path();
+    let pid = match pidfile::read_pidfile(&path) {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+    let is_alive = match Process::new(pid) {
+        Ok(p) => p.is_alive(),
+        Err(_) => false,
+    };
+
+    if !is_alive {
+        return;
+    }
+
+    let mut inotify = Inotify::init().expect("Failed to initialize inotify");
+
+    inotify
+        .add_watch(&path, WatchMask::DELETE)
+        .expect("failed to add inotify watch");
+
+    println!("waiting for process {:?} to stop \
+              and delete file {:?}", pid, path);
+
+    let mut buffer = [0; 128];
+    inotify
+        .read_events_blocking(&mut buffer)
+        .expect("error while reading events");
 }

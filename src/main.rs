@@ -1,5 +1,6 @@
 use std::env;
 use std::io;
+// use std::process::Command;
 
 mod pid_file;
 mod user_env;
@@ -8,13 +9,17 @@ fn usage() {
     println!("usage: lux [run | wait-before-run]");
 }
 
-fn wait() {}
-
 fn run(args: &[String]) -> io::Result<()> {
     let _pid_file = pid_file::new()?;
     println!("working dir: {:?}", env::current_dir());
     println!("args: {:?}", args);
     println!("steam_app_id: {:?}", user_env::steam_app_id());
+
+    // Command::new("sleep")
+    //         .arg("10")
+    //         .status()
+    //         .expect("failed to execute process");
+
     Ok(())
 }
 
@@ -37,7 +42,7 @@ fn main() -> io::Result<()> {
             Ok(())
         }
         "wait-before-run" => {
-            wait();
+            pid_file::wait_while_exists();
             run(cmd_args)?;
             Ok(())
         }
