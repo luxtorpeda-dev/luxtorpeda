@@ -1,11 +1,16 @@
+extern crate psutil;
 extern crate xdg;
 
+use std::fs;
 use std::path::PathBuf;
+
+use psutil::pidfile::{read_pidfile, write_pidfile};
+use psutil::process::Process;
 
 use crate::user_env;
 
 pub struct PidFile {
-    name: PathBuf,
+    path: PathBuf,
 }
 
 fn pid_file_path() -> PathBuf {
@@ -17,14 +22,31 @@ fn pid_file_path() -> PathBuf {
 }
 
 pub fn new() -> PidFile {
-    let name = pid_file_path();
-    println!("creating: {:?}", name);
-    PidFile { name }
-    // TODO use psutil::write_pidfile here
+    let path = pid_file_path();
+    println!("creating: {:?}", path);
+
+    let pid = match read_pidfile(&path) {
+        Err(_) => 0,
+        Ok(pid) => pid,
+    };
+
+    let is_alive = match Process::new(pid) {
+        Ok(p) => p.is_alive(),
+        Err(_) => false,
+    };
+
+    println!("is alive: {}", is_alive);
+
+    write_pidfile(&path).expect("can't write a pid file");
+    PidFile { path }
 }
 
 impl Drop for PidFile {
     fn drop(&mut self) {
-        println!("dropping: {:?}", self.name);
+        println!("dropping: {:?}", &self.path);
+        match fs::remove_file(&self.path) {
+            Err(e) => println!("err: {:?}", e),
+            Ok(()) => {}
+        }
     }
 }

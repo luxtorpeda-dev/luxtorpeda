@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 xdg = "^2.1"
 users = "0.9"
+psutil = "1.6.0"
