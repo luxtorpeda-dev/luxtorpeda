@@ -2,6 +2,9 @@ extern crate inotify;
 extern crate psutil;
 extern crate xdg;
 
+// TODO inotify crate pulls 70 dependencies for functionalities I don't use;
+//      replace by my own tiny wrapper around inotify-sys
+
 use std::fs;
 use std::io;
 use std::path::PathBuf;
@@ -25,6 +28,8 @@ fn pid_file_path() -> PathBuf {
     path.unwrap()
 }
 
+/// Create a new PidFile.
+///
 pub fn new() -> io::Result<PidFile> {
     let path = pid_file_path();
     println!("creating: {:?}", path);
