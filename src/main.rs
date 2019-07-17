@@ -1,6 +1,6 @@
 use std::env;
 use std::io;
-// use std::process::Command;
+use std::process::Command;
 
 mod pid_file;
 mod user_env;
@@ -11,14 +11,17 @@ fn usage() {
 
 fn run(args: &[String]) -> io::Result<()> {
     let _pid_file = pid_file::new()?;
+    let app_id = user_env::steam_app_id();
     println!("working dir: {:?}", env::current_dir());
     println!("args: {:?}", args);
-    println!("steam_app_id: {:?}", user_env::steam_app_id());
+    println!("steam_app_id: {:?}", &app_id);
 
-    // Command::new("sleep")
-    //         .arg("10")
-    //         .status()
-    //         .expect("failed to execute process");
+    // Doki Doki Literature Club
+    if app_id == "698780" {
+        Command::new("./DDLC.sh")
+                .status()
+                .expect("failed to execute process");
+    }
 
     Ok(())
 }
