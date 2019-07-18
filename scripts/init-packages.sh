@@ -29,7 +29,6 @@ fi
 for name in $all_packages ; do
 	if [ ! -d "$name" ] ; then
 		git clone git@gitlab.com:luxtorpeda/packages/${name}.git
-		git@gitlab.com:luxtorpeda/packages/package-template.git
-
+		# TODO submodule init, possibly with --reference
 	fi
 done
