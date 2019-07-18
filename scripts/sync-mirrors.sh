@@ -25,6 +25,7 @@ if [ ! -d ../mirrors ] ; then
 	mkdir -p ../mirrors
 fi
 cd ../mirrors || exit
+echo "Using dir: $(pwd)"
 
 # initializing:
 

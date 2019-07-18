@@ -41,6 +41,11 @@ it's not available for free users.
 3. Select namespace: luxtorpeda/packages
 4. Click "Settings" (in sidebar, on the left side)
 5. Set:
+
    - Project name: same as mirror name you want to package
    - Project description: set empty
-   Save changes
+   Click "Save changes"
+
+   Advanced -> Change path
+   - Last part of path to the same value as project name
+   Click "Change path"
