@@ -1,5 +1,7 @@
 use std::env;
 use std::io;
+use std::io::{Error, ErrorKind};
+use std::path;
 use std::process::Command;
 
 mod pid_file;
@@ -9,21 +11,40 @@ fn usage() {
     println!("usage: lux [run | wait-before-run]");
 }
 
-fn run(args: &[String]) -> io::Result<()> {
+fn run(arg_0: &String, args: &[String]) -> io::Result<()> {
     let _pid_file = pid_file::new()?;
     let app_id = user_env::steam_app_id();
+    let tool_path = path::Path::new(arg_0);
     println!("working dir: {:?}", env::current_dir());
+    println!("tool dir: {:?}", tool_path.parent());
     println!("args: {:?}", args);
     println!("steam_app_id: {:?}", &app_id);
 
-    // Doki Doki Literature Club
-    if app_id == "698780" {
-        Command::new("./DDLC.sh")
+    match app_id.as_ref() {
+        // Quake III Arena
+        "2200" => {
+            let dist_zip = tool_path.parent().unwrap().join("dist.zip");
+            Command::new("unzip")
+                .arg("-uo")
+                .arg(dist_zip)
                 .status()
                 .expect("failed to execute process");
-    }
+            Command::new("./ioquake3.x86_64")
+                .status()
+                .expect("failed to execute process");
+            Ok(())
+        }
 
-    Ok(())
+        // Doki Doki Literature Club
+        "698780" => {
+            Command::new("./DDLC.sh")
+                .status()
+                .expect("failed to execute process");
+            Ok(())
+        }
+
+        _ => Err(Error::new(ErrorKind::Other, "I don't know this app_id!")),
+    }
 }
 
 fn main() -> io::Result<()> {
@@ -40,10 +61,10 @@ fn main() -> io::Result<()> {
     user_env::assure_xdg_runtime_dir()?;
 
     match cmd.as_str() {
-        "run" => run(cmd_args),
+        "run" => run(&args[0], cmd_args),
         "wait-before-run" => {
             pid_file::wait_while_exists();
-            run(cmd_args)
+            run(&args[0], cmd_args)
         }
         _ => {
             usage();
