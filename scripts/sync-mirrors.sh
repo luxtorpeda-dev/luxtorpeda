@@ -13,9 +13,10 @@ repo_name () {
 }
 
 readonly ioq3_url=git@github.com:ioquake/ioq3.git
+readonly openjk_url=git@github.com:JACoders/OpenJK.git
 readonly openxcom_url=git@github.com:OpenXcom/OpenXcom.git
 
-readonly all_projects="$ioq3_url $openxcom_url"
+readonly all_projects="$ioq3_url $openjk_url $openxcom_url"
 
 # set -x
 
