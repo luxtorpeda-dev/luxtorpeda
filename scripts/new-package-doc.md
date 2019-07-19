@@ -36,16 +36,16 @@ Set up mirror:
 GitLab provides functionality for project templates, but it seems like
 it's not available for free users.
 
-1. Go to: https://gitlab.com/luxtorpeda/package-template
-2. Click "Fork project"
-3. Select namespace: luxtorpeda/packages
-4. Click "Settings" (in sidebar, on the left side)
-5. Set:
+New instructions:
 
-   - Project name: same as mirror name you want to package
-   - Project description: set empty
-   Click "Save changes"
+1. Go to: https://gitlab.com/luxtorpeda/packages/ and create a new project
+2. Name it the same way as mirrored repo you want to build
+3. Set Visibility to Public
+4. In locally cloned package-template repo:
 
-   Advanced -> Change path
-   - Last part of path to the same value as project name
-   Click "Change path"
+   git remote add NAME git@gitlab.com:luxtorpeda/packages/NAME.git
+   git push openjk master
+
+5. Add NAME to `all_packages` in `init-packages.sh`; run the script
+6. Go to new package repo and continue using instructions from
+   create-package.md
