@@ -23,13 +23,31 @@ fn run(arg_0: &String, args: &[String]) -> io::Result<()> {
     match app_id.as_ref() {
         // Quake III Arena
         "2200" => {
-            let dist_zip = tool_path.parent().unwrap().join("dist.zip");
+            let dist_zip = tool_path.parent().unwrap().join("2200.zip");
             Command::new("unzip")
                 .arg("-uo")
                 .arg(dist_zip)
                 .status()
                 .expect("failed to execute process");
             Command::new("./ioquake3.x86_64")
+                .arg("+r_mode")
+                .arg("-2")
+                .status()
+                .expect("failed to execute process");
+            Ok(())
+        }
+
+        // STAR WARS™ Jedi Knight: Jedi Academy™
+        "6020" => {
+            let dist_zip = tool_path.parent().unwrap().join("6020.zip");
+            Command::new("unzip")
+                .arg("-uo")
+                .arg(dist_zip)
+                .status()
+                .expect("failed to execute process");
+            // Steam changes working directory to "GameData"
+            // TODO handle MP
+            Command::new("./openjk_sp.x86_64")
                 .status()
                 .expect("failed to execute process");
             Ok(())
