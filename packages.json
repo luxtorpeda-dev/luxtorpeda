@@ -1,0 +1,23 @@
+{
+	"2200": {
+		"game_name":	"Quake III Arena",
+		"package_url":	"https://luxtorpeda.gitlab.io/packages/ioq3/",
+		"zipfile":	"2200.zip",
+		"command":	"./ioquake3.x86_64",
+		"command_args":	"+r_mode -2"
+	},
+	"6020": {
+		"game_name":	"STAR WARS™ Jedi Knight: Jedi Academy™",
+		"package_url":	"https://luxtorpeda.gitlab.io/packages/openjk/",
+		"zipfile":	"6020.zip",
+		"command":	"./openjk_sp.x86_64"
+	},
+	"7760": {
+		"game_name":	"X-COM: UFO Defense",
+		"package_url":	"https://luxtorpeda.gitlab.io/packages/openxcom/"
+	},
+	"698780": {
+		"game_name":	"Doki Doki Literature Club",
+		"command":	"./DDLC.sh"
+	}
+}
