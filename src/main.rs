@@ -2,7 +2,6 @@ use std::env;
 use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
-use std::path;
 use std::process::Command;
 
 mod package;
@@ -15,19 +14,18 @@ fn usage() {
     println!("usage: lux [run | wait-before-run]");
 }
 
-fn run(arg_0: &String, args: &[String]) -> io::Result<()> {
+fn run(args: &[String]) -> io::Result<()> {
     let _pid_file = pid_file::new()?;
     let app_id = user_env::steam_app_id();
-    let tool_path = path::Path::new(arg_0);
 
     println!("working dir: {:?}", env::current_dir());
-    println!("tool dir: {:?}", tool_path.parent());
+    println!("tool dir: {:?}", user_env::tool_dir());
     println!("args: {:?}", args);
     println!("steam_app_id: {:?}", &app_id);
 
-    let packages_json_file = tool_path.parent().unwrap().join("packages.json");
-    let json_str = fs::read_to_string(packages_json_file).unwrap();
-    let parsed = json::parse(json_str.as_ref()).unwrap();
+    let packages_json_file = user_env::tool_dir().join("packages.json");
+    let json_str = fs::read_to_string(packages_json_file)?;
+    let parsed = json::parse(&json_str).unwrap();
     let game_info = &parsed[app_id];
 
     if game_info.is_null() {
@@ -65,12 +63,13 @@ fn main() -> io::Result<()> {
     let cmd_args = &args[2..];
 
     user_env::assure_xdg_runtime_dir()?;
+    user_env::assure_tool_dir(&args[0])?;
 
     match cmd.as_str() {
-        "run" => run(&args[0], cmd_args),
+        "run" => run(cmd_args),
         "wait-before-run" => {
             pid_file::wait_while_exists();
-            run(&args[0], cmd_args)
+            run(cmd_args)
         }
         _ => {
             usage();
