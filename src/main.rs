@@ -1,15 +1,15 @@
 use std::env;
+use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path;
-use std::fs;
 use std::process::Command;
 
+mod package;
 mod pid_file;
 mod user_env;
 
 extern crate json;
-
 
 fn usage() {
     println!("usage: lux [run | wait-before-run]");
@@ -39,12 +39,7 @@ fn run(arg_0: &String, args: &[String]) -> io::Result<()> {
 
     if !game_info["zipfile"].is_null() {
         let zip = game_info["zipfile"].to_string();
-        let dist_zip = tool_path.parent().unwrap().join(zip);
-        Command::new("unzip")
-            .arg("-uo")
-            .arg(dist_zip)
-            .status()
-            .expect("failed to execute process");
+        package::install(zip)?;
     }
 
     if game_info["command"].is_null() {
@@ -54,7 +49,7 @@ fn run(arg_0: &String, args: &[String]) -> io::Result<()> {
         Command::new(new_cmd)
             .status()
             .expect("failed to execute process");
-            Ok(())
+        Ok(())
     }
 }
 
