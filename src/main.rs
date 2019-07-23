@@ -20,6 +20,11 @@ fn run(arg_0: &String, args: &[String]) -> io::Result<()> {
     println!("args: {:?}", args);
     println!("steam_app_id: {:?}", &app_id);
 
+    // TODO download packages:
+    // https://luxtorpeda.gitlab.io/packages/openjk/
+    // https://luxtorpeda.gitlab.io/packages/ioq3/
+    // https://luxtorpeda.gitlab.io/packages/openxcom/
+
     match app_id.as_ref() {
         // Quake III Arena
         "2200" => {
