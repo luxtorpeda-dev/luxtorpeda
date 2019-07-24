@@ -12,10 +12,14 @@ mod user_env;
 extern crate json;
 
 fn usage() {
-    println!("usage: lux [run | wait-before-run]");
+    println!("usage: lux [run | wait-before-run] <exe> [<exe_args>]");
 }
 
 fn run(args: &[&str]) -> io::Result<()> {
+    if args.is_empty() {
+        usage();
+        std::process::exit(0)
+    }
 
     let exe = args[0];
     let exe_args = &args[1..];
@@ -29,7 +33,8 @@ fn run(args: &[&str]) -> io::Result<()> {
 
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
-    println!("args: {:?}", args);
+    println!("exe: {:?}", exe);
+    println!("args: {:?}", exe_args);
     println!("steam_app_id: {:?}", &app_id);
 
     let packages_json_file = user_env::tool_dir().join("packages.json");
@@ -69,11 +74,11 @@ fn main() -> io::Result<()> {
         std::process::exit(0)
     }
 
-    let cmd = args[1];
-    let cmd_args = &args[2..];
-
     user_env::assure_xdg_runtime_dir()?;
     user_env::assure_tool_dir(args[0])?;
+
+    let cmd = args[1];
+    let cmd_args = &args[2..];
 
     match cmd {
         "run" => run(cmd_args),
