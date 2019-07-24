@@ -1,3 +1,7 @@
+#[macro_use]
+extern crate lazy_static;
+extern crate json;
+
 use std::env;
 use std::fs;
 use std::io;
@@ -8,8 +12,6 @@ mod fakescripteval;
 mod package;
 mod pid_file;
 mod user_env;
-
-extern crate json;
 
 fn usage() {
     println!("usage: lux [run | wait-before-run] <exe> [<exe_args>]");
