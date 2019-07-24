@@ -4,6 +4,7 @@ use std::io;
 use std::io::{Error, ErrorKind};
 use std::process::Command;
 
+mod fakescripteval;
 mod package;
 mod pid_file;
 mod user_env;
@@ -14,7 +15,15 @@ fn usage() {
     println!("usage: lux [run | wait-before-run]");
 }
 
-fn run(args: &[String]) -> io::Result<()> {
+fn run(args: &[&str]) -> io::Result<()> {
+
+    let exe = args[0];
+    let exe_args = &args[1..];
+
+    if exe == "iscriptevaluator.exe" {
+        return fakescripteval::iscriptevaluator(exe_args);
+    }
+
     let _pid_file = pid_file::new()?;
     let app_id = user_env::steam_app_id();
 
@@ -52,20 +61,21 @@ fn run(args: &[String]) -> io::Result<()> {
 }
 
 fn main() -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
+    let env_args: Vec<String> = env::args().collect();
+    let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
     if args.len() < 2 {
         usage();
         std::process::exit(0)
     }
 
-    let cmd = &args[1];
+    let cmd = args[1];
     let cmd_args = &args[2..];
 
     user_env::assure_xdg_runtime_dir()?;
-    user_env::assure_tool_dir(&args[0])?;
+    user_env::assure_tool_dir(args[0])?;
 
-    match cmd.as_str() {
+    match cmd {
         "run" => run(cmd_args),
         "wait-before-run" => {
             pid_file::wait_while_exists();

@@ -25,7 +25,7 @@ pub fn assure_xdg_runtime_dir() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-pub fn assure_tool_dir(arg0: &String) -> Result<(), std::io::Error> {
+pub fn assure_tool_dir(arg0: &str) -> Result<(), std::io::Error> {
     let tool_path = Path::new(arg0);
     env::set_var("LUX_TOOL_DIR", tool_path.parent().unwrap());
     Ok(())
