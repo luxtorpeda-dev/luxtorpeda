@@ -21,10 +21,10 @@ fn run(args: &[&str]) -> io::Result<()> {
         std::process::exit(0)
     }
 
-    let exe = args[0];
+    let exe = args[0].to_lowercase();
     let exe_args = &args[1..];
 
-    if exe == "iscriptevaluator.exe" {
+    if exe.ends_with("iscriptevaluator.exe") {
         return fakescripteval::iscriptevaluator(exe_args);
     }
 
