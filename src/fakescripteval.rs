@@ -4,6 +4,8 @@ use regex::Regex;
 use std::io;
 use std::io::{Error, ErrorKind};
 
+use crate::package;
+
 fn extract_steam_app_id(input: &str) -> Option<&str> {
     lazy_static! {
         static ref RE: Regex = Regex::new(r".*script_(?P<id>\d+)\.vdf").unwrap();
@@ -18,8 +20,11 @@ fn print_description(_app_id: String) -> io::Result<()> {
 }
 
 fn download(app_id: String) -> io::Result<()> {
-    println!("download {:}", app_id);
-    Ok(())
+    if package::is_cached(&app_id) {
+        Ok(())
+    } else {
+        package::download(&app_id)
+    }
 }
 
 pub fn iscriptevaluator(args: &[&str]) -> io::Result<()> {
