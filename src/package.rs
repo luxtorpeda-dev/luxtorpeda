@@ -14,9 +14,11 @@ fn find_cached_file(file: String) -> Option<PathBuf> {
 pub fn install(package: String) -> io::Result<()> {
     match find_cached_file(package) {
         Some(path) => {
-            Command::new("unzip")
-                .arg("-uo")
+            Command::new("tar")
+                .arg("xJf")
                 .arg(path)
+                .arg("--strip-components=1")
+                .arg("dist")
                 .status()
                 .expect("package installation failed");
             Ok(())

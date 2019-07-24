@@ -35,8 +35,8 @@ fn run(args: &[String]) -> io::Result<()> {
     println!("json:");
     println!("{:#}", game_info);
 
-    if !game_info["zipfile"].is_null() {
-        let zip = game_info["zipfile"].to_string();
+    if !game_info["package"].is_null() {
+        let zip = game_info["package"].to_string();
         package::install(zip)?;
     }
 
