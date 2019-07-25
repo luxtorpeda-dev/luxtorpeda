@@ -18,7 +18,7 @@ TBD
 
 0. Download the latest version of Rust: https://www.rust-lang.org/
 1. Close Steam.
-2. Clone the repository and use makefile to trigger `cargo build` and install resulting binary:
+2. Clone the repository, then use makefile to trigger `cargo build` and install:
 
        $ git clone https://github.com/dreamer/luxtorpeda.git
        $ cd luxtorpeda
@@ -39,6 +39,7 @@ TBD
 | [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) |
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | *Using Linux version bundled with Windows version*
 
+Want more games? [Make a feature request](https://github.com/dreamer/luxtorpeda/issues/new) or [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
 
 ## Development
 
