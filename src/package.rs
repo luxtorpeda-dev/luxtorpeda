@@ -25,12 +25,29 @@ pub fn is_cached(app_id: &str) -> bool {
 }
 
 pub fn download(app_id: &str) -> io::Result<()> {
+
+    let game_info = get_game_info(app_id)
+        .ok_or(Error::new(ErrorKind::Other, "missing info about this game"))?;
+
+    if game_info["package_url"].is_null() {
+        println!("skipping download (no url defined for this package)");
+        return Ok(());
+    }
+
+    if game_info["package"].is_null() {
+        println!("url defined, but package name missing");
+        return Err(Error::new(ErrorKind::Other, "missing package name"));
+    }
+
     println!("downloading package for app_id {:}", app_id);
 
-    let target = "https://luxtorpeda.gitlab.io/packages/ioq3/dist.tar.xz";
-    match reqwest::get(target) {
+    let url = game_info["package_url"].to_string();
+    let package = game_info["package"].to_string();
+    let target = url + &package;
+
+    match reqwest::get(target.as_str()) {
         Ok(mut response) => {
-            let dest_file = place_cached_file(app_id, "test.tar.xz")?;
+            let dest_file = place_cached_file(app_id, &package)?;
             let mut dest = fs::File::create(dest_file)?;
             io::copy(&mut response, &mut dest)?;
             Ok(())
@@ -56,5 +73,29 @@ pub fn install(package: String) -> io::Result<()> {
             Ok(())
         }
         None => Err(Error::new(ErrorKind::Other, "package file not found")),
+    }
+}
+
+pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
+    let packages_json_file = user_env::tool_dir().join("packages.json");
+    let json_str = match fs::read_to_string(packages_json_file) {
+        Ok(s) => s,
+        Err(err) => {
+            println!("read err: {:?}", err);
+            return None;
+        }
+    };
+    let parsed = match json::parse(&json_str) {
+        Ok(j) => j,
+        Err(err) => {
+            println!("parsing err: {:?}", err);
+            return None;
+        }
+    };
+    let game_info = parsed[app_id].clone();
+    if game_info.is_null() {
+        None
+    } else {
+        Some(game_info)
     }
 }
