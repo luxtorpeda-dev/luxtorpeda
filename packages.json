@@ -1,31 +1,37 @@
 {
 	"2200": {
-		"game_name":	"Quake III Arena",
-		"package_url":	"https://luxtorpeda.gitlab.io/packages/ioq3/",
-		"package":	"dist.tar.xz",
-		"command":	"./ioquake3.x86_64",
-		"command_args":	"+r_mode -2"
+		"game_name":    "Quake III Arena",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
+		"package":      "dist.tar.xz",
+		"command":      "./ioquake3.x86_64",
+		"command_args": "+r_mode -2"
 	},
 	"6020": {
-		"game_name":	"STAR WARS™ Jedi Knight: Jedi Academy™",
-		"package_url":	"https://luxtorpeda.gitlab.io/packages/openjk/",
-		"package":	"openjk-6020.tar.xz",
-		"command":	"./openjk_sp.x86_64"
+		"game_name":    "STAR WARS™ Jedi Knight: Jedi Academy™",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
+		"package":      "openjk-6020.tar.xz",
+		"command":      "./openjk_sp.x86_64"
 	},
 	"6030": {
-		"game_name":	"STAR WARS™ Jedi Knight II: Jedi Outcast™",
-		"package_url":	"https://luxtorpeda.gitlab.io/packages/openjk/",
-		"package":	"openjk-6030.tar.xz",
-		"command":	"./openjo_sp.x86_64"
+		"game_name":    "STAR WARS™ Jedi Knight II: Jedi Outcast™",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
+		"package":      "openjk-6030.tar.xz",
+		"command":      "./openjo_sp.x86_64"
+	},
+	"7650": {
+		"game_name":    "X-COM: Terror from the Deep",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/openxcom/",
+		"package":      "openxcom-7650.tar.xz",
+		"command":      "./openxcom.sh"
 	},
 	"7760": {
-		"game_name":	"X-COM: UFO Defense",
-		"package_url":	"https://luxtorpeda.gitlab.io/packages/openxcom/",
-		"package":	"dist.tar.xz",
-		"command":	"./openxcom.sh"
+		"game_name":    "X-COM: UFO Defense",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/openxcom/",
+		"package":      "openxcom-7760.tar.xz",
+		"command":      "./openxcom.sh"
 	},
 	"698780": {
-		"game_name":	"Doki Doki Literature Club",
-		"command":	"./DDLC.sh"
+		"game_name":    "Doki Doki Literature Club",
+		"command":      "./DDLC.sh"
 	}
 }
