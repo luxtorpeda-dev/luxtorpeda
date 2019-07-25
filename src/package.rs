@@ -26,7 +26,8 @@ pub fn is_cached(app_id: &str) -> bool {
             if game_info["package"].is_null() {
                 false
             } else {
-                find_cached_file(app_id, "dist.tar.xz").is_some()
+                let package = game_info["package"].to_string();
+                find_cached_file(app_id, &package).is_some()
             }
         }
         None => false,
@@ -53,6 +54,8 @@ pub fn download(app_id: &str) -> io::Result<()> {
     let package = game_info["package"].to_string();
     let target = url + &package;
 
+    // TODO handle 404 and other errors
+    //
     match reqwest::get(target.as_str()) {
         Ok(mut response) => {
             let dest_file = place_cached_file(app_id, &package)?;
