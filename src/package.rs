@@ -21,11 +21,19 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
 }
 
 pub fn is_cached(app_id: &str) -> bool {
-    find_cached_file(app_id, "dist.tar.xz").is_some()
+    match get_game_info(app_id) {
+        Some(game_info) => {
+            if game_info["package"].is_null() {
+                false
+            } else {
+                find_cached_file(app_id, "dist.tar.xz").is_some()
+            }
+        }
+        None => false,
+    }
 }
 
 pub fn download(app_id: &str) -> io::Result<()> {
-
     let game_info = get_game_info(app_id)
         .ok_or(Error::new(ErrorKind::Other, "missing info about this game"))?;
 

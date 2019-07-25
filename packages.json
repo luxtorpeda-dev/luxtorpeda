@@ -9,8 +9,14 @@
 	"6020": {
 		"game_name":	"STAR WARS™ Jedi Knight: Jedi Academy™",
 		"package_url":	"https://luxtorpeda.gitlab.io/packages/openjk/",
-		"package":	"dist.tar.xz",
+		"package":	"openjk-6020.tar.xz",
 		"command":	"./openjk_sp.x86_64"
+	},
+	"6030": {
+		"game_name":	"STAR WARS™ Jedi Knight II: Jedi Outcast™",
+		"package_url":	"https://luxtorpeda.gitlab.io/packages/openjk/",
+		"package":	"openjk-6030.tar.xz",
+		"command":	"./openjo_sp.x86_64"
 	},
 	"7760": {
 		"game_name":	"X-COM: UFO Defense",
