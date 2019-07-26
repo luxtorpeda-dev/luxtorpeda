@@ -1,4 +1,7 @@
-image: rust:1.36-buster
+image: rust:1.36-stretch
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/cargo
 
 stages:
   - build
@@ -8,4 +11,9 @@ Build:
   before_script:
   - rustc --version
   - cargo --version
-  script: echo hello
+  script: make release
+
+cache:
+  paths:
+    - cargo/
+    - target/
