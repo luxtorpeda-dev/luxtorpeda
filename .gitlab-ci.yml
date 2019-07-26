@@ -1,0 +1,8 @@
+image: rust/1.36-buster
+
+stages:
+  - build
+
+Build:
+  stage: build
+  script: make release
