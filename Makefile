@@ -1,5 +1,12 @@
 .PHONY: build test clean doc user-install user-uninstall
 
+# These variables are used to generate compatibilitytool.vdf:
+#
+tool_name             = luxtorpeda
+tool_name_dev         = luxtorpeda_dev
+tool_name_display     = Luxtorpeda
+tool_name_display_dev = Luxtorpeda (dev)
+
 # Default names for installation directories:
 #
 tool_dir     = luxtorpeda
@@ -39,30 +46,38 @@ clean:
 doc:
 	cargo doc --document-private-items --open
 
+target/debug/compatibilitytool.vdf: compatibilitytool.template
+	sed 's/%name%/$(tool_name_dev)/; s/%display_name%/$(tool_name_display_dev)/' $< > $@
+
+target/release/compatibilitytool.vdf: compatibilitytool.template
+	sed 's/%name%/$(tool_name)/; s/%display_name%/$(tool_name_display)/' $< > $@
+
 target/debug/%: %
 	cp --reflink=auto $< $@
 
 target/release/%: %
 	cp --reflink=auto $< $@
 
-$(tool_dir).tar.xz: release \
-	            target/release/compatibilitytool.vdf \
-	            target/release/toolmanifest.vdf \
-	            target/release/packages.json \
-	            target/release/LICENSE \
-	            target/release/README.md
+$(tool_dir).tar.xz: \
+		release \
+		target/release/compatibilitytool.vdf \
+		target/release/toolmanifest.vdf \
+		target/release/packages.json \
+		target/release/LICENSE \
+		target/release/README.md
 	mkdir -p $(tool_dir)
 	cd target/release && cp --reflink=auto -t ../../$(tool_dir) $(files)
 	strip luxtorpeda/luxtorpeda
 	tar -cJf $@ $(tool_dir)
 	rm -rf $(tool_dir)
 
-user-install: build \
-	      target/debug/compatibilitytool.vdf \
-	      target/debug/toolmanifest.vdf \
-	      target/debug/packages.json \
-	      target/debug/LICENSE \
-	      target/debug/README.md
+user-install: \
+		build \
+		target/debug/compatibilitytool.vdf \
+		target/debug/toolmanifest.vdf \
+		target/debug/packages.json \
+		target/debug/LICENSE \
+		target/debug/README.md
 	mkdir -p $(dev_install_dir)
 	cd target/debug && cp --reflink=auto -t $(dev_install_dir) $(files)
 

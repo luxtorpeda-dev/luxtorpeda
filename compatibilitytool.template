@@ -2,10 +2,10 @@
 {
   "compat_tools"
   {
-    "luxtorpeda_dev" // Internal name of this tool
+    "%name%" // Internal name of this tool
     {
       "install_path" "."
-      "display_name" "Luxtorpeda (dev)"
+      "display_name" "%display_name%"
       "from_oslist"  "windows"
       "to_oslist"    "linux"
     }
