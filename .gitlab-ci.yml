@@ -1,8 +1,11 @@
-image: rust/1.36-buster
+image: rust:1.36-buster
 
 stages:
   - build
 
 Build:
   stage: build
-  script: make release
+  before_script:
+  - rustc --version
+  - cargo --version
+  script: echo hello
