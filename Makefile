@@ -42,6 +42,21 @@ doc:
 target/debug/%: %
 	cp --reflink=auto $< $@
 
+target/release/%: %
+	cp --reflink=auto $< $@
+
+$(tool_dir).tar.xz: release \
+	            target/release/compatibilitytool.vdf \
+	            target/release/toolmanifest.vdf \
+	            target/release/packages.json \
+	            target/release/LICENSE \
+	            target/release/README.md
+	mkdir -p $(tool_dir)
+	cd target/release && cp --reflink=auto -t ../../$(tool_dir) $(files)
+	strip luxtorpeda/luxtorpeda
+	tar -cJf $@ $(tool_dir)
+	rm -rf $(tool_dir)
+
 user-install: build \
 	      target/debug/compatibilitytool.vdf \
 	      target/debug/toolmanifest.vdf \
