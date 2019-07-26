@@ -18,12 +18,14 @@ Build:
   artifacts:
     paths:
     - luxtorpeda.tar.xz
+    expire_in: 1 day
 
 pages:
   stage: publish
   script:
-  - mkdir public
-  - cp luxtorpeda.tar.xz public/
+  - mkdir -p public/master
+  - echo "deployed $(date)" > public/master/index.html
+  - cp luxtorpeda.tar.xz public/master/
   artifacts:
     paths:
     - public
