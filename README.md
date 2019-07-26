@@ -6,6 +6,8 @@ Compatibility tool to run games on Steam using native Linux engines; [project ov
 
 This is a sister project of [steam-dos](https://github.com/dreamer/steam-dos/).
 
+![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
+
 Official mirrors:
 [GitHub](https://github.com/dreamer/luxtorpeda),
 [GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
