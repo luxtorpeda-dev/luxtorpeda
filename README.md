@@ -2,7 +2,7 @@
 
 [![luxtorpeda discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
 
-Compatibility tool to run games on Steam using native Linux engines. [Read more.](https://github.com/dreamer/steam-dos/wiki/Luxtorpeda)
+Compatibility tool to run games on Steam using native Linux engines; [project overview](https://github.com/dreamer/luxtorpeda/wiki).
 
 This is a sister project of [steam-dos](https://github.com/dreamer/steam-dos/).
 
