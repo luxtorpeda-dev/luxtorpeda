@@ -10,11 +10,27 @@ Official mirrors:
 [GitHub](https://github.com/dreamer/luxtorpeda),
 [GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
 
+## Pre-requisites
+
+Compatibility tool will work on any modern 64-bit Linux distribution.
+All packaged games are compiled for Steam Runtime environment and require no
+additional dependencies. **Native Runtime is not supported.**
+
 ## Installation (using tarball)
 
-TBD
+*This is pre-release quality software, expect bugs and missing features*
 
-## Installation (from source)
+1. Close Steam.
+2. Download and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
+
+        $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
+        $ curl -L https://luxtorpeda.gitlab.io/luxtorpeda/master/luxtorpeda.tar.xz | tar xJf -
+
+3. Start Steam.
+4. In game properties window select "Force the use of a specific Steam Play
+   compatibility tool" and select "Luxtorpeda".
+
+## Installation (debug build, from source)
 
 0. Download the latest version of Rust: https://www.rust-lang.org/
 1. Close Steam.
