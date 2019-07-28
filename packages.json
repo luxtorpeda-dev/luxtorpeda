@@ -4,7 +4,7 @@
 		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
 		"package":      "dist.tar.xz",
 		"command":      "./ioquake3.x86_64",
-		"command_args": "+r_mode -2"
+		"command_args": ["+r_mode", "-2"]
 	},
 	"6020": {
 		"game_name":    "STAR WARS™ Jedi Knight: Jedi Academy™",
@@ -41,7 +41,7 @@
 		"package_url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
 		"package":      "dhewm3-9070.tar.xz",
 		"command":      "./dhewm3",
-		"command_args": "+set fs_game d3xp"
+		"command_args": ["+set", "fs_game", "d3xp"]
 	},
 	"698780": {
 		"game_name":    "Doki Doki Literature Club",

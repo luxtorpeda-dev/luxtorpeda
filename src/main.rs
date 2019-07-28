@@ -17,6 +17,15 @@ fn usage() {
     println!("usage: lux [run | wait-before-run] <exe> [<exe_args>]");
 }
 
+fn json_to_args(game_info: &json::JsonValue) -> Vec<String> {
+    let args = &game_info["command_args"];
+    args.members()
+        .map(|j| j.as_str())
+        .skip_while(|o| o.is_none())
+        .map(|j| j.unwrap().to_string())
+        .collect()
+}
+
 fn run(args: &[&str]) -> io::Result<()> {
     if args.is_empty() {
         usage();
@@ -36,7 +45,7 @@ fn run(args: &[&str]) -> io::Result<()> {
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
     println!("exe: {:?}", exe);
-    println!("args: {:?}", exe_args);
+    // println!("args: {:?}", exe_args);
     println!("steam_app_id: {:?}", &app_id);
 
     let packages_json_file = user_env::tool_dir().join("packages.json");
@@ -60,7 +69,10 @@ fn run(args: &[&str]) -> io::Result<()> {
         Err(Error::new(ErrorKind::Other, "No command line defined"))
     } else {
         let new_cmd = game_info["command"].to_string();
+        let cmd_args = json_to_args(game_info);
+        println!("run: \"{}\" with args: {:?}", new_cmd, cmd_args);
         Command::new(new_cmd)
+            .args(cmd_args)
             .status()
             .expect("failed to execute process");
         Ok(())
