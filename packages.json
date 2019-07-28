@@ -32,11 +32,13 @@
 	},
         "9050": {
 		"game_name":    "DOOM 3",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
 		"package":      "dhewm3-9050.tar.xz",
 		"command":      "./dhewm3"
 	},
 	"9070": {
-		"game_name":    "DOOM 3 EXP",
+		"game_name":    "DOOM 3: Resurrection of Evil",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
 		"package":      "dhewm3-9070.tar.xz",
 		"command":      "./dhewm3",
 		"command_args": "+set fs_game d3xp"
