@@ -30,6 +30,17 @@
 		"package":      "openxcom-7760.tar.xz",
 		"command":      "./openxcom.sh"
 	},
+        "9050": {
+		"game_name":    "DOOM 3",
+		"package":      "dhewm3-9050.tar.xz",
+		"command":      "./dhewm3"
+	},
+	"9070": {
+		"game_name":    "DOOM 3 EXP",
+		"package":      "dhewm3-9070.tar.xz",
+		"command":      "./dhewm3",
+		"command_args": "+set fs_game d3xp"
+	},
 	"698780": {
 		"game_name":    "Doki Doki Literature Club",
 		"command":      "./DDLC.sh"
