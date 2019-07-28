@@ -40,11 +40,13 @@ New instructions:
 
 1. Go to: https://gitlab.com/luxtorpeda/packages/ and create a new project
 2. Name it the same way as mirrored repo you want to build
-3. Set Visibility to Public
+3. Set
+   Visibility Level: Public
+   Initialize with a README: NO
 4. In locally cloned package-template repo:
 
    git remote add NAME git@gitlab.com:luxtorpeda/packages/NAME.git
-   git push openjk master
+   git push NAME master
 
 5. Add NAME to `all_packages` in `init-packages.sh`; run the script
 6. Go to new package repo and continue using instructions from
