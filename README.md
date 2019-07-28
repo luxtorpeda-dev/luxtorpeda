@@ -55,6 +55,8 @@ additional dependencies. **Native Runtime is not supported.**
 | [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | *Single player only; in development*
 | [X-COM: UFO Defense](https://store.steampowered.com/app/7760/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) |
 | [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) |
+| [DOOM 3](https://store.steampowered.com/app/9050/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) |
+| [DOOM 3: Resurrection of Evil](https://store.steampowered.com/app/9070/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) |
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | *Using Linux version bundled with Windows version*
 
 Want more games? [Make a feature request](https://github.com/dreamer/luxtorpeda/issues/new) or [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
