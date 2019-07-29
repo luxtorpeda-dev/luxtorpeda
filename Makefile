@@ -25,6 +25,8 @@ else
 	data_home := ${XDG_DATA_HOME}
 endif
 
+STRIP := strip
+
 PREFIX := /usr/local
 
 install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
@@ -76,9 +78,9 @@ $(tool_dir): \
 		target/release/README.md
 	mkdir -p $(tool_dir)
 	cd target/release && cp --reflink=auto -t ../../$(tool_dir) $(files)
-	strip luxtorpeda/luxtorpeda
 
 $(tool_dir).tar.xz: $(tool_dir)
+	$(STRIP) luxtorpeda/luxtorpeda
 	tar -cJf $@ $(tool_dir)
 
 install: $(tool_dir)
