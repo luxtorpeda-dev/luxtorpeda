@@ -42,6 +42,8 @@ test:
 
 clean:
 	cargo clean
+	rm -rf $(tool_dir)
+	rm -f $(tool_dir).tar.xz
 
 doc:
 	cargo doc --document-private-items --open
@@ -58,7 +60,7 @@ target/debug/%: %
 target/release/%: %
 	cp --reflink=auto $< $@
 
-$(tool_dir).tar.xz: \
+$(tool_dir): \
 		release \
 		target/release/compatibilitytool.vdf \
 		target/release/toolmanifest.vdf \
@@ -68,8 +70,9 @@ $(tool_dir).tar.xz: \
 	mkdir -p $(tool_dir)
 	cd target/release && cp --reflink=auto -t ../../$(tool_dir) $(files)
 	strip luxtorpeda/luxtorpeda
+
+$(tool_dir).tar.xz: $(tool_dir)
 	tar -cJf $@ $(tool_dir)
-	rm -rf $(tool_dir)
 
 user-install: \
 		build \
