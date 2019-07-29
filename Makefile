@@ -1,4 +1,4 @@
-.PHONY: build test clean doc user-install user-uninstall
+.PHONY: all build test clean doc install user-install user-uninstall
 
 # These variables are used to generate compatibilitytool.vdf:
 #
@@ -32,8 +32,6 @@ PREFIX := /usr/local
 install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
 
 dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
-
-.PHONY: all
 
 all: release
 
