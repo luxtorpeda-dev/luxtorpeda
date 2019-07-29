@@ -25,8 +25,15 @@ else
 	data_home := ${XDG_DATA_HOME}
 endif
 
+PREFIX := /usr/local
+
+install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
+
 dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
 
+.PHONY: all
+
+all: release
 
 build:
 	cargo build
@@ -73,6 +80,10 @@ $(tool_dir): \
 
 $(tool_dir).tar.xz: $(tool_dir)
 	tar -cJf $@ $(tool_dir)
+
+install: $(tool_dir)
+	mkdir -p $(install_dir)
+	cp -av $(tool_dir)/* $(install_dir)/
 
 user-install: \
 		build \
