@@ -76,9 +76,9 @@ $(tool_dir): \
 		target/release/README.md
 	mkdir -p $(tool_dir)
 	cd target/release && cp --reflink=auto -t ../../$(tool_dir) $(files)
+	$(STRIP) luxtorpeda/luxtorpeda
 
 $(tool_dir).tar.xz: $(tool_dir)
-	$(STRIP) luxtorpeda/luxtorpeda
 	tar -cJf $@ $(tool_dir)
 
 install: $(tool_dir)
