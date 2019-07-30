@@ -1,4 +1,11 @@
 {
+	"123": {
+		"game_name":    "Example",
+		"commands": {
+			".*foo": { "cmd": "true" },
+			".*bar": { "cmd": "echo", "args": ["bar"]}
+		}
+	},
 	"2200": {
 		"game_name":    "Quake III Arena",
 		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",

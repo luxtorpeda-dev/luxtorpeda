@@ -2,6 +2,7 @@
 extern crate lazy_static;
 extern crate json;
 
+use regex::Regex;
 use std::env;
 use std::fs;
 use std::io;
@@ -17,13 +18,37 @@ fn usage() {
     println!("usage: lux [run | wait-before-run] <exe> [<exe_args>]");
 }
 
-fn json_to_args(game_info: &json::JsonValue) -> Vec<String> {
-    let args = &game_info["command_args"];
+fn json_to_args(args: &json::JsonValue) -> Vec<String> {
     args.members()
         .map(|j| j.as_str())
         .skip_while(|o| o.is_none())
         .map(|j| j.unwrap().to_string())
         .collect()
+}
+
+fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, Vec<String>)> {
+    if !info["command"].is_null() {
+        let new_prog = info["command"].to_string();
+        let new_args = json_to_args(&info["command_args"]);
+        return Some((new_prog, new_args));
+    }
+
+    if info["commands"].is_null() {
+        return None;
+    }
+
+    let cmds = &info["commands"];
+    let orig_cmd = args.join(" ");
+    for (expr, new_cmd) in cmds.entries() {
+        let re = Regex::new(expr).unwrap(); // TODO get rid of .unwrap
+        if re.is_match(&orig_cmd) {
+            let new_prog = new_cmd["cmd"].to_string();
+            let new_args = json_to_args(&new_cmd["args"]);
+            return Some((new_prog, new_args));
+        }
+    }
+
+    None
 }
 
 fn run(args: &[&str]) -> io::Result<()> {
@@ -42,11 +67,10 @@ fn run(args: &[&str]) -> io::Result<()> {
     let _pid_file = pid_file::new()?;
     let app_id = user_env::steam_app_id();
 
+    println!("steam_app_id: {:?}", &app_id);
+    println!("original command: {:?}", args);
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
-    println!("exe: {:?}", exe);
-    // println!("args: {:?}", exe_args);
-    println!("steam_app_id: {:?}", &app_id);
 
     let packages_json_file = user_env::tool_dir().join("packages.json");
     let json_str = fs::read_to_string(packages_json_file)?;
@@ -65,17 +89,16 @@ fn run(args: &[&str]) -> io::Result<()> {
         package::install(zip)?;
     }
 
-    if game_info["command"].is_null() {
-        Err(Error::new(ErrorKind::Other, "No command line defined"))
-    } else {
-        let new_cmd = game_info["command"].to_string();
-        let cmd_args = json_to_args(game_info);
-        println!("run: \"{}\" with args: {:?}", new_cmd, cmd_args);
-        Command::new(new_cmd)
-            .args(cmd_args)
-            .status()
-            .expect("failed to execute process");
-        Ok(())
+    match find_game_command(game_info, args) {
+        None => Err(Error::new(ErrorKind::Other, "No command line defined")),
+        Some((cmd, cmd_args)) => {
+            println!("run: \"{}\" with args: {:?}", cmd, cmd_args);
+            Command::new(cmd)
+                .args(cmd_args)
+                .status()
+                .expect("failed to execute process");
+            Ok(())
+        }
     }
 }
 
