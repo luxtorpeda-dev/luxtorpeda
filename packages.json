@@ -37,6 +37,21 @@
 		"package":      "openxcom-7760.tar.xz",
 		"command":      "./openxcom.sh"
 	},
+        "9010": {
+		"game_name":    "Return to Castle Wolfenstein",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/iortcw/",
+		"package":      "iortcw-9010.tar.xz",
+		"commands": {
+			".*WolfSP.exe": {
+				"cmd": "./iowolfsp.x86_64",
+				"args": ["+set", "com_basegame", "Main"]
+			},
+			".*WolfMP.exe": {
+				"cmd": "./iowolfmp.x86_64",
+				"args": ["+set", "com_basegame", "Main"]
+			}
+		}
+	},
         "9050": {
 		"game_name":    "DOOM 3",
 		"package_url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
