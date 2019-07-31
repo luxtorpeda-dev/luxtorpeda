@@ -4,7 +4,7 @@
 
 Compatibility tool to run games on Steam using native Linux engines; [project overview](https://github.com/dreamer/luxtorpeda/wiki).
 
-This is a sister project of [steam-dos](https://github.com/dreamer/steam-dos/).
+This is a sister project of [Boxtron](https://github.com/dreamer/boxtron/).
 
 ![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
 
