@@ -48,6 +48,9 @@ additional dependencies. **Native Runtime is not supported.**
 
 ## Supported titles
 
+Just click "Play" and Luxtorpeda will download and install the package for you.
+You need to select Luxtorpeda as a compatibility tool first, of course.
+
 | Game | Engine | Package | Comments
 |:---	|---	  |---	     |---
 | [Quake III Arena](https://store.steampowered.com/app/2200/) | [ioquake3](https://ioquake3.org/) | [link](https://luxtorpeda.gitlab.io/packages/ioq3/) |
