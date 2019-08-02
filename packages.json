@@ -6,6 +6,49 @@
 		"command":      "./ioquake3.x86_64",
 		"command_args": ["+r_mode", "-2"]
 	},
+	"2280": {
+		"game_name":    "The Ultimate DOOM",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+		"package":      "gzdoom-2280.tar.xz",
+		"command":      "./gzdoom",
+		"command_args": ["-iwad", "base/DOOM.WAD"]
+	},
+	"2290": {
+		"game_name":    "Final DOOM",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+		"package":      "gzdoom-2290.tar.xz",
+		"commands": {
+			".*plutoniam?.conf": {
+				"cmd": "./gzdoom",
+				"args": ["-iwad", "base/PLUTONIA.WAD"]
+			},
+			".*tntm?.conf": {
+				"cmd": "./gzdoom",
+				"args": ["-iwad", "base/TNT.WAD"]
+			}
+		}
+	},
+	"2300": {
+		"game_name":    "DOOM II: Hell on Earth",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+		"package":      "gzdoom-2300.tar.xz",
+		"command":      "./gzdoom",
+		"command_args": ["-iwad", "base/DOOM2.WAD"]
+	},
+	"2360": {
+		"game_name":    "HeXen: Beyond Heretic",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+		"package":      "gzdoom-2360.tar.xz",
+		"command":      "./gzdoom",
+		"command_args": ["-iwad", "base/HEXEN.WAD"]
+	},
+	"2390": {
+		"game_name":    "Heretic: Shadow of the Serpent Riders",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+		"package":      "gzdoom-2390.tar.xz",
+		"command":      "./gzdoom",
+		"command_args": ["-iwad", "base/HERETIC.WAD"]
+	},
 	"6020": {
 		"game_name":    "STAR WARS™ Jedi Knight: Jedi Academy™",
 		"package_url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
