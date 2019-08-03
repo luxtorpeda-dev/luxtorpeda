@@ -14,12 +14,13 @@ repo_name () {
 
 readonly dhewm3_url=git@github.com:dhewm/dhewm3.git
 readonly gzdoom_url=git@github.com:coelckers/gzdoom.git
-readonly iortcw_url=git@github.com:iortcw/iortcw.git
 readonly ioq3_url=git@github.com:ioquake/ioq3.git
+readonly iortcw_url=git@github.com:iortcw/iortcw.git
 readonly openjk_url=git@github.com:JACoders/OpenJK.git
+readonly openmw_url=git@gitlab.com:OpenMW/openmw.git
 readonly openxcom_url=git@github.com:OpenXcom/OpenXcom.git
 
-readonly all_projects="$dhewm3_url $gzdoom_url $iortcw_url $ioq3_url $openjk_url $openxcom_url"
+readonly all_projects="$dhewm3_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openxcom_url"
 
 # set -x
 
@@ -42,6 +43,7 @@ for project_url in $all_projects ; do
 	git clone "$project_url" "$repo_name"
 	git -C "$repo_name" remote add gitlab "$mirror_url"
  	git -C "$repo_name" push gitlab master
+	echo
 done
 
 # syncing
@@ -52,4 +54,5 @@ for project_url in $all_projects ; do
 	git -C "$repo_name" fetch --all
 	git -C "$repo_name" push --force gitlab origin/master:master
  	git -C "$repo_name" push --tags gitlab
+	echo
 done
