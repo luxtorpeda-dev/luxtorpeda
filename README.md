@@ -64,6 +64,8 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [Final Doom](https://store.steampowered.com/app/2290/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
 | [Doom 3](https://store.steampowered.com/app/9050/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) | |
 | [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) | |
+| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
+| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | | *Using Linux version bundled with Windows version*
 
 Want more games? [Make a feature request](https://github.com/dreamer/luxtorpeda/issues/new) or [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
