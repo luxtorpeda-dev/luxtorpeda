@@ -51,20 +51,20 @@ additional dependencies. **Native Runtime is not supported.**
 Just click "Play" and Luxtorpeda will download and install the package for you.
 You need to select Luxtorpeda as a compatibility tool first, of course.
 
-| Game | Engine | Package | Comments
-|:---	|---	  |---	     |---
-| [Quake III Arena](https://store.steampowered.com/app/2200/) | [ioquake3](https://ioquake3.org/) | [link](https://luxtorpeda.gitlab.io/packages/ioq3/) |
-| [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | *Single player only for now*
-| [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | *Single player only; in development*
-| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) |
-| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) |
-| [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/) | [iortcw](https://github.com/iortcw/iortcw) | [link](https://luxtorpeda.gitlab.io/packages/iortcw/) | *Both SP and MP*
-| [DOOM (1993)](https://store.steampowered.com/app/2280/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | *4.1.3-1; Vulkan renderer disabled*
-| [DOOM II](https://store.steampowered.com/app/2300/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | *4.1.3-1; Vulkan renderer disabled*
-| [Final DOOM](https://store.steampowered.com/app/2290/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | *4.1.3-1; Vulkan renderer disabled*
-| [DOOM 3](https://store.steampowered.com/app/9050/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) |
-| [DOOM 3: Resurrection of Evil](https://store.steampowered.com/app/9070/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) |
-| [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | *Using Linux version bundled with Windows version*
+| Game | Engine | Package | Version | Comments
+|---   |---     |---	  |---      |---
+| [Quake III Arena](https://store.steampowered.com/app/2200/) | [ioquake3](https://ioquake3.org/) | [link](https://luxtorpeda.gitlab.io/packages/ioq3/) | |
+| [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only for now*
+| [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only; in development*
+| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | |
+| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | |
+| [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/) | [iortcw](https://github.com/iortcw/iortcw) | [link](https://luxtorpeda.gitlab.io/packages/iortcw/) | | *Both SP and MP*
+| [DOOM (1993)](https://store.steampowered.com/app/2280/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
+| [DOOM II](https://store.steampowered.com/app/2300/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
+| [Final DOOM](https://store.steampowered.com/app/2290/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
+| [DOOM 3](https://store.steampowered.com/app/9050/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) | |
+| [DOOM 3: Resurrection of Evil](https://store.steampowered.com/app/9070/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) | |
+| [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | | *Using Linux version bundled with Windows version*
 
 Want more games? [Make a feature request](https://github.com/dreamer/luxtorpeda/issues/new) or [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
 
