@@ -2,9 +2,16 @@
 	"2200": {
 		"game_name":    "Quake III Arena",
 		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
-		"package":      "dist.tar.xz",
+		"package":      "ioq3-2200.tar.xz",
 		"command":      "./ioquake3.x86_64",
 		"command_args": ["+r_mode", "-2"]
+	},
+	"2350": {
+		"game_name":    "Quake III: Team Arena",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
+		"package":      "ioq3-2350.tar.xz",
+		"command":      "./ioquake3.x86_64",
+		"command_args": ["+r_mode", "-2", "+set", "fs_game", "missionpack"]
 	},
 	"2280": {
 		"game_name":    "The Ultimate DOOM",
