@@ -9,7 +9,7 @@ repo_name () {
 	lowercase "$(basename "${url%.git}")"
 }
 
-readonly all_packages="ioq3 iortcw openjk openxcom"
+readonly all_packages="arxlibertatis dhewm3 gzdoom ioq3 iortcw openjk openmw openxcom"
 
 # set -x
 
@@ -29,6 +29,8 @@ fi
 for name in $all_packages ; do
 	if [ ! -d "$name" ] ; then
 		git clone git@gitlab.com:luxtorpeda/packages/${name}.git
-		# TODO submodule init, possibly with --reference
+		git -C "$name" remote add template git@gitlab.com:luxtorpeda/package-template.git
+		git -C "$name" submodule init
+		git -C "$name" fetch --all
 	fi
 done
