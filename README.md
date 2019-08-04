@@ -53,7 +53,7 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 
 | Game | Engine | Package | Version | Comments
 |---   |---     |---	  |---      |---
-| [Quake III Arena](https://store.steampowered.com/app/2200/) | [ioquake3](https://ioquake3.org/) | [link](https://luxtorpeda.gitlab.io/packages/ioq3/) | |
+| [Quake III Arena](https://store.steampowered.com/app/2200/) | [ioquake3](https://ioquake3.org/) | [link](https://luxtorpeda.gitlab.io/packages/ioq3/) | [a96f32](https://github.com/ioquake/ioq3/tree/a96f32eba2ed01f0a7ad8a321d1863e8ef43da3d) |
 | [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only for now*
 | [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only; in development*
 | [X-COM: UFO Defense](https://store.steampowered.com/app/7760/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | |
