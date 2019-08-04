@@ -67,6 +67,7 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
 | [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | | *Using Linux version bundled with Windows version*
+| [Arx Fatalis](https://store.steampowered.com/app/1700/) | [Arx Libertatis](https://arx-libertatis.org/) | [link](https://luxtorpeda.gitlab.io/packages/arxlibertatis/) | | 
 
 Want more games? [Make a feature request](https://github.com/dreamer/luxtorpeda/issues/new) or [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
 

@@ -104,5 +104,11 @@
 	"698780": {
 		"game_name":    "Doki Doki Literature Club",
 		"command":      "./DDLC.sh"
+	},
+	"1700": {
+		"game_name":    "Arx Fatalis",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
+		"package":      "arxlibertatis-1700.tar.xz",
+		"command":      "./arx"
 	}
 }
