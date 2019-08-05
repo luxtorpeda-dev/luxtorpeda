@@ -53,7 +53,6 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 
 | Game                                                                              | Engine                                             | Version    | Comments
 |---                                                                                |---                                                 |---         |---
-| [Arx Fatalis](https://store.steampowered.com/app/1700/)                           | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) |            | 
 | [Quake III Arena](https://store.steampowered.com/app/2200/)                       | [ioquake3](https://ioquake3.org/)                  | a96f32     |
 | [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/)             | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only for now*
 | [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/)          | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only; in development*
