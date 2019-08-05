@@ -56,8 +56,8 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [Quake III Arena](https://store.steampowered.com/app/2200/) | [ioquake3](https://ioquake3.org/) | [link](https://luxtorpeda.gitlab.io/packages/ioq3/) | [a96f32](https://github.com/ioquake/ioq3/tree/a96f32eba2ed01f0a7ad8a321d1863e8ef43da3d) |
 | [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only for now*
 | [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only; in development*
-| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | |
-| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | |
+| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | v1.0-2830 |
+| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | v1.0-2830 |
 | [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/) | [iortcw](https://github.com/iortcw/iortcw) | [link](https://luxtorpeda.gitlab.io/packages/iortcw/) | | *Both SP and MP*
 | [Doom (1993)](https://store.steampowered.com/app/2280/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *"The Ultimate DOOM"; Vulkan renderer disabled*
 | [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
@@ -67,9 +67,14 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
 | [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | | *Using Linux version bundled with Windows version*
-| [Arx Fatalis](https://store.steampowered.com/app/1700/) | [Arx Libertatis](https://arx-libertatis.org/) | [link](https://luxtorpeda.gitlab.io/packages/arxlibertatis/) | | 
+| [Arx Fatalis](https://store.steampowered.com/app/1700/) | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) | [link](https://luxtorpeda.gitlab.io/packages/arxlibertatis/) | | 
 
-Want more games? [Make a feature request](https://github.com/dreamer/luxtorpeda/issues/new) or [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
+Want a specific game? Maybe we are
+[already working on it](https://github.com/dreamer/luxtorpeda/wiki/Game-engines#on-agenda-wip-and-supported-engines).
+You can also
+[make a package request](https://github.com/dreamer/luxtorpeda/issues/new),
+or
+[create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
 
 ## Development
 
