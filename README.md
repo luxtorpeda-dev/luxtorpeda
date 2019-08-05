@@ -51,23 +51,23 @@ additional dependencies. **Native Runtime is not supported.**
 Just click "Play" and Luxtorpeda will download and install the package for you.
 You need to select Luxtorpeda as a compatibility tool first, of course.
 
-| Game | Engine | Package | Version | Comments
-|---   |---     |---	  |---      |---
-| [Quake III Arena](https://store.steampowered.com/app/2200/) | [ioquake3](https://ioquake3.org/) | [link](https://luxtorpeda.gitlab.io/packages/ioq3/) | [a96f32](https://github.com/ioquake/ioq3/tree/a96f32eba2ed01f0a7ad8a321d1863e8ef43da3d) |
-| [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only for now*
-| [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/) | [OpenJK](https://github.com/JACoders/OpenJK) | [link](https://luxtorpeda.gitlab.io/packages/openjk/) | | *Single player only; in development*
-| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | v1.0-2830 |
-| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/) | [OpenXcom](https://openxcom.org/) | [link](https://luxtorpeda.gitlab.io/packages/openxcom/) | v1.0-2830 |
-| [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/) | [iortcw](https://github.com/iortcw/iortcw) | [link](https://luxtorpeda.gitlab.io/packages/iortcw/) | | *Both SP and MP*
-| [Doom (1993)](https://store.steampowered.com/app/2280/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *"The Ultimate DOOM"; Vulkan renderer disabled*
-| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
-| [Final Doom](https://store.steampowered.com/app/2290/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
-| [Doom 3](https://store.steampowered.com/app/9050/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) | 1.5.1-PRE1 |
-| [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/) | [dhewm3](https://dhewm3.org/) | [link](https://luxtorpeda.gitlab.io/packages/dhewm3/) | 1.5.1-PRE1 |
-| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
-| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/) | [GZDoom](https://zdoom.org/) | [link](https://luxtorpeda.gitlab.io/packages/gzdoom/) | 4.1.3-1 | *Vulkan renderer disabled*
-| [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/) | [Ren'Py](https://www.renpy.org/) | N/A | | *Using Linux version bundled with Windows version*
-| [Arx Fatalis](https://store.steampowered.com/app/1700/) | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) | [link](https://luxtorpeda.gitlab.io/packages/arxlibertatis/) | | 
+| Game                                                                              | Engine                                             | Version    | Comments
+|---                                                                                |---                                                 |---         |---
+| [Arx Fatalis](https://store.steampowered.com/app/1700/)                           | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) |            | 
+| [Quake III Arena](https://store.steampowered.com/app/2200/)                       | [ioquake3](https://ioquake3.org/)                  | a96f32     |
+| [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/)             | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only for now*
+| [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/)          | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only; in development*
+| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/)                    | [OpenXcom](https://openxcom.org/)                  | v1.0-2830  |
+| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/)           | [OpenXcom](https://openxcom.org/)                  | v1.0-2830  |
+| [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/)          | [iortcw](https://github.com/iortcw/iortcw)         |            | *Both SP and MP*
+| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *"The Ultimate DOOM"; Vulkan renderer disabled*
+| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
+| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
+| [Doom 3](https://store.steampowered.com/app/9050/)                                | [dhewm3](https://dhewm3.org/)                      | 1.5.1-PRE1 |
+| [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/)          | [dhewm3](https://dhewm3.org/)                      | 1.5.1-PRE1 |
+| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
+| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
+| [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                   |            | *Using Linux version bundled with Windows version*
 
 Want a specific game? Maybe we are
 [already working on it](https://github.com/dreamer/luxtorpeda/wiki/Game-engines#on-agenda-wip-and-supported-engines).
