@@ -56,9 +56,9 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [Quake III Arena](https://store.steampowered.com/app/2200/)                       | [ioquake3](https://ioquake3.org/)                  | a96f32     |
 | [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/)             | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only for now*
 | [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/)          | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only; in development*
-| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/)                    | [OpenXcom](https://openxcom.org/)                  | v1.0-2830  |
-| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/)           | [OpenXcom](https://openxcom.org/)                  | v1.0-2830  |
-| [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/)          | [iortcw](https://github.com/iortcw/iortcw)         |            | *Both SP and MP*
+| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/)                    | [OpenXcom](https://openxcom.org/)                  | 1.0-2830   |
+| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/)           | [OpenXcom](https://openxcom.org/)                  | 1.0-2830   |
+| [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/)          | [iortcw](https://github.com/iortcw/iortcw)         | 1.51c      | *Both SP and MP*
 | [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *"The Ultimate DOOM"; Vulkan renderer disabled*
 | [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
 | [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
