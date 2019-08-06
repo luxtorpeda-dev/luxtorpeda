@@ -1,4 +1,16 @@
 {
+	"1700": {
+		"game_name":    "Arx Fatalis",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
+		"package":      "arxlibertatis-1700.tar.xz",
+		"command":      "./arx"
+	},
+	"1710": {
+		"game_name":    "Arx Fatalis (Demo)",
+		"package_url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
+		"package":      "arxlibertatis-1700.tar.xz",
+		"command":      "./arx"
+	},
 	"2200": {
 		"game_name":    "Quake III Arena",
 		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
@@ -111,11 +123,5 @@
 	"698780": {
 		"game_name":    "Doki Doki Literature Club",
 		"command":      "./DDLC.sh"
-	},
-	"1700": {
-		"game_name":    "Arx Fatalis",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
-		"package":      "arxlibertatis-1700.tar.xz",
-		"command":      "./arx"
 	}
 }
