@@ -33,8 +33,6 @@ install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
 
 dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
 
-all: release
-
 build:
 	cargo build
 

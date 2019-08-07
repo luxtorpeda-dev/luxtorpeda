@@ -92,9 +92,10 @@ fn run(args: &[&str]) -> io::Result<()> {
     match find_game_command(game_info, args) {
         None => Err(Error::new(ErrorKind::Other, "No command line defined")),
         Some((cmd, cmd_args)) => {
-            println!("run: \"{}\" with args: {:?}", cmd, cmd_args);
+            println!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
             Command::new(cmd)
                 .args(cmd_args)
+                .args(exe_args)
                 .status()
                 .expect("failed to execute process");
             Ok(())
