@@ -5,6 +5,7 @@ use std::io;
 use std::io::{Error, ErrorKind};
 
 use crate::package;
+use crate::ipc;
 
 fn extract_steam_app_id(input: &str) -> Option<&str> {
     lazy_static! {
@@ -12,11 +13,6 @@ fn extract_steam_app_id(input: &str) -> Option<&str> {
     }
     RE.captures(input)
         .and_then(|cap| cap.name("id").map(|x| x.as_str()))
-}
-
-fn print_description(_app_id: String) -> io::Result<()> {
-    println!("0/1: <luxtorpeda game package>");
-    Ok(())
 }
 
 fn download(app_id: String) -> io::Result<()> {
@@ -31,7 +27,8 @@ pub fn iscriptevaluator(args: &[&str]) -> io::Result<()> {
     match args {
         ["--get-current-step", steam_app_id] => {
             let app_id = steam_app_id.to_string();
-            print_description(app_id)
+            ipc::query_status(app_id);
+            Ok(())
         }
         [script_vdf] => {
             let steam_app_id = extract_steam_app_id(script_vdf);

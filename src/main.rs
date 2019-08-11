@@ -10,6 +10,7 @@ use std::io::{Error, ErrorKind};
 use std::process::Command;
 
 mod fakescripteval;
+mod ipc;
 mod package;
 mod pid_file;
 mod user_env;

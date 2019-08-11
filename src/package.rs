@@ -1,12 +1,16 @@
 extern crate reqwest;
 
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
 use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::process::Command;
+use std::thread;
 
 use crate::user_env;
+use crate::ipc;
 
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
@@ -48,15 +52,29 @@ pub fn download(app_id: &str) -> io::Result<()> {
         return Err(Error::new(ErrorKind::Other, "missing package name"));
     }
 
+    let (tx, rx): (Sender<ipc::StatusMsg>, Receiver<ipc::StatusMsg>) = mpsc::channel();
+
+    let app = String::from(app_id);
+    let status_relay = thread::spawn(move || {
+        ipc::status_relay(rx, app);
+    });
+
     println!("downloading package for app_id {:}", app_id);
 
     let url = game_info["package_url"].to_string();
     let package = game_info["package"].to_string();
     let target = url + &package;
 
+    // update status
+    //
+    match tx.send(ipc::StatusMsg::Status(0, 1, package.clone())) {
+        Ok(()) => {},
+        Err(e) => { print!("err: {}", e); },
+    }
+
     // TODO handle 404 and other errors
     //
-    match reqwest::get(target.as_str()) {
+    let err = match reqwest::get(target.as_str()) {
         Ok(mut response) => {
             let dest_file = place_cached_file(app_id, &package)?;
             let mut dest = fs::File::create(dest_file)?;
@@ -67,7 +85,18 @@ pub fn download(app_id: &str) -> io::Result<()> {
             println!("download err: {:?}", err);
             Err(Error::new(ErrorKind::Other, "download error"))
         }
-    }
+    };
+
+    // stop relay thread
+    //
+    match tx.send(ipc::StatusMsg::Done) {
+        Ok(()) => {},
+        Err(e) => { print!("err: {}", e); },
+    };
+
+    status_relay.join().expect("status relay thread panicked");
+
+    err
 }
 
 pub fn install(package: String) -> io::Result<()> {
