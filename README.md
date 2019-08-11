@@ -53,21 +53,21 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 
 | Game                                                                              | Engine                                             | Version    | Comments
 |---                                                                                |---                                                 |---         |---
-| [Arx Fatalis](https://store.steampowered.com/app/1700/)                           | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) | db77aa     | *Does not work on Intel GPUs*
-| [Arx Fatalis (Demo)](https://store.steampowered.com/app/1710/)                    | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) | db77aa     | **(Free to play)** *Does not work on Intel GPUs*
+| [Arx Fatalis](https://store.steampowered.com/app/1700/)                           | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) | db77aa     | *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
+| [Arx Fatalis (Demo)](https://store.steampowered.com/app/1710/)                    | [Arx&nbsp;Libertatis](https://arx-libertatis.org/) | db77aa     | **(Free to play)** *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
 | [Quake III Arena](https://store.steampowered.com/app/2200/)                       | [ioquake3](https://ioquake3.org/)                  | a96f32     |
-| [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/)             | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only for now*
-| [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/)          | [OpenJK](https://github.com/JACoders/OpenJK)       |            | *Single player only; in development*
+| [Jedi Knight: Jedi Academy](https://store.steampowered.com/app/6020/)             | [OpenJK](https://github.com/JACoders/OpenJK)       | e8b5c1     | *Single player only for now*
+| [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/)          | [OpenJK](https://github.com/JACoders/OpenJK)       | e8b5c1     | *Single player only; in development*
 | [X-COM: UFO Defense](https://store.steampowered.com/app/7760/)                    | [OpenXcom](https://openxcom.org/)                  | 1.0-2830   |
 | [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/)           | [OpenXcom](https://openxcom.org/)                  | 1.0-2830   |
 | [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/)          | [iortcw](https://github.com/iortcw/iortcw)         | 1.51c      | *Both SP and MP*
-| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *"The Ultimate DOOM"; Vulkan renderer disabled*
-| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
-| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
+| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *"The Ultimate DOOM"; Vulkan renderer disabled for now: [#35](https://github.com/dreamer/luxtorpeda/issues/35)*
+| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled for now: [#35](https://github.com/dreamer/luxtorpeda/issues/35)*
+| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled for now: [#35](https://github.com/dreamer/luxtorpeda/issues/35)*
 | [Doom 3](https://store.steampowered.com/app/9050/)                                | [dhewm3](https://dhewm3.org/)                      | 1.5.1-PRE1 |
 | [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/)          | [dhewm3](https://dhewm3.org/)                      | 1.5.1-PRE1 |
-| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
-| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled*
+| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled for now: [#35](https://github.com/dreamer/luxtorpeda/issues/35)*
+| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                       | 4.1.3-1    | *Vulkan renderer disabled for now: [#35](https://github.com/dreamer/luxtorpeda/issues/35)*
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                   |            | *Using Linux version bundled with Windows version*
 
 Want a specific game? Maybe we are
