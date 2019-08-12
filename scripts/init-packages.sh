@@ -22,14 +22,14 @@ echo "Using dir: $(pwd)"
 
 # initializing:
 
-if [ ! -d package-template ] ; then
-	git clone git@gitlab.com:luxtorpeda/package-template.git
+if [ ! -d template ] ; then
+	git clone git@gitlab.com:luxtorpeda/packages/template.git
 fi
 
 for name in $all_packages ; do
 	if [ ! -d "$name" ] ; then
-		git clone git@gitlab.com:luxtorpeda/packages/${name}.git
-		git -C "$name" remote add template git@gitlab.com:luxtorpeda/package-template.git
+		git clone "git@gitlab.com:luxtorpeda/packages/${name}.git"
+		git -C "$name" remote add template git@gitlab.com:luxtorpeda/packages/template.git
 		git -C "$name" submodule init
 		git -C "$name" fetch --all
 	fi
