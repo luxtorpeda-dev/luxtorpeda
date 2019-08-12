@@ -18,9 +18,10 @@ readonly ioq3_url=git@github.com:ioquake/ioq3.git
 readonly iortcw_url=git@github.com:iortcw/iortcw.git
 readonly openjk_url=git@github.com:JACoders/OpenJK.git
 readonly openmw_url=git@gitlab.com:OpenMW/openmw.git
+readonly openrct2_url=git@github.com:OpenRCT2/OpenRCT2.git
 readonly openxcom_url=git@github.com:OpenXcom/OpenXcom.git
 
-readonly all_projects="$dhewm3_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openxcom_url"
+readonly all_projects="$dhewm3_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url"
 
 # set -x
 
@@ -42,6 +43,7 @@ for project_url in $all_projects ; do
 	echo "Cloning $project_url"
 	git clone "$project_url" "$repo_name"
 	git -C "$repo_name" remote add gitlab "$mirror_url"
+	git -C "$repo_name" checkout master
  	git -C "$repo_name" push gitlab master
 	echo
 done
