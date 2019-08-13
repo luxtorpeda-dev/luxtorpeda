@@ -13,6 +13,7 @@ repo_name () {
 }
 
 readonly dhewm3_url=git@github.com:dhewm/dhewm3.git
+readonly eternaljk_url=git@github.com:eternalcodes/EternalJK.git
 readonly gzdoom_url=git@github.com:coelckers/gzdoom.git
 readonly ioq3_url=git@github.com:ioquake/ioq3.git
 readonly iortcw_url=git@github.com:iortcw/iortcw.git
@@ -21,7 +22,7 @@ readonly openmw_url=git@gitlab.com:OpenMW/openmw.git
 readonly openrct2_url=git@github.com:OpenRCT2/OpenRCT2.git
 readonly openxcom_url=git@github.com:OpenXcom/OpenXcom.git
 
-readonly all_projects="$dhewm3_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url"
+readonly all_projects="$dhewm3_url $eternaljk_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url"
 
 # set -x
 
