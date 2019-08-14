@@ -21,8 +21,9 @@ readonly openjk_url=git@github.com:JACoders/OpenJK.git
 readonly openmw_url=git@gitlab.com:OpenMW/openmw.git
 readonly openrct2_url=git@github.com:OpenRCT2/OpenRCT2.git
 readonly openxcom_url=git@github.com:OpenXcom/OpenXcom.git
+readonly regoth_url=git@github.com:REGoth-project/REGoth-bs.git
 
-readonly all_projects="$dhewm3_url $eternaljk_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url"
+readonly all_projects="$dhewm3_url $eternaljk_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url $regoth_url"
 
 # set -x
 
