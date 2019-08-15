@@ -125,21 +125,34 @@ fn download(app_id: &str, info: PackageInfo) -> io::Result<()> {
     }
 }
 
-pub fn install(package: String) -> io::Result<()> {
+pub fn install() -> io::Result<()> {
     let app_id = user_env::steam_app_id();
-    match find_cached_file(&app_id, &package) {
-        Some(path) => {
-            Command::new("tar")
-                .arg("xJf")
-                .arg(path)
-                .arg("--strip-components=1")
-                .arg("dist")
-                .status()
-                .expect("package installation failed");
-            Ok(())
+
+    let game_info = get_game_info(app_id.as_str())
+        .ok_or(Error::new(ErrorKind::Other, "missing info about this game"))?;
+
+    let packages: Vec<String> = game_info["download"]
+        .members()
+        .map(|j| j["file"].to_string())
+        .collect();
+
+    for file in packages {
+        match find_cached_file(&app_id, &file) {
+            Some(path) => {
+                Command::new("tar")
+                    .arg("xJf")
+                    .arg(path)
+                    .arg("--strip-components=1")
+                    .arg("dist")
+                    .status()
+                    .expect("package installation failed");
+            }
+            None => {
+                return Err(Error::new(ErrorKind::Other, "package file not found"));
+            }
         }
-        None => Err(Error::new(ErrorKind::Other, "package file not found")),
     }
+    Ok(())
 }
 
 pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
