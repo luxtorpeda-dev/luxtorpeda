@@ -40,6 +40,11 @@
                 "name": "ioquake3",
                 "url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
                 "file": "ioq3-2350.tar.xz"
+            },
+            {
+                "name": "Patch Data",
+                "url":  "https://luxtorpeda.gitlab.io/files/idstuff/quake3/",
+                "file": "quake3ta-latest-pk3s.tar.xz"
             }
         ],
         "command": "./ioquake3.x86_64",
