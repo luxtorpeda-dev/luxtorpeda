@@ -4,8 +4,8 @@ use regex::Regex;
 use std::io;
 use std::io::{Error, ErrorKind};
 
-use crate::package;
 use crate::ipc;
+use crate::package;
 
 fn extract_steam_app_id(input: &str) -> Option<&str> {
     lazy_static! {
@@ -14,7 +14,6 @@ fn extract_steam_app_id(input: &str) -> Option<&str> {
     RE.captures(input)
         .and_then(|cap| cap.name("id").map(|x| x.as_str()))
 }
-
 
 pub fn iscriptevaluator(args: &[&str]) -> io::Result<()> {
     match args {

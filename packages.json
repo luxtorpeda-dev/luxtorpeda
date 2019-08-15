@@ -77,16 +77,16 @@
 				"file": "openjk-6020.tar.xz"
 			},
 			{
-				"name":    "EternalJK",
-				"url":     "https://luxtorpeda.gitlab.io/packages/eternaljk/",
-				"package": "eternaljk-6020.tar.xz"
+				"name": "EternalJK",
+				"url":  "https://luxtorpeda.gitlab.io/packages/eternaljk/",
+				"file": "eternaljk-6020.tar.xz"
 			}
 		],
 		"commands": {
-			".*": {
+			".*jasp.exe": {
 				"cmd": "./openjk_sp.x86_64"
 			},
-			".*": {
+			".*jamp.exe": {
 				"cmd": "./eternaljk.x86_64"
 			}
 		}
