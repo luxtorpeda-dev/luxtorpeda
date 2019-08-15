@@ -1,12 +1,10 @@
-use std::time;
 use std::fs;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc;
-
-use std::os::unix::net::{UnixStream, UnixListener};
-use std::path::PathBuf;
-
 use std::io::prelude::*;
+use std::os::unix::net::{UnixListener, UnixStream};
+use std::path::PathBuf;
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::time;
 
 pub enum StatusMsg {
     Status(i32, i32, String),
@@ -31,7 +29,7 @@ pub fn query_status(app_id: String) {
 
     let mut status = String::new();
     stream.read_to_string(&mut status).unwrap();
-    print!("{}", status);  // "0/1: <luxtorpeda game package>"
+    print!("{}", status); // "0/1: <luxtorpeda game package>"
 }
 
 pub fn status_relay(rx: Receiver<StatusMsg>, app_id: String) {
@@ -47,14 +45,15 @@ pub fn status_relay(rx: Receiver<StatusMsg>, app_id: String) {
         Ok(l) => l,
     };
 
-    listener.set_nonblocking(true).expect("Couldn't set non blocking");
+    listener
+        .set_nonblocking(true)
+        .expect("Couldn't set non blocking");
 
     let mut msg = String::from("");
 
     loop {
-
         match rx.recv_timeout(time::Duration::from_millis(20)) {
-            Err(mpsc::RecvTimeoutError::Timeout) => {},
+            Err(mpsc::RecvTimeoutError::Timeout) => {}
             Ok(StatusMsg::Status(i, n, name)) => {
                 msg = format!("{}/{}: {}", i, n, name);
                 println!("got {}", msg);
@@ -64,13 +63,11 @@ pub fn status_relay(rx: Receiver<StatusMsg>, app_id: String) {
         }
 
         match listener.accept() {
-            Ok((mut stream, _)) => {
-                match stream.write_all(msg.as_bytes()) {
-                    Err(e) => println!("send err: {}", e),
-                    Ok(()) => {},
-                }
+            Ok((mut stream, _)) => match stream.write_all(msg.as_bytes()) {
+                Err(e) => println!("send err: {}", e),
+                Ok(()) => {}
             },
-            _ => {},
+            _ => {}
         }
     }
 

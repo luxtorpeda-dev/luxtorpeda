@@ -4,8 +4,8 @@ use regex::Regex;
 use std::io;
 use std::io::{Error, ErrorKind};
 
-use crate::package;
 use crate::ipc;
+use crate::package;
 
 fn extract_steam_app_id(input: &str) -> Option<&str> {
     lazy_static! {
@@ -13,14 +13,6 @@ fn extract_steam_app_id(input: &str) -> Option<&str> {
     }
     RE.captures(input)
         .and_then(|cap| cap.name("id").map(|x| x.as_str()))
-}
-
-fn download(app_id: String) -> io::Result<()> {
-    if package::is_cached(&app_id) {
-        Ok(())
-    } else {
-        package::download(&app_id)
-    }
 }
 
 pub fn iscriptevaluator(args: &[&str]) -> io::Result<()> {
@@ -33,7 +25,7 @@ pub fn iscriptevaluator(args: &[&str]) -> io::Result<()> {
         [script_vdf] => {
             let steam_app_id = extract_steam_app_id(script_vdf);
             match steam_app_id {
-                Some(app_id) => download(app_id.to_string()),
+                Some(app_id) => package::download_all(app_id.to_string()),
                 None => Err(Error::new(ErrorKind::Other, "Unknown app_id")),
             }
         }

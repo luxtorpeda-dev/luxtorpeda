@@ -85,9 +85,8 @@ fn run(args: &[&str]) -> io::Result<()> {
     println!("json:");
     println!("{:#}", game_info);
 
-    if !game_info["package"].is_null() {
-        let zip = game_info["package"].to_string();
-        package::install(zip)?;
+    if !game_info["download"].is_null() {
+        package::install()?;
     }
 
     match find_game_command(game_info, args) {
