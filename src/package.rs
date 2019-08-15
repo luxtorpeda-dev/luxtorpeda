@@ -79,16 +79,18 @@ pub fn download_all(app_id: String) -> io::Result<()> {
     });
 
     let mut err = Ok(());
+    let mut i = 0;
+    let n = downloads.len() as i32;
     for info in downloads {
         // update status
         //
-        match tx.send(ipc::StatusMsg::Status(0, 1, info.name.clone())) {
-            // TODO: 0/1 ??????
+        match tx.send(ipc::StatusMsg::Status(i, n, info.name.clone())) {
             Ok(()) => {}
             Err(e) => {
                 print!("err: {}", e);
             }
         }
+        i += 1;
         err = download(app_id.as_str(), info);
     }
 
