@@ -1,144 +1,219 @@
 {
-	"1700": {
-		"game_name":    "Arx Fatalis",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
-		"package":      "arxlibertatis-1700.tar.xz",
-		"command":      "./arx"
-	},
-	"1710": {
-		"game_name":    "Arx Fatalis (Demo)",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
-		"package":      "arxlibertatis-1700.tar.xz",
-		"command":      "./arx"
-	},
-	"2200": {
-		"game_name":    "Quake III Arena",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
-		"package":      "ioq3-2200.tar.xz",
-		"command":      "./ioquake3.x86_64",
-		"command_args": ["+r_mode", "-2"]
-	},
-	"2350": {
-		"game_name":    "Quake III: Team Arena",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
-		"package":      "ioq3-2350.tar.xz",
-		"command":      "./ioquake3.x86_64",
-		"command_args": ["+r_mode", "-2", "+set", "fs_game", "missionpack"]
-	},
-	"2280": {
-		"game_name":    "The Ultimate DOOM",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
-		"package":      "gzdoom-2280.tar.xz",
-		"command":      "./gzdoom",
-		"command_args": ["-iwad", "base/DOOM.WAD"]
-	},
-	"2290": {
-		"game_name":    "Final DOOM",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
-		"package":      "gzdoom-2290.tar.xz",
-		"commands": {
-			".*plutoniam?.conf": {
-				"cmd": "./gzdoom",
-				"args": ["-iwad", "base/PLUTONIA.WAD"]
-			},
-			".*tntm?.conf": {
-				"cmd": "./gzdoom",
-				"args": ["-iwad", "base/TNT.WAD"]
-			}
-		}
-	},
-	"2300": {
-		"game_name":    "DOOM II: Hell on Earth",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
-		"package":      "gzdoom-2300.tar.xz",
-		"command":      "./gzdoom",
-		"command_args": ["-iwad", "base/DOOM2.WAD"]
-	},
-	"2360": {
-		"game_name":    "HeXen: Beyond Heretic",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
-		"package":      "gzdoom-2360.tar.xz",
-		"command":      "./gzdoom",
-		"command_args": ["-iwad", "base/HEXEN.WAD"]
-	},
-	"2390": {
-		"game_name":    "Heretic: Shadow of the Serpent Riders",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
-		"package":      "gzdoom-2390.tar.xz",
-		"command":      "./gzdoom",
-		"command_args": ["-iwad", "base/HERETIC.WAD"]
-	},
-	"6020": {
-		"game_name":    "STAR WARS™ Jedi Knight: Jedi Academy™",
-		"download": [
-			{
-				"name": "OpenJK",
-				"url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
-				"file": "openjk-6020.tar.xz"
-			},
-			{
-				"name": "EternalJK",
-				"url":  "https://luxtorpeda.gitlab.io/packages/eternaljk/",
-				"file": "eternaljk-6020.tar.xz"
-			}
-		],
-		"commands": {
-			".*jasp.exe": {
-				"cmd": "./openjk_sp.x86_64"
-			},
-			".*jamp.exe": {
-				"cmd": "./eternaljk.x86_64"
-			}
-		}
-	},
-	"6030": {
-		"game_name":    "STAR WARS™ Jedi Knight II: Jedi Outcast™",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
-		"package":      "openjk-6030.tar.xz",
-		"command":      "./openjo_sp.x86_64"
-	},
-	"7650": {
-		"game_name":    "X-COM: Terror from the Deep",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/openxcom/",
-		"package":      "openxcom-7650.tar.xz",
-		"command":      "./openxcom.sh"
-	},
-	"7760": {
-		"game_name":    "X-COM: UFO Defense",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/openxcom/",
-		"package":      "openxcom-7760.tar.xz",
-		"command":      "./openxcom.sh"
-	},
-        "9010": {
-		"game_name":    "Return to Castle Wolfenstein",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/iortcw/",
-		"package":      "iortcw-9010.tar.xz",
-		"commands": {
-			".*WolfSP.exe": {
-				"cmd": "./iowolfsp.x86_64",
-				"args": ["+set", "com_basegame", "Main"]
-			},
-			".*WolfMP.exe": {
-				"cmd": "./iowolfmp.x86_64",
-				"args": ["+set", "com_basegame", "Main"]
-			}
-		}
-	},
-        "9050": {
-		"game_name":    "DOOM 3",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
-		"package":      "dhewm3-9050.tar.xz",
-		"command":      "./dhewm3"
-	},
-	"9070": {
-		"game_name":    "DOOM 3: Resurrection of Evil",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
-		"package":      "dhewm3-9070.tar.xz",
-		"command":      "./dhewm3",
-		"command_args": ["+set", "fs_game", "d3xp"]
-	},
-	"698780": {
-		"game_name":    "Doki Doki Literature Club",
-		"command":      "./DDLC.sh"
-	}
+    "1700": {
+        "game_name": "Arx Fatalis",
+        "download": [
+            {
+                "name": "Arx Libertatis",
+                "url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
+                "file": "arxlibertatis-1700.tar.xz"
+            }
+        ],
+        "command": "./arx"
+    },
+    "1710": {
+        "game_name": "Arx Fatalis (Demo)",
+        "download": [
+            {
+                "name": "Arx Libertatis",
+                "url":  "https://luxtorpeda.gitlab.io/packages/arxlibertatis/",
+                "file": "arxlibertatis-1700.tar.xz"
+            }
+        ],
+        "command": "./arx"
+    },
+    "2200": {
+        "game_name": "Quake III Arena",
+        "download": [
+            {
+                "name": "ioquake3",
+                "url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
+                "file": "ioq3-2200.tar.xz"
+            }
+        ],
+        "command": "./ioquake3.x86_64",
+        "command_args": ["+r_mode", "-2"]
+    },
+    "2350": {
+        "game_name": "Quake III: Team Arena",
+        "download": [
+            {
+                "name": "ioquake3",
+                "url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
+                "file": "ioq3-2350.tar.xz"
+            }
+        ],
+        "command": "./ioquake3.x86_64",
+        "command_args": ["+r_mode", "-2", "+set", "fs_game", "missionpack"]
+    },
+    "2280": {
+        "game_name": "The Ultimate DOOM",
+        "download": [
+            {
+                "name": "GZDoom",
+                "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+                "file": "gzdoom-2280.tar.xz"
+            }
+        ],
+        "command": "./gzdoom",
+        "command_args": ["-iwad", "base/DOOM.WAD"]
+    },
+    "2290": {
+        "game_name": "Final DOOM",
+        "download": [
+            {
+                "name": "GZDoom",
+                "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+                "file": "gzdoom-2290.tar.xz"
+            }
+        ],
+        "commands": {
+            ".*plutoniam?.conf": {
+                "cmd": "./gzdoom",
+                "args": ["-iwad", "base/PLUTONIA.WAD"]
+            },
+            ".*tntm?.conf": {
+                "cmd": "./gzdoom",
+                "args": ["-iwad", "base/TNT.WAD"]
+            }
+        }
+    },
+    "2300": {
+        "game_name": "DOOM II: Hell on Earth",
+        "download": [
+            {
+                "name": "GZDoom",
+                "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+                "file": "gzdoom-2300.tar.xz"
+            }
+        ],
+        "command": "./gzdoom",
+        "command_args": ["-iwad", "base/DOOM2.WAD"]
+    },
+    "2360": {
+        "game_name": "HeXen: Beyond Heretic",
+        "download": [
+            {
+                "name": "GZDoom",
+                "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+                "file": "gzdoom-2360.tar.xz"
+            }
+        ],
+        "command": "./gzdoom",
+        "command_args": ["-iwad", "base/HEXEN.WAD"]
+    },
+    "2390": {
+        "game_name": "Heretic: Shadow of the Serpent Riders",
+        "download": [
+            {
+                "name": "GZDoom",
+                "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
+                "file": "gzdoom-2390.tar.xz"
+            }
+        ],
+        "command": "./gzdoom",
+        "command_args": ["-iwad", "base/HERETIC.WAD"]
+    },
+    "6020": {
+        "game_name": "STAR WARS™ Jedi Knight: Jedi Academy™",
+        "download": [
+            {
+                "name": "OpenJK",
+                "url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
+                "file": "openjk-6020.tar.xz"
+            },
+            {
+                "name": "EternalJK",
+                "url":  "https://luxtorpeda.gitlab.io/packages/eternaljk/",
+                "file": "eternaljk-6020.tar.xz"
+            }
+        ],
+        "commands": {
+            ".*jasp.exe": {
+                "cmd": "./openjk_sp.x86_64"
+            },
+            ".*jamp.exe": {
+                "cmd": "./eternaljk.x86_64"
+            }
+        }
+    },
+    "6030": {
+        "game_name": "STAR WARS™ Jedi Knight II: Jedi Outcast™",
+        "download": [
+            {
+                "name": "OpenJK",
+                "url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
+                "file": "openjk-6030.tar.xz"
+            }
+        ],
+        "command": "./openjo_sp.x86_64"
+    },
+    "7650": {
+        "game_name": "X-COM: Terror from the Deep",
+        "download": [
+            {
+                "name": "OpenXcom",
+                "url":  "https://luxtorpeda.gitlab.io/packages/openxcom/",
+                "file": "openxcom-7650.tar.xz"
+            }
+        ],
+        "command": "./openxcom.sh"
+    },
+    "7760": {
+        "game_name": "X-COM: UFO Defense",
+        "download": [
+            {
+                "name": "OpenXcom",
+                "url":  "https://luxtorpeda.gitlab.io/packages/openxcom/",
+                "file": "openxcom-7760.tar.xz"
+            }
+        ],
+        "command": "./openxcom.sh"
+    },
+    "9010": {
+        "game_name": "Return to Castle Wolfenstein",
+        "download": [
+            {
+                "name": "iortcw",
+                "url":  "https://luxtorpeda.gitlab.io/packages/iortcw/",
+                "file": "iortcw-9010.tar.xz"
+            }
+        ],
+        "commands": {
+            ".*WolfSP.exe": {
+                "cmd": "./iowolfsp.x86_64",
+                "args": ["+set", "com_basegame", "Main"]
+            },
+            ".*WolfMP.exe": {
+                "cmd": "./iowolfmp.x86_64",
+                "args": ["+set", "com_basegame", "Main"]
+            }
+        }
+    },
+    "9050": {
+        "game_name": "DOOM 3",
+        "download": [
+            {
+                "name": "dhewm3",
+                "url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
+                "file": "dhewm3-9050.tar.xz"
+            }
+        ],
+        "command": "./dhewm3"
+    },
+    "9070": {
+        "game_name": "DOOM 3: Resurrection of Evil",
+        "download": [
+            {
+                "name": "dhewm3",
+                "url":  "https://luxtorpeda.gitlab.io/packages/dhewm3/",
+                "file": "dhewm3-9070.tar.xz"
+            }
+        ],
+        "command": "./dhewm3",
+        "command_args": ["+set", "fs_game", "d3xp"]
+    },
+    "698780": {
+        "game_name": "Doki Doki Literature Club",
+        "command": "./DDLC.sh"
+    }
 }
