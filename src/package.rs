@@ -24,7 +24,7 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
     xdg_dirs.find_cache_file(path_str)
 }
 
-pub fn is_cached(app_id: &str) -> bool {
+fn is_cached(app_id: &str) -> bool {
     match get_game_info(app_id) {
         Some(game_info) => {
             if game_info["package"].is_null() {
@@ -38,7 +38,15 @@ pub fn is_cached(app_id: &str) -> bool {
     }
 }
 
-pub fn download(app_id: &str) -> io::Result<()> {
+pub fn download_all(app_id: String) -> io::Result<()> {
+    if is_cached(&app_id) {
+        Ok(())
+    } else {
+        download(&app_id)
+    }
+}
+
+fn download(app_id: &str) -> io::Result<()> {
     let game_info = get_game_info(app_id)
         .ok_or(Error::new(ErrorKind::Other, "missing info about this game"))?;
 

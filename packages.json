@@ -70,13 +70,18 @@
 	},
 	"6020": {
 		"game_name":    "STAR WARS™ Jedi Knight: Jedi Academy™",
-
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
-		"package":      "openjk-6020.tar.xz",
-
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/eternaljk/",
-		"package":      "eternaljk-6020.tar.xz",
-
+		"download": [
+			{
+				"name": "OpenJK",
+				"url":  "https://luxtorpeda.gitlab.io/packages/openjk/",
+				"file": "openjk-6020.tar.xz"
+			},
+			{
+				"name":    "EternalJK",
+				"url":     "https://luxtorpeda.gitlab.io/packages/eternaljk/",
+				"package": "eternaljk-6020.tar.xz"
+			}
+		],
 		"commands": {
 			".*": {
 				"cmd": "./openjk_sp.x86_64"
