@@ -37,11 +37,17 @@
         "game_name": "Quake",
         "download": [
             {
-                "name": "vkquake",
+                "name": "vkQuake",
                 "url":  "https://luxtorpeda.gitlab.io/packages/vkquake/",
                 "file": "vkquake-2310.tar.xz"
+            },
+            {
+                "name": "Quake Soundtrack",
+                "url":  "https://luxtorpeda.gitlab.io/files/idstuff/quake/",
+                "file": "quake-campaign-soundtrack.tar.xz"
             }
-        ],        "command": "./vkquake"
+        ],
+        "command": "./vkquake.sh"
     },
     "2350": {
         "game_name": "Quake III: Team Arena",

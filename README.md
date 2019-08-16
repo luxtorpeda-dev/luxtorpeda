@@ -55,6 +55,7 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 |---                                                                                |---                                                     |---                  |---
 | [Arx Fatalis](https://store.steampowered.com/app/1700/)                           | [Arx&nbsp;Libertatis](https://arx-libertatis.org/)     | `db77aa`            | *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
 | [Arx Fatalis (Demo)](https://store.steampowered.com/app/1710/)                    | [Arx&nbsp;Libertatis](https://arx-libertatis.org/)     | `db77aa`            | **(Free to play)** *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
+| [Quake](https://store.steampowered.com/app/2310/)                                 | [vkQuake](https://github.com/Novum/vkQuake)            | `1.02.1`            | *Single-player only for now, fixed music*
 | [Quake III Arena](https://store.steampowered.com/app/2200/)                       | [ioquake3](https://ioquake3.org/)                      | `a96f32`            |
 | [Quake III: Team Arena](https://store.steampowered.com/app/2350/)                 | [ioquake3](https://ioquake3.org/)                      | `a96f32`            |
 | [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/)          | [OpenJK](https://github.com/JACoders/OpenJK)           | `e8b5c1`            | *Single-player only for now*
