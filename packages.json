@@ -33,6 +33,16 @@
         "command": "./ioquake3.x86_64",
         "command_args": ["+r_mode", "-2"]
     },
+    "2310": {
+        "game_name": "Quake",
+        "download": [
+            {
+                "name": "vkquake",
+                "url":  "https://luxtorpeda.gitlab.io/packages/vkquake/",
+                "file": "vkquake-2310.tar.xz"
+            }
+        ],        "command": "./vkquake"
+    },
     "2350": {
         "game_name": "Quake III: Team Arena",
         "download": [
