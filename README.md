@@ -70,7 +70,7 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/)          | [dhewm3](https://dhewm3.org/)                          | `1.5.1-PRE1`        |
 | [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                           | `4.2.0`             |
 | [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                           | `4.2.0`             |
-| [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                       |                     | *Using Linux version bundled with Windows version*
+| [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                       |                     | **(Free to play)** *Using Linux version bundled with Windows version*
 
 Want a specific game? Maybe we are
 [already working on it](https://github.com/dreamer/luxtorpeda/wiki/Game-engines#on-agenda-wip-and-supported-engines).
