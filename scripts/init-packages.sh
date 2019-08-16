@@ -9,7 +9,7 @@ repo_name () {
 	lowercase "$(basename "${url%.git}")"
 }
 
-readonly all_packages="arxlibertatis dhewm3 eternaljk gzdoom ioq3 iortcw openjk openmw openrct2 openxcom"
+readonly all_packages="arxlibertatis dhewm3 eternaljk gzdoom ioq3 iortcw openjk openmw openrct2 openxcom vkquake"
 
 # set -x
 

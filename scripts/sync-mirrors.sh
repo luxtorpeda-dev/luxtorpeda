@@ -22,8 +22,9 @@ readonly openmw_url=git@gitlab.com:OpenMW/openmw.git
 readonly openrct2_url=git@github.com:OpenRCT2/OpenRCT2.git
 readonly openxcom_url=git@github.com:OpenXcom/OpenXcom.git
 readonly regoth_url=git@github.com:REGoth-project/REGoth-bs.git
+readonly vkquake_url=git@github.com:Novum/vkQuake.git
 
-readonly all_projects="$dhewm3_url $eternaljk_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url $regoth_url"
+readonly all_projects="$dhewm3_url $eternaljk_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url $regoth_url $vkquake_url"
 
 # set -x
 
