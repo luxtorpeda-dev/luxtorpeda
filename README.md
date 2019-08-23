@@ -1,10 +1,13 @@
 # Luxtorpeda
 
-[![luxtorpeda discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
+[![Luxtorpeda project Discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/dreamer)
 
 Steam Play compatibility tool to run games using native Linux engines; [project overview](https://github.com/dreamer/luxtorpeda/wiki).
 
-This is a sister project of [Boxtron](https://github.com/dreamer/boxtron/).
+This is a sister project of
+[Boxtron](https://github.com/dreamer/boxtron/) and
+[Roberta](https://github.com/dreamer/roberta).
 
 ![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
 
