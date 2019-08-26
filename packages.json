@@ -233,6 +233,17 @@
         "command": "./dhewm3",
         "command_args": ["+set", "fs_game", "d3xp"]
     },
+    "22320": {
+        "game_name": "The Elder Scrolls III: Morrowind",
+        "download": [
+            {
+                "name": "OpenMW",
+                "url":  "https://luxtorpeda.gitlab.io/packages/openmw/",
+                "file": "openmw-22320.tar.xz"
+            }
+        ],
+        "command": "./openmw.sh"
+    },
     "698780": {
         "game_name": "Doki Doki Literature Club",
         "command": "./DDLC.sh"
