@@ -58,6 +58,7 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 
 | Game                                                                              | Engine                                                 | Engine&nbsp;Version | Comments
 |---                                                                                |---                                                     |---                  |---
+| [The Elder Scrolls III: Morrowind](https://store.steampowered.com/app/22320/)     | [OpenMW](https://openmw.org/)                          | `0.45.0`            | *Missing GUI mod launcher for now: [#17](https://github.com/dreamer/luxtorpeda/issues/17)*
 | [Arx Fatalis](https://store.steampowered.com/app/1700/)                           | [Arx&nbsp;Libertatis](https://arx-libertatis.org/)     | `db77aa`            | *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
 | [Arx Fatalis (Demo)](https://store.steampowered.com/app/1710/)                    | [Arx&nbsp;Libertatis](https://arx-libertatis.org/)     | `db77aa`            | **(Free to play)** *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
 | [Quake](https://store.steampowered.com/app/2310/)                                 | [vkQuake](https://github.com/Novum/vkQuake)            | `1.02.1`            | *Single-player only for now, fixed music*
