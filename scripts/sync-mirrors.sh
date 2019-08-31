@@ -12,6 +12,7 @@ repo_name () {
 	lowercase "$(basename "${url%.git}")"
 }
 
+readonly ags_url=git@github.com:adventuregamestudio/ags.git
 readonly dhewm3_url=git@github.com:dhewm/dhewm3.git
 readonly eternaljk_url=git@github.com:eternalcodes/EternalJK.git
 readonly gzdoom_url=git@github.com:coelckers/gzdoom.git
@@ -24,7 +25,7 @@ readonly openxcom_url=git@github.com:OpenXcom/OpenXcom.git
 readonly regoth_url=git@github.com:REGoth-project/REGoth-bs.git
 readonly vkquake_url=git@github.com:Novum/vkQuake.git
 
-readonly all_projects="$dhewm3_url $eternaljk_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url $regoth_url $vkquake_url"
+readonly all_projects="$ags_url $dhewm3_url $eternaljk_url $gzdoom_url $ioq3_url $iortcw_url $openjk_url $openmw_url $openrct2_url $openxcom_url $regoth_url $vkquake_url"
 
 # set -x
 
