@@ -1,9 +1,11 @@
 extern crate reqwest;
 
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
@@ -24,10 +26,31 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
     xdg_dirs.find_cache_file(path_str)
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CmdReplacement {
+    #[serde(with = "serde_regex")]
+    match_cmd: Regex,
+    cmd: String,
+    args: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PackageMetadata {
+    engine_version: String,
+    commands: Vec<CmdReplacement>,
+}
+
 struct PackageInfo {
     name: String,
     url: String,
     file: String,
+}
+
+pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
+    let file = fs::File::open(path)?;
+    let reader = io::BufReader::new(file);
+    let meta: PackageMetadata = serde_json::from_reader(reader)?;
+    Ok(meta.commands)
 }
 
 fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Vec<PackageInfo>> {

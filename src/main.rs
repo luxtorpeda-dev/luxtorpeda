@@ -85,6 +85,10 @@ fn run(args: &[&str]) -> io::Result<()> {
     println!("json:");
     println!("{:#}", game_info);
 
+    let meta = package::read_cmd_repl_from_file("metadata.lux/vkquake.json")?;
+    println!("meta:");
+    println!("{:?}", meta);
+
     if !game_info["download"].is_null() {
         package::install()?;
     }
