@@ -7,6 +7,7 @@ use std::env;
 use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
+use std::path::PathBuf;
 use std::process::Command;
 
 mod fakescripteval;
@@ -22,12 +23,35 @@ fn usage() {
 fn json_to_args(args: &json::JsonValue) -> Vec<String> {
     args.members()
         .map(|j| j.as_str())
-        .skip_while(|o| o.is_none())
+        .skip_while(|o| o.is_none()) // filter?
         .map(|j| j.unwrap().to_string())
         .collect()
 }
 
+fn find_metadata_json() -> io::Result<Vec<PathBuf>> {
+    let files = fs::read_dir("metadata.lux")?
+        .filter(|e| e.is_ok())
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.extension().unwrap() == "json")
+        .collect();
+    Ok(files)
+}
+
 fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, Vec<String>)> {
+    let orig_cmd = args.join(" ");
+
+    // commands defined by packages
+
+    for path in find_metadata_json().unwrap_or_default() {
+        for repl in package::read_cmd_repl_from_file(path).unwrap_or_default() {
+            if repl.match_cmd.is_match(&orig_cmd) {
+                return Some((repl.cmd, repl.args));
+            }
+        }
+    }
+
+    // legacy commands from bundled packages.json file
+
     if !info["command"].is_null() {
         let new_prog = info["command"].to_string();
         let new_args = json_to_args(&info["command_args"]);
@@ -39,7 +63,6 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     }
 
     let cmds = &info["commands"];
-    let orig_cmd = args.join(" ");
     for (expr, new_cmd) in cmds.entries() {
         let re = Regex::new(expr).unwrap(); // TODO get rid of .unwrap
         if re.is_match(&orig_cmd) {
@@ -84,10 +107,6 @@ fn run(args: &[&str]) -> io::Result<()> {
 
     println!("json:");
     println!("{:#}", game_info);
-
-    let meta = package::read_cmd_repl_from_file("metadata.lux/vkquake.json")?;
-    println!("meta:");
-    println!("{:?}", meta);
 
     if !game_info["download"].is_null() {
         package::install()?;

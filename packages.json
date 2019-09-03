@@ -46,8 +46,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/files/idstuff/quake/",
                 "file": "quake-campaign-soundtrack.tar.xz"
             }
-        ],
-        "command": "./vkquake.sh"
+        ]
     },
     "2350": {
         "game_name": "Quake III: Team Arena",

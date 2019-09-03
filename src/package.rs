@@ -29,9 +29,9 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CmdReplacement {
     #[serde(with = "serde_regex")]
-    match_cmd: Regex,
-    cmd: String,
-    args: Vec<String>,
+    pub match_cmd: Regex,
+    pub cmd: String,
+    pub args: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
