@@ -1,4 +1,6 @@
 extern crate reqwest;
+extern crate tar;
+extern crate xz2;
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -6,10 +8,11 @@ use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
+use tar::Archive;
+use xz2::read::XzDecoder;
 
 use crate::ipc;
 use crate::user_env;
@@ -150,6 +153,40 @@ fn download(app_id: &str, info: PackageInfo) -> io::Result<()> {
     }
 }
 
+fn unpack_tarball(tarball: PathBuf) -> io::Result<()> {
+    let package_name = tarball
+        .file_name()
+        .and_then(|x| x.to_str())
+        .and_then(|x| x.split('.').next())
+        .ok_or(Error::new(ErrorKind::Other, "package has no name?"))?;
+
+    let transform = |path: PathBuf| -> PathBuf {
+        match path.as_path().to_str() {
+            Some("manifest.json") => PathBuf::from(format!("manifest/{}.json", &package_name)),
+            _ => PathBuf::from(path.strip_prefix("dist").unwrap_or(&path))
+        }
+    };
+
+    eprintln!("installing: {}", package_name);
+
+    let file = fs::File::open(&tarball)?;
+    let mut archive = Archive::new(XzDecoder::new(file));
+
+    for entry in archive.entries()? {
+        let mut file = entry?;
+        let old_path = PathBuf::from(file.header().path()?);
+        let new_path = transform(old_path);
+        println!("install: {:?}", &new_path);
+        if new_path.parent().is_some() {
+            fs::create_dir_all(new_path.parent().unwrap())?;
+        }
+        let _ = fs::remove_file(&new_path);
+        file.unpack(&new_path)?;
+    }
+
+    Ok(())
+}
+
 pub fn install() -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
@@ -164,13 +201,7 @@ pub fn install() -> io::Result<()> {
     for file in packages {
         match find_cached_file(&app_id, &file) {
             Some(path) => {
-                Command::new("tar")
-                    .arg("xJf")
-                    .arg(path)
-                    .arg("--strip-components=1")
-                    .arg("dist")
-                    .status()
-                    .expect("package installation failed");
+                unpack_tarball(path)?;
             }
             None => {
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
