@@ -162,7 +162,7 @@ fn unpack_tarball(tarball: PathBuf) -> io::Result<()> {
 
     let transform = |path: PathBuf| -> PathBuf {
         match path.as_path().to_str() {
-            Some("manifest.json") => PathBuf::from(format!("manifest/{}.json", &package_name)),
+            Some("manifest.json") => PathBuf::from(format!("manifests.lux/{}.json", &package_name)),
             _ => PathBuf::from(path.strip_prefix("dist").unwrap_or(&path))
         }
     };

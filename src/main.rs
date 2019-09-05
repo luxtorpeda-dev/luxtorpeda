@@ -30,7 +30,7 @@ fn json_to_args(args: &json::JsonValue) -> Vec<String> {
 
 // crate glob might be useful here
 fn find_metadata_json() -> io::Result<Vec<PathBuf>> {
-    let files = fs::read_dir("metadata.lux")?
+    let files = fs::read_dir("manifests.lux")?
         .filter(|e| e.is_ok())
         .map(|e| e.unwrap().path())
         .filter(|p| p.extension().unwrap() == "json")
