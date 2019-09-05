@@ -29,9 +29,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/packages/ioq3/",
                 "file": "ioq3-2200.tar.xz"
             }
-        ],
-        "command": "./ioquake3.x86_64",
-        "command_args": ["+r_mode", "-2"]
+        ]
     },
     "2310": {
         "game_name": "Quake",
@@ -61,9 +59,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/files/idstuff/quake3/",
                 "file": "quake3ta-latest-pk3s.tar.xz"
             }
-        ],
-        "command": "./ioquake3.x86_64",
-        "command_args": ["+r_mode", "-2", "+set", "fs_game", "missionpack"]
+        ]
     },
     "2280": {
         "game_name": "The Ultimate DOOM",

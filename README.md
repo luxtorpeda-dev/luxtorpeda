@@ -51,6 +51,14 @@ additional dependencies.
 4. In game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda&nbsp;(dev)".
 
+
+## Known issues
+
+If game does not start with error *"No command line defined"*, it means you
+need to force-update game package to a new format.  Find game package tarball
+in `~/.cache/luxtorpeda/<appid>/`, remove it, and start the game again.
+
+
 ## Supported titles
 
 Just click "Play" and Luxtorpeda will download and install the package for you.
