@@ -18,6 +18,7 @@ all_projects () {
 	echo git@github.com:coelckers/gzdoom.git
 	echo git@github.com:dhewm/dhewm3.git
 	echo git@github.com:eternalcodes/EternalJK.git
+	echo git@github.com:ezQuake/ezquake-source.git
 	echo git@github.com:ioquake/ioq3.git
 	echo git@github.com:iortcw/iortcw.git
 	echo git@github.com:JACoders/OpenJK.git
