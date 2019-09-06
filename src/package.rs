@@ -176,6 +176,9 @@ fn unpack_tarball(tarball: PathBuf) -> io::Result<()> {
         let mut file = entry?;
         let old_path = PathBuf::from(file.header().path()?);
         let new_path = transform(old_path);
+        if new_path.to_str().map_or(false, |x| x.is_empty()) {
+            continue;
+        }
         println!("install: {:?}", &new_path);
         if new_path.parent().is_some() {
             fs::create_dir_all(new_path.parent().unwrap())?;
