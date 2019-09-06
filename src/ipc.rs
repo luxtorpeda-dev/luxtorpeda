@@ -40,10 +40,7 @@ pub fn status_relay(rx: Receiver<StatusMsg>, app_id: String) {
         fs::remove_file(&socket_path).unwrap(); // unlink
     }
 
-    let listener = match UnixListener::bind(&socket_path) {
-        Err(_) => panic!("failed to bind socket"),
-        Ok(l) => l,
-    };
+    let listener = UnixListener::bind(&socket_path).expect("Failed to bind socket");
 
     listener
         .set_nonblocking(true)
@@ -62,12 +59,11 @@ pub fn status_relay(rx: Receiver<StatusMsg>, app_id: String) {
             _ => break,
         }
 
-        match listener.accept() {
-            Ok((mut stream, _)) => match stream.write_all(msg.as_bytes()) {
+        if let Ok((mut stream, _)) = listener.accept() {
+            match stream.write_all(msg.as_bytes()) {
                 Err(e) => println!("send err: {}", e),
                 Ok(()) => {}
-            },
-            _ => {}
+            }
         }
     }
 

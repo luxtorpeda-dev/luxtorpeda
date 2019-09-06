@@ -73,18 +73,14 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
             continue;
         }
 
-        downloads.push(PackageInfo {
-            name: name,
-            url: url,
-            file: file,
-        });
+        downloads.push(PackageInfo { name, url, file });
     }
     Ok(downloads)
 }
 
 pub fn download_all(app_id: String) -> io::Result<()> {
     let game_info = get_game_info(app_id.as_str())
-        .ok_or(Error::new(ErrorKind::Other, "missing info about this game"))?;
+        .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     if game_info["download"].is_null() {
         println!("skipping downloads (no urls defined for this package)");
@@ -105,18 +101,16 @@ pub fn download_all(app_id: String) -> io::Result<()> {
     });
 
     let mut err = Ok(());
-    let mut i = 0;
     let n = downloads.len() as i32;
-    for info in downloads {
+    for (i, info) in downloads.iter().enumerate() {
         // update status
         //
-        match tx.send(ipc::StatusMsg::Status(i, n, info.name.clone())) {
+        match tx.send(ipc::StatusMsg::Status(i as i32, n, info.name.clone())) {
             Ok(()) => {}
             Err(e) => {
                 print!("err: {}", e);
             }
         }
-        i += 1;
         err = download(app_id.as_str(), info);
     }
 
@@ -134,8 +128,8 @@ pub fn download_all(app_id: String) -> io::Result<()> {
     err
 }
 
-fn download(app_id: &str, info: PackageInfo) -> io::Result<()> {
-    let target = info.url + &info.file;
+fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
+    let target = info.url.clone() + &info.file;
 
     // TODO handle 404 and other errors
     //
@@ -158,12 +152,12 @@ fn unpack_tarball(tarball: PathBuf) -> io::Result<()> {
         .file_name()
         .and_then(|x| x.to_str())
         .and_then(|x| x.split('.').next())
-        .ok_or(Error::new(ErrorKind::Other, "package has no name?"))?;
+        .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
     let transform = |path: PathBuf| -> PathBuf {
         match path.as_path().to_str() {
             Some("manifest.json") => PathBuf::from(format!("manifests.lux/{}.json", &package_name)),
-            _ => PathBuf::from(path.strip_prefix("dist").unwrap_or(&path))
+            _ => PathBuf::from(path.strip_prefix("dist").unwrap_or(&path)),
         }
     };
 
@@ -194,7 +188,7 @@ pub fn install() -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
     let game_info = get_game_info(app_id.as_str())
-        .ok_or(Error::new(ErrorKind::Other, "missing info about this game"))?;
+        .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let packages: Vec<String> = game_info["download"]
         .members()
