@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 
 # Setup working copies for projects mirrored by Luxtorpeda project.
 # Perform one way sync (origin → gitlab) of master branches.
@@ -12,26 +12,14 @@ repo_name () {
 	lowercase "$(basename "${url%.git}")"
 }
 
-all_projects () {
-	echo git@github.com:adventuregamestudio/ags.git
-	echo git@github.com:arx/ArxLibertatis.git
-	echo git@github.com:coelckers/gzdoom.git
-	echo git@github.com:dhewm/dhewm3.git
-	echo git@github.com:eternalcodes/EternalJK.git
-	echo git@github.com:ezQuake/ezquake-source.git
-	echo git@github.com:ioquake/ioq3.git
-	echo git@github.com:iortcw/iortcw.git
-	echo git@github.com:JACoders/OpenJK.git
-	echo git@github.com:Novum/vkQuake.git
-	echo git@github.com:OpenRCT2/OpenRCT2.git
-	echo git@github.com:OpenXcom/OpenXcom.git
-	echo git@github.com:REGoth-project/REGoth-bs.git
-	echo git@gitlab.com:OpenMW/openmw.git
+list_projects () {
+	awk -F '|' '{print $2}' scripts/packages.txt
 }
 
-# set -x
-
 cd "$(git rev-parse --show-toplevel)" || exit
+
+readonly all_projects=$(list_projects)
+
 if [ ! -d ../mirrors ] ; then
 	mkdir -p ../mirrors
 fi
@@ -40,7 +28,7 @@ echo "Using dir: $(pwd)"
 
 # initializing:
 
-for project_url in $(all_projects) ; do
+for project_url in $all_projects ; do
 	repo_name="$(repo_name "$project_url")"
 	mirror_url=git@gitlab.com:luxtorpeda/mirrors/${repo_name}.git
 	if [ -d "$repo_name" ] ; then
@@ -56,7 +44,7 @@ done
 
 # syncing
 
-for project_url in $(all_projects) ; do
+for project_url in $all_projects ; do
 	repo_name="$(repo_name "$project_url")"
 	echo "Syncing $repo_name"
 	git -C "$repo_name" fetch --all

@@ -1,19 +1,17 @@
-#!/bin/env bash
+#!/bin/bash
 
-lowercase () {
-	echo "$@" | tr '[:upper:]' '[:lower:]'
+# Clone and initialize all Luxtorpeda packages.
+
+set -e
+
+list_packages () {
+	awk -F '|' '{print $1}' scripts/packages.txt
 }
 
-repo_name () {
-	url=$1
-	lowercase "$(basename "${url%.git}")"
-}
+cd "$(git rev-parse --show-toplevel)"
 
-readonly all_packages="ags arxlibertatis dhewm3 eternaljk gzdoom ioq3 iortcw openjk openmw openrct2 openxcom vkquake"
+readonly all_packages=$(list_packages)
 
-# set -x
-
-cd "$(git rev-parse --show-toplevel)" || exit
 if [ ! -d ../packages ] ; then
 	mkdir -p ../packages
 fi
