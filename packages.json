@@ -53,6 +53,41 @@
                 "name": "Yamagi Quake II",
                 "url":  "https://luxtorpeda.gitlab.io/packages/yquake2/",
                 "file": "yquake2-2320.tar.xz"
+            },
+            {
+                "name": "Quake II Soundtrack",
+                "url":  "https://luxtorpeda.gitlab.io/files/idstuff/quake2/",
+                "file": "quake2-music.tar.xz"
+            }
+        ]
+    },
+    "2330": {
+        "game_name": "Quake II: The Reckoning",
+        "download": [
+            {
+                "name": "Yamagi Quake II",
+                "url":  "https://luxtorpeda.gitlab.io/packages/yquake2/",
+                "file": "yquake2-2320.tar.xz"
+            },
+            {
+                "name": "The Reckoning Soundtrack",
+                "url":  "https://luxtorpeda.gitlab.io/files/idstuff/quake2/",
+                "file": "quake2-xatrix-music.tar.xz"
+            }
+        ]
+    },
+    "2340": {
+        "game_name": "Quake II: Ground Zero",
+        "download": [
+            {
+                "name": "Yamagi Quake II",
+                "url":  "https://luxtorpeda.gitlab.io/packages/yquake2/",
+                "file": "yquake2-2320.tar.xz"
+            },
+            {
+                "name": "Ground Zero Soundtrack",
+                "url":  "https://luxtorpeda.gitlab.io/files/idstuff/quake2/",
+                "file": "quake2-rogue-music.tar.xz"
             }
         ]
     },
