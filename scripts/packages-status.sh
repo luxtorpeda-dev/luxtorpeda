@@ -34,7 +34,9 @@ while read -r line ; do
 
 	echo "package:     $pkg"
 
-	# echo "$pkg_release_version"
+	echo -n "release:     "
+	git -C "../mirrors/$mirror/" describe \
+		--tags --always "$pkg_release_version"
 
 	echo -n "all tags:    "
 	git -C "../mirrors/$mirror/" tag | wc -l

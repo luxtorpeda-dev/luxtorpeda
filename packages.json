@@ -46,6 +46,16 @@
             }
         ]
     },
+    "2320": {
+        "game_name": "Quake II",
+        "download": [
+            {
+                "name": "Yamagi Quake II",
+                "url":  "https://luxtorpeda.gitlab.io/packages/yquake2/",
+                "file": "yquake2-2320.tar.xz"
+            }
+        ]
+    },
     "2350": {
         "game_name": "Quake III: Team Arena",
         "download": [

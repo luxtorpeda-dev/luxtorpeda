@@ -1,8 +1,9 @@
 ags           | git@github.com:adventuregamestudio/ags.git
 arxlibertatis | git@github.com:arx/ArxLibertatis.git
 dhewm3        | git@github.com:dhewm/dhewm3.git
-              | git@github.com:ezQuake/ezquake-source.git
 eternaljk     | git@github.com:eternalcodes/EternalJK.git
+              | git@github.com:ezQuake/ezquake-source.git
+              | git@github.com:REGoth-project/REGoth-bs.git
 gzdoom        | git@github.com:coelckers/gzdoom.git
 ioq3          | git@github.com:ioquake/ioq3.git
 iortcw        | git@github.com:iortcw/iortcw.git
@@ -10,5 +11,5 @@ openjk        | git@github.com:JACoders/OpenJK.git
 openmw        | git@gitlab.com:OpenMW/openmw.git
 openrct2      | git@github.com:OpenRCT2/OpenRCT2.git
 openxcom      | git@github.com:OpenXcom/OpenXcom.git
-              | git@github.com:REGoth-project/REGoth-bs.git
 vkquake       | git@github.com:Novum/vkQuake.git
+yquake2       | git@github.com:yquake2/yquake2.git
