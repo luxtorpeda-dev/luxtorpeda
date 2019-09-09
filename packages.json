@@ -273,6 +273,16 @@
         "command": "./dhewm3",
         "command_args": ["+set", "fs_game", "d3xp"]
     },
+    "9130": {
+        "game_name": "Quake II Demo",
+        "download": [
+            {
+                "name": "Yamagi Quake II",
+                "url":  "https://luxtorpeda.gitlab.io/packages/yquake2/",
+                "file": "yquake2-2320.tar.xz"
+            }
+        ]
+    },
     "22320": {
         "game_name": "The Elder Scrolls III: Morrowind",
         "download": [
