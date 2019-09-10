@@ -54,9 +54,12 @@ additional dependencies.
 
 ## Known issues
 
-If game does not start with error *"No command line defined"*, it means you
+- If game does not start with error *"No command line defined"*, it means you
 need to force-update game package to a new format.  Find game package tarball
 in `~/.cache/luxtorpeda/<appid>/`, remove it, and start the game again.
+
+- Solus and Mint users might be affected by unintended dependency on `libssl.so.1.1`,
+see [#42](https://github.com/dreamer/luxtorpeda/issues/42) for details.
 
 
 ## Supported titles
@@ -82,13 +85,13 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [X-COM: UFO Defense](https://store.steampowered.com/app/7760/)                    | [OpenXcom](https://openxcom.org/)                           | `1.0-2835`          |
 | [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/)           | [OpenXcom](https://openxcom.org/)                           | `1.0-2835`          |
 | [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/)          | [iortcw](https://github.com/iortcw/iortcw)                  | `1.51c`             | *Both SP and MP*
-| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *"The Ultimate DOOM"*
-| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
-| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
+| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *"The Ultimate DOOM"; Vulkan renderer crashes on exit*
+| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
+| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
 | [Doom 3](https://store.steampowered.com/app/9050/)                                | [dhewm3](https://dhewm3.org/)                               | `1.5.1-PRE1`        |
 | [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/)          | [dhewm3](https://dhewm3.org/)                               | `1.5.1-PRE1`        |
-| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
-| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
+| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
+| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                            |                     | **(Free to play)** *Using Linux version bundled with Windows version*
 
 Want a specific game? Maybe we are
