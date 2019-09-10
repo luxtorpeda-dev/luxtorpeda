@@ -114,9 +114,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
                 "file": "gzdoom-2280.tar.xz"
             }
-        ],
-        "command": "./gzdoom",
-        "command_args": ["-iwad", "base/DOOM.WAD"]
+        ]
     },
     "2290": {
         "game_name": "Final DOOM",
@@ -126,17 +124,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
                 "file": "gzdoom-2290.tar.xz"
             }
-        ],
-        "commands": {
-            ".*plutoniam?.conf": {
-                "cmd": "./gzdoom",
-                "args": ["-iwad", "base/PLUTONIA.WAD"]
-            },
-            ".*tntm?.conf": {
-                "cmd": "./gzdoom",
-                "args": ["-iwad", "base/TNT.WAD"]
-            }
-        }
+        ]
     },
     "2300": {
         "game_name": "DOOM II: Hell on Earth",
@@ -146,9 +134,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
                 "file": "gzdoom-2300.tar.xz"
             }
-        ],
-        "command": "./gzdoom",
-        "command_args": ["-iwad", "base/DOOM2.WAD"]
+        ]
     },
     "2360": {
         "game_name": "HeXen: Beyond Heretic",
@@ -158,9 +144,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
                 "file": "gzdoom-2360.tar.xz"
             }
-        ],
-        "command": "./gzdoom",
-        "command_args": ["-iwad", "base/HEXEN.WAD"]
+        ]
     },
     "2390": {
         "game_name": "Heretic: Shadow of the Serpent Riders",
@@ -170,9 +154,7 @@
                 "url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
                 "file": "gzdoom-2390.tar.xz"
             }
-        ],
-        "command": "./gzdoom",
-        "command_args": ["-iwad", "base/HERETIC.WAD"]
+        ]
     },
     "6020": {
         "game_name": "STAR WARS™ Jedi Knight: Jedi Academy™",

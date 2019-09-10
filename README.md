@@ -82,13 +82,13 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [X-COM: UFO Defense](https://store.steampowered.com/app/7760/)                    | [OpenXcom](https://openxcom.org/)                           | `1.0-2835`          |
 | [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/)           | [OpenXcom](https://openxcom.org/)                           | `1.0-2835`          |
 | [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/)          | [iortcw](https://github.com/iortcw/iortcw)                  | `1.51c`             | *Both SP and MP*
-| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                                | `4.2.0`             | *"The Ultimate DOOM"*
-| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                                | `4.2.0`             |
-| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                                | `4.2.0`             |
+| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *"The Ultimate DOOM"*
+| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
+| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
 | [Doom 3](https://store.steampowered.com/app/9050/)                                | [dhewm3](https://dhewm3.org/)                               | `1.5.1-PRE1`        |
 | [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/)          | [dhewm3](https://dhewm3.org/)                               | `1.5.1-PRE1`        |
-| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                                | `4.2.0`             |
-| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                                | `4.2.0`             |
+| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
+| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                                | `4.2.1`             |
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                            |                     | **(Free to play)** *Using Linux version bundled with Windows version*
 
 Want a specific game? Maybe we are
