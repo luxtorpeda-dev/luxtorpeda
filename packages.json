@@ -279,5 +279,17 @@
     "698780": {
         "game_name": "Doki Doki Literature Club",
         "command": "./DDLC.sh"
+    },
+    "517790": {
+        "game_name": "Caesar 3",
+        "download": [
+            {
+                "name": "julius",
+                "url":  "https://d10sfan.gitlab.io/luxtorpeda-julius/",
+                "file": "julius-517790.tar.xz"
+            }
+        ],
+        "command": "./julius",
+        "command_args": ["./C3"]
     }
 }
