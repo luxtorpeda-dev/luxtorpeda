@@ -12,7 +12,7 @@ This is a sister project of
 
 Official mirrors:
 [GitHub](https://github.com/d10sfan/luxtorpeda-dev),
-[dreamer GitHub](https://github.com/dreamer/luxtorpeda),
+[GitLab](https://gitlab.com/luxtorpeda-dev/luxtorpeda),
 [dreamer GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
 
 ## Pre-requisites
