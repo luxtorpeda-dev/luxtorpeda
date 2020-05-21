@@ -410,7 +410,7 @@
             "engine_name": "RBDOOM-3-BFG",
             "engine_link": "https://github.com/RobertBeckebans/RBDOOM-3-BFG",
             "version": "7eddea5 (from master)",
-            "comments": "",
+            "comments": "HDR can be a bit broken (mainly with the flashlight). Running this command (RobertBeckebans/RBDOOM-3-BFG#290 (comment)) while inside the game will fix it (and it'll save afterwards): toggle r_usehdr; reloadshaders",
             "author": "d10sfan",
             "author_link": "https://github.com/d10sfan"
         }
