@@ -339,7 +339,7 @@
         "download": [
             {
                 "name": "julius",
-                "url":  "https://d10sfan.gitlab.io/luxtorpeda-julius/",
+                "url":  "https://luxtorpeda-dev.gitlab.io/packages/julius/",
                 "file": "julius-517790.tar.xz"
             }
         ],
@@ -420,7 +420,7 @@
         "download": [
             {
                 "name": "AVP",
-                "url":  "https://d10sfan.gitlab.io/luxtorpeda-avp/",
+                "url":  "https://luxtorpeda-dev.gitlab.io/packages/avp/",
                 "file": "avp-3730.tar.xz"
             }
         ],
