@@ -4,10 +4,6 @@
 
 Steam Play compatibility tool to run games using native Linux engines
 
-This is a sister project of
-[Boxtron](https://github.com/dreamer/boxtron/) and
-[Roberta](https://github.com/dreamer/roberta).
-
 ![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
 
 Official mirrors:
@@ -31,7 +27,7 @@ additional dependencies.
 2. Download and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ curl -L https://luxtorpeda.gitlab.io/luxtorpeda/master/luxtorpeda.tar.xz | tar xJf -
+        $ curl -L https://luxtorpeda-dev.gitlab.io/luxtorpeda/master/luxtorpeda.tar.xz | tar xJf -
 
 3. Start Steam.
 4. In game properties window select "Force the use of a specific Steam Play
@@ -52,7 +48,7 @@ Fedora
 1. Close Steam.
 2. Clone the repository, then use makefile to trigger `cargo build` and install:
 
-       $ git clone https://github.com/d10sfan/luxtorpeda-dev.git
+       $ git clone https://github.com/luxtorpeda-dev/luxtorpeda.git
        $ cd luxtorpeda-dev
        $ make user-install
 
