@@ -76,6 +76,7 @@ see [#42](https://github.com/dreamer/luxtorpeda/issues/42) for details.
 Just click "Play" and Luxtorpeda will download and install the package for you.
 You need to select Luxtorpeda as a compatibility tool first, of course.
 
+<<<<<<< Updated upstream
 | Game                                                                              | Engine                                                      | Engine&nbsp;Version | Comments
 |---                                                                                |---                                                          |---                  |---
 | [The Elder Scrolls III: Morrowind](https://store.steampowered.com/app/22320/)     | [OpenMW](https://openmw.org/)                               | `0.45.0`            | *Missing GUI mod launcher for now: [#17](https://github.com/dreamer/luxtorpeda/issues/17)*
@@ -102,6 +103,9 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 | [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
 | [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
 | [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                            |                     | **(Free to play)** *Using Linux version bundled with Windows version*
+=======
+To see a list of supported titles, go to 
+>>>>>>> Stashed changes
 
 Want a specific game? Maybe we are
 [already working on it](https://github.com/dreamer/luxtorpeda/wiki/Game-engines#on-agenda-wip-and-supported-engines).

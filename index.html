@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Luxtorpeda</title>
+    
+    <script>
+        window.addEventListener('load', function() {
+            console.log( "ready!" );
+            startLoad();
+		});
+		
+		async function startLoad() {
+            const response = await fetch('packages.json');
+            const titles = await response.json();
+            
+            const finalTitles = sortTitles(titles);
+            processTitles(finalTitles);
+		}
+		
+		function createLink(link, text) {
+		    console.log(link, text)
+		    const a = document.createElement('a');
+            a.setAttribute('href', link);
+            a.innerHTML = text;
+            return a;
+		}
+		
+		function sortTitles(titles) {
+		    const finalTitles = [];
+		    for(const titleId in titles) {
+		        finalTitles.push(titles[titleId]);
+		    }
+		    
+		    finalTitles.sort(function(a, b){
+                if(a.game_name < b.game_name) { return -1; }
+                if(a.game_name > b.game_name) { return 1; }
+                return 0;
+            });
+            
+            return finalTitles;
+		}
+		
+		function createGameCell(title, row) {
+		    const gameCell = row.insertCell(0);
+	        if(title.information) {
+	            gameCell.appendChild(createLink(title.information.store_link, title.game_name));
+	        } else {
+	            gameCell.innerHTML = title.game_name;
+	        }
+		}
+		
+		function createEngineCell(title, row) {
+		    const engineCell = row.insertCell(1);
+	        if(title.information) {
+	            engineCell.appendChild(createLink(title.information.engine_link, title.information.engine_name));
+	        }
+		}
+		
+		function createEngineVersionCell(title, row) {
+		    const engineVersionCell = row.insertCell(2);
+	        if(title.information) {
+	            engineVersionCell.innerHTML = title.information.version;
+	        }
+		}
+		
+		function createCommentsCell(title, row) {
+		    const engineVersionCell = row.insertCell(3);
+	        if(title.information) {
+	            engineVersionCell.innerHTML = title.information.comments;
+	        }
+		}
+		
+		function createAuthorCell(title, row) {
+		    const authorCell = row.insertCell(4);
+	        if(title.information) {
+	            authorCell.appendChild(createLink(title.information.author_link, title.information.author));
+	        }
+		}
+		
+		function processTitles(titles) {
+		    const table = document.getElementById("table");
+		    let idx = 1;
+		    for(const title of titles) {
+		        const row = table.insertRow(idx);
+		        createGameCell(title, row);
+		        createEngineCell(title, row);
+		        createEngineVersionCell(title, row);
+		        createCommentsCell(title, row);
+		        createAuthorCell(title, row);
+		        
+		        idx++;
+		    }
+		}
+    </script>
+  </head>
+  <body>
+    <header></header>
+    <main>
+        <table id='table'>
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th>Engine</th>
+                    <th>Engine Version</th>
+                    <th>Comments</th>
+                    <th>Contributor</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </main>
+    <footer></footer>
+  </body>
+</html>

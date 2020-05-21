@@ -1,9 +1,0 @@
-{
-	"2370": {
-		"game_name":    "HeXen: Deathkings of the Dark Citadel",
-		"package_url":  "https://luxtorpeda.gitlab.io/packages/gzdoom/",
-		"package":      "gzdoom-2370.tar.xz",
-		"command":      "./gzdoom",
-		"command_args": ["-iwad", "base/HEXDD.WAD"]
-	}
-}

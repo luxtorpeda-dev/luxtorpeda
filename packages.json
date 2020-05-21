@@ -8,7 +8,16 @@
                 "file": "arxlibertatis-1700.tar.xz"
             }
         ],
-        "command": "./arx"
+        "command": "./arx",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/1700/",
+            "engine_name": "Arx Libertatis",
+            "engine_link": "https://arx-libertatis.org/",
+            "version": "db77aa",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
     },
     "1710": {
         "game_name": "Arx Fatalis (Demo)",
@@ -19,7 +28,16 @@
                 "file": "arxlibertatis-1700.tar.xz"
             }
         ],
-        "command": "./arx"
+        "command": "./arx",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/1700/",
+            "engine_name": "Arx Libertatis",
+            "engine_link": "https://arx-libertatis.org/",
+            "version": "db77aa",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
     },
     "2200": {
         "game_name": "Quake III Arena",
@@ -230,6 +248,15 @@
                 "cmd": "./iowolfmp.x86_64",
                 "args": ["+set", "com_basegame", "Main"]
             }
+        },
+        "information": {
+            "store_link": "https://store.steampowered.com/app/9010/",
+            "engine_name": "iortcw",
+            "engine_link": "https://github.com/iortcw/iortcw",
+            "version": "1.51c",
+            "comments": "Both SP and MP",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
         }
     },
     "9050": {
@@ -241,7 +268,16 @@
                 "file": "dhewm3-9050.tar.xz"
             }
         ],
-        "command": "./dhewm3"
+        "command": "./dhewm3",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/9050/",
+            "engine_name": "dhewm3",
+            "engine_link": "https://dhewm3.org/",
+            "version": "1.5.1-PRE1",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
     },
     "9070": {
         "game_name": "DOOM 3: Resurrection of Evil",
@@ -253,7 +289,16 @@
             }
         ],
         "command": "./dhewm3",
-        "command_args": ["+set", "fs_game", "d3xp"]
+        "command_args": ["+set", "fs_game", "d3xp"],
+        "information": {
+            "store_link": "https://store.steampowered.com/app/9070/",
+            "engine_name": "dhewm3",
+            "engine_link": "https://dhewm3.org/",
+            "version": "1.5.1-PRE1",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
     },
     "9130": {
         "game_name": "Quake II Demo",
@@ -274,10 +319,120 @@
                 "file": "openmw-22320.tar.xz"
             }
         ],
-        "command": "./openmw.sh"
+        "command": "./openmw.sh",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/22320/",
+            "engine_name": "OpenMW",
+            "engine_link": "https://openmw.org/",
+            "version": "0.45.0",
+            "comments": "Missing GUI mod launcher for now",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
     },
     "698780": {
         "game_name": "Doki Doki Literature Club",
         "command": "./DDLC.sh"
+    },
+    "517790": {
+        "game_name": "Caesar 3",
+        "download": [
+            {
+                "name": "julius",
+                "url":  "https://d10sfan.gitlab.io/luxtorpeda-julius/",
+                "file": "julius-517790.tar.xz"
+            }
+        ],
+        "command": "./julius",
+        "command_args": ["./C3"],
+        "information": {
+            "store_link": "https://store.steampowered.com/app/517790/",
+            "engine_name": "julius",
+            "engine_link": "https://github.com/bvschaik/julius",
+            "version": "8f571ec (from master)",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
+    },
+    "39510": {
+        "game_name": "Gothic 2: Gold Edition",
+        "download": [
+            {
+                "name": "opengothic",
+                "url":  "https://d10sfan.gitlab.io/luxtorpeda-opengothic/",
+                "file": "opengothic-39510.tar.xz"
+            }
+        ],
+        "command": "./run-gothic2.sh",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/39510/Gothic_II_Gold_Edition/",
+            "engine_name": "OpenGothic",
+            "engine_link": "https://github.com/Try/OpenGothic",
+            "version": "latest master",
+            "comments": "Steam Overlay does not work. Engine is still in progress so not all features may be implemented.",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
+    },
+    "273620": {
+        "game_name": "Freespace 2",
+        "download": [
+            {
+                "name": "fs2open",
+                "url":  "https://d10sfan.gitlab.io/luxtorpeda-fs2open/",
+                "file": "fs2open-273620.tar.xz"
+            }
+        ],
+        "command": "./run-freespace2.sh",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/273620/Freespace_2/",
+            "engine_name": "scp-fs2open",
+            "engine_link": "https://github.com/scp-fs2open/fs2open.github.com",
+            "version": "d52bddf (from master)",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
+    },
+    "208200": {
+        "game_name": "Doom 3: BFG Edition",
+        "download": [
+            {
+                "name": "doom3bfg",
+                "url":  "https://d10sfan.gitlab.io/luxtorpeda-doom3bfg/",
+                "file": "doom3bfg-208200.tar.xz"
+            }
+        ],
+        "command": "./RBDoom3BFG",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/208200/Doom_3_BFG_Edition/",
+            "engine_name": "RBDOOM-3-BFG",
+            "engine_link": "https://github.com/RobertBeckebans/RBDOOM-3-BFG",
+            "version": "7eddea5 (from master)",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
+    },
+    "3730": {
+        "game_name": "Aliens versus Predator Classic",
+        "download": [
+            {
+                "name": "AVP",
+                "url":  "https://d10sfan.gitlab.io/luxtorpeda-avp/",
+                "file": "avp-3730.tar.xz"
+            }
+        ],
+        "command": "./run-avp.sh",
+        "information": {
+            "store_link": "https://store.steampowered.com/app/3730/Aliens_versus_Predator_Classic_2000/",
+            "engine_name": "avp-forever",
+            "engine_link": "https://github.com/dreamer/avp-forever",
+            "version": "",
+            "comments": "",
+            "author": "d10sfan",
+            "author_link": "https://github.com/d10sfan"
+        }
     }
 }
