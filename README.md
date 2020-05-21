@@ -1,9 +1,8 @@
 # Luxtorpeda
 
 [![Luxtorpeda project Discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
-[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/dreamer)
 
-Steam Play compatibility tool to run games using native Linux engines; [project overview](https://github.com/dreamer/luxtorpeda/wiki).
+Steam Play compatibility tool to run games using native Linux engines
 
 This is a sister project of
 [Boxtron](https://github.com/dreamer/boxtron/) and
@@ -12,8 +11,9 @@ This is a sister project of
 ![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
 
 Official mirrors:
-[GitHub](https://github.com/dreamer/luxtorpeda),
-[GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
+[GitHub](https://github.com/d10sfan/luxtorpeda-dev),
+[dreamer GitHub](https://github.com/dreamer/luxtorpeda),
+[dreamer GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
 
 ## Pre-requisites
 
@@ -52,8 +52,8 @@ Fedora
 1. Close Steam.
 2. Clone the repository, then use makefile to trigger `cargo build` and install:
 
-       $ git clone https://github.com/dreamer/luxtorpeda.git
-       $ cd luxtorpeda
+       $ git clone https://github.com/d10sfan/luxtorpeda-dev.git
+       $ cd luxtorpeda-dev
        $ make user-install
 
 3. Start Steam.
@@ -79,9 +79,9 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 To see a list of supported titles, go to https://d10sfan.github.io/luxtorpeda-dev/
 
 Want a specific game? Maybe we are
-[already working on it](https://github.com/dreamer/luxtorpeda/wiki/Game-engines#on-agenda-wip-and-supported-engines).
+[already working on it](https://github.com/d10sfan/luxtorpeda-dev/issues).
 You can also
-[make a package request](https://github.com/dreamer/luxtorpeda/issues/new),
+[make a package request](https://github.com/d10sfan/luxtorpeda-dev/issues/new),
 or
 [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
 
@@ -89,5 +89,3 @@ or
 
 You can use `cargo` as with any Rust project; `make` serves only as a convenient
 frontend for packaging and triggering longer `cargo` commands.
-
-TODO: Add documentation about packaging games for Luxtorpeda.
