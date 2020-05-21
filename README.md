@@ -79,9 +79,9 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 To see a list of supported titles, go to https://d10sfan.github.io/luxtorpeda-dev/
 
 Want a specific game? Maybe we are
-[already working on it](https://github.com/d10sfan/luxtorpeda-dev/issues).
+[already working on it](https://github.com/luxtorpeda-dev/packages/issues).
 You can also
-[make a package request](https://github.com/d10sfan/luxtorpeda-dev/issues/new),
+[make a package request](https://github.com/luxtorpeda-dev/packages/issues/new),
 or
 [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
 
