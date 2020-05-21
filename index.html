@@ -8,7 +8,6 @@
     
     <script>
         window.addEventListener('load', function() {
-            console.log( "ready!" );
             startLoad();
 		});
 		
@@ -21,7 +20,6 @@
 		}
 		
 		function createLink(link, text) {
-		    console.log(link, text)
 		    const a = document.createElement('a');
             a.setAttribute('href', link);
             a.innerHTML = text;

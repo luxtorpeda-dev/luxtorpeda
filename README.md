@@ -76,36 +76,7 @@ see [#42](https://github.com/dreamer/luxtorpeda/issues/42) for details.
 Just click "Play" and Luxtorpeda will download and install the package for you.
 You need to select Luxtorpeda as a compatibility tool first, of course.
 
-<<<<<<< Updated upstream
-| Game                                                                              | Engine                                                      | Engine&nbsp;Version | Comments
-|---                                                                                |---                                                          |---                  |---
-| [The Elder Scrolls III: Morrowind](https://store.steampowered.com/app/22320/)     | [OpenMW](https://openmw.org/)                               | `0.45.0`            | *Missing GUI mod launcher for now: [#17](https://github.com/dreamer/luxtorpeda/issues/17)*
-| [Arx Fatalis](https://store.steampowered.com/app/1700/)                           | [Arx&nbsp;Libertatis](https://arx-libertatis.org/)          | `db77aa`            | *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
-| [Arx Fatalis Demo](https://steamdb.info/app/1710/)                                | [Arx&nbsp;Libertatis](https://arx-libertatis.org/)          | `db77aa`            | **(Free to play)** *Textures issue: [#27](https://github.com/dreamer/luxtorpeda/issues/27)*
-| [Quake](https://store.steampowered.com/app/2310/)                                 | [vkQuake](https://github.com/Novum/vkQuake)                 | `1.02.1`            | *Single-player only for now, fixed music*
-| [Quake II](https://store.steampowered.com/app/2320/)                              | [Yamagi&nbsp;Quake&nbsp;II](https://www.yamagi.org/quake2/) | `7.41`              | *Fixed default config, fixed music*
-| [Quake II Demo](https://steamdb.info/app/9130/)                                   | [Yamagi&nbsp;Quake&nbsp;II](https://www.yamagi.org/quake2/) | `7.41`              | **(Free to play)** *Fixed default config*
-| [Quake II: The Reckoning](https://store.steampowered.com/app/2330/)               | [Yamagi&nbsp;Quake&nbsp;II](https://www.yamagi.org/quake2/) | `7.41`              | *Fixed default config, fixed music*
-| [Quake II: Ground Zero](https://store.steampowered.com/app/2340/)                 | [Yamagi&nbsp;Quake&nbsp;II](https://www.yamagi.org/quake2/) | `7.41`              | *Fixed default config, fixed music*
-| [Quake III Arena](https://store.steampowered.com/app/2200/)                       | [ioquake3](https://ioquake3.org/)                           | `a96f32`            |
-| [Quake III: Team Arena](https://store.steampowered.com/app/2350/)                 | [ioquake3](https://ioquake3.org/)                           | `a96f32`            |
-| [Jedi Knight II: Jedi Outcast](https://store.steampowered.com/app/6030/)          | [OpenJK](https://github.com/JACoders/OpenJK)                | `e8b5c1`            | *Single-player only for now*
-| [Jedi Knight: Jedi Academy (SP)](https://store.steampowered.com/app/6020/)        | [OpenJK](https://github.com/JACoders/OpenJK)                | `e8b5c1`            | *Single-player*
-| [Jedi Knight: Jedi Academy (MP)](https://store.steampowered.com/app/6020/)        | [EternalJK](https://github.com/eternalcodes/EternalJK)      | `1.5.6-1`           | *Multi-player*
-| [X-COM: UFO Defense](https://store.steampowered.com/app/7760/)                    | [OpenXcom](https://openxcom.org/)                           | `1.0-2835`          |
-| [X-COM: Terror from the Deep](https://store.steampowered.com/app/7650/)           | [OpenXcom](https://openxcom.org/)                           | `1.0-2835`          |
-| [Return to Castle Wolfenstein](https://store.steampowered.com/app/9010/)          | [iortcw](https://github.com/iortcw/iortcw)                  | `1.51c`             | *Both SP and MP*
-| [Doom (1993)](https://store.steampowered.com/app/2280/)                           | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *"The Ultimate DOOM"; Vulkan renderer crashes on exit*
-| [Doom II: Hell on Earth](https://store.steampowered.com/app/2300/)                | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
-| [Final Doom](https://store.steampowered.com/app/2290/)                            | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
-| [Doom 3](https://store.steampowered.com/app/9050/)                                | [dhewm3](https://dhewm3.org/)                               | `1.5.1-PRE1`        |
-| [Doom 3: Resurrection of Evil](https://store.steampowered.com/app/9070/)          | [dhewm3](https://dhewm3.org/)                               | `1.5.1-PRE1`        |
-| [Heretic: Shadow of the Serpent Riders](https://store.steampowered.com/app/2390/) | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
-| [Hexen: Beyond Heretic](https://store.steampowered.com/app/2360/)                 | [GZDoom](https://zdoom.org/)                                | `4.2.1`             | *Vulkan renderer crashes on exit*
-| [Doki Doki Literature Club!](https://store.steampowered.com/app/698780/)          | [Ren'Py](https://www.renpy.org/)                            |                     | **(Free to play)** *Using Linux version bundled with Windows version*
-=======
-To see a list of supported titles, go to 
->>>>>>> Stashed changes
+To see a list of supported titles, go to https://d10sfan.github.io/luxtorpeda-dev/
 
 Want a specific game? Maybe we are
 [already working on it](https://github.com/dreamer/luxtorpeda/wiki/Game-engines#on-agenda-wip-and-supported-engines).
