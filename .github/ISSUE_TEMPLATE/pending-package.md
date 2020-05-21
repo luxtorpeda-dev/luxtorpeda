@@ -1,8 +1,8 @@
 ---
-name: Package request
-about: Request packaging a game or game engine
+name: Pending package
+about: For packages that are in progress but are not ready for a pull request
 title: ''
-labels: package request
+labels: pending package
 assignees: ''
 
 ---
