@@ -7,7 +7,6 @@ assignees: ''
 
 ---
 
-* Is this project listed in the pending issues or as a package request: *YES/NO*
 * Project link: *URL*
 * Project license: *e.g. GPLv3 or BSD or link if it's a custom license*
 * Does it work on 64-bit only Linux: *YES/NO/MAYBE*
