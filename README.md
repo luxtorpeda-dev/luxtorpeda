@@ -7,8 +7,7 @@ Steam Play compatibility tool to run games using native Linux engines
 ![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
 
 Official mirrors:
-[GitHub](https://github.com/d10sfan/luxtorpeda-dev),
-[GitLab](https://gitlab.com/luxtorpeda-dev/luxtorpeda),
+[GitHub](https://github.com/luxtorpeda-dev/luxtorpeda),
 [dreamer GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
 
 ## Pre-requisites
@@ -27,7 +26,7 @@ additional dependencies.
 2. Download and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ curl -L https://luxtorpeda-dev.gitlab.io/luxtorpeda/master/luxtorpeda.tar.xz | tar xJf -
+        $ curl -L https://luxtorpeda-dev.github.io/luxtorpeda/luxtorpeda.tar.xz | tar xJf -
 
 3. Start Steam.
 4. In game properties window select "Force the use of a specific Steam Play
@@ -72,12 +71,12 @@ see [#42](https://github.com/dreamer/luxtorpeda/issues/42) for details.
 Just click "Play" and Luxtorpeda will download and install the package for you.
 You need to select Luxtorpeda as a compatibility tool first, of course.
 
-To see a list of supported titles, go to https://d10sfan.github.io/luxtorpeda-dev/
+To see a list of supported titles, go to https://luxtorpeda-dev.github.io/packages.html
 
 Want a specific game? Maybe we are
 [already working on it](https://github.com/luxtorpeda-dev/packages/issues).
 You can also
-[make a package request](https://github.com/luxtorpeda-dev/packages/issues/new),
+[make a package request](https://github.com/luxtorpeda-dev/packages/issues/new/choose),
 or
 [create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
 
