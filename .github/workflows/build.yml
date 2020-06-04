@@ -3,6 +3,12 @@ name: Build Luxtorpeda
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'src/**'
+      - 'Cargo*'
+      - 'Makefile'
+      - 'compatibilitytool.template'
+      - 'toolmanifest.vdf'
 
 jobs:
   setup:
