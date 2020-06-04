@@ -1,0 +1,71 @@
+name: Build Luxtorpeda
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/**'
+      - 'Cargo*'
+      - 'Makefile'
+      - 'compatibilitytool.template'
+      - 'toolmanifest.vdf'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.buildnumber.outputs.build_number }}
+    steps:
+    - name: Generate build number
+      id: buildnumber
+      uses: einaregilsson/build-number@v2 
+      with:
+        token: ${{ secrets.github_token }}
+  build:
+    runs-on: ubuntu-latest
+    needs: setup
+    container:
+      image: rust:1.36-stretch
+    env:
+      CARGO_HOME: ./cargo
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Build
+      run: make release
+    - name: Package
+      run: make luxtorpeda.tar.xz
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: luxtorpeda.tar.xz
+        path: ./luxtorpeda.tar.xz
+  deploy:
+    needs: [setup, build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v1
+      with:
+        name: luxtorpeda.tar.xz
+        path: ./
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          tag_name: v${{ needs.setup.outputs.build_number }}
+          release_name: Version ${{ needs.setup.outputs.build_number }}
+          draft: false
+          prerelease: false
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: luxtorpeda.tar.xz
+        asset_name: luxtorpeda-${{ needs.setup.outputs.build_number }}.tar.xz
+        asset_content_type: application/x-xz
