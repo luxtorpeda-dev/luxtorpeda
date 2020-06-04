@@ -23,13 +23,14 @@ additional dependencies.
 *This is pre-release quality software, expect bugs and missing features.*
 
 1. Close Steam.
-2. Download and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
+2. Download latest version at https://github.com/luxtorpeda-dev/luxtorpeda/releases
+3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ curl -L https://luxtorpeda-dev.github.io/luxtorpeda/luxtorpeda.tar.xz | tar xJf -
+        $ tar xJf luxtorpeda-2.tar.xz
 
-3. Start Steam.
-4. In game properties window select "Force the use of a specific Steam Play
+4. Start Steam.
+5. In game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda".
 
 ## Installation (debug build, from source)
@@ -48,7 +49,7 @@ Fedora
 2. Clone the repository, then use makefile to trigger `cargo build` and install:
 
        $ git clone https://github.com/luxtorpeda-dev/luxtorpeda.git
-       $ cd luxtorpeda-dev
+       $ cd luxtorpeda
        $ make user-install
 
 3. Start Steam.
@@ -73,12 +74,13 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 
 To see a list of supported titles, go to https://luxtorpeda-dev.github.io/packages.html
 
-Want a specific game? Maybe we are
-[already working on it](https://github.com/luxtorpeda-dev/packages/issues).
-You can also
-[make a package request](https://github.com/luxtorpeda-dev/packages/issues/new/choose),
-or
-[create package yourself](https://github.com/dreamer/luxtorpeda/wiki/Packaging-tutorial)! :)
+Want a specific game? 
+
+Check [issues](https://github.com/luxtorpeda-dev/packages/issues) to see if we are working on it.
+
+You can also make a package request by creating a [new issue](https://github.com/luxtorpeda-dev/packages/issues/new/choose)
+
+You can also [create a package yourself](docs/Creating_a_Package.md)
 
 ## Development
 
