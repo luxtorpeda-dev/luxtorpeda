@@ -32,8 +32,8 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: dist
-        path: ./dist
+        name: luxtorpeda.tar.xz
+        path: ./luxtorpeda.tar.xz
   deploy:
     needs: setup
     runs-on: ubuntu-latest
@@ -41,51 +41,18 @@ jobs:
     - name: Download Artifacts
       uses: actions/download-artifact@v1
       with:
-        name: dist
+        name: luxtorpeda.tar.xz
     - name: Upload Package to Bintray
       uses: luxtorpeda-dev/github-action-upload-bintray@v1
       with:
-        file: ${{ matrix.fileName }}
-        file_name: "${{ matrix.name }}-${{ needs.findengine.outputs.build_number }}${{ matrix.extension }}"
+        file: ./luxtorpeda.tar.xz
+        file_name: "luxtorpeda-${{ needs.findengine.outputs.build_number }}.tar.xz"
         upload_path: '/'
         api_user: ${{ secrets.BINTRAY_USER }}
         api_key: ${{ secrets.BINTRAY_API_KEY }}
         repository_user: ${{ secrets.BINTRAY_OWNER }}
         repository: ${{ secrets.BINTRAY_REPO }}
-        package: ${{ needs.findengine.outputs.engine }}
-        version: ${{ needs.findengine.outputs.build_number }}
+        package: luxtorpeda
+        version: ${{ needs.findengine.setup.build_number }}
         publish: 1
         calculate_metadata: false
-  update_packages:
-    needs: [deploy, finddeploy, findengine]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          ref: master
-      - name: Update packages.json
-        uses: luxtorpeda-dev/action-build-update-packages@v4
-        with:
-          matrix: ${{ needs.finddeploy.outputs.matrix }}
-          version: ${{ needs.findengine.outputs.build_number }}
-      - name: Commit package.json
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add metadata/packages.json
-          git commit -m "Update packages.json for ${{ needs.findengine.outputs.engine }} version ${{ needs.findengine.outputs.build_number }}"
-      - name: Push Changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-      - name: Publish To Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-          publish_dir: ./metadata
-          keep_files: true
-          external_repository: luxtorpeda-dev/luxtorpeda-dev.github.io
-          publish_branch: master
