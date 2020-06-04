@@ -42,17 +42,23 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: luxtorpeda.tar.xz
-    - name: Upload Package to Bintray
-      uses: luxtorpeda-dev/github-action-upload-bintray@v1
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        file: ./luxtorpeda.tar.xz
-        file_name: "luxtorpeda-${{ needs.findengine.outputs.build_number }}.tar.xz"
-        upload_path: '/'
-        api_user: ${{ secrets.BINTRAY_USER }}
-        api_key: ${{ secrets.BINTRAY_API_KEY }}
-        repository_user: ${{ secrets.BINTRAY_OWNER }}
-        repository: ${{ secrets.BINTRAY_REPO }}
-        package: luxtorpeda
-        version: ${{ needs.findengine.setup.build_number }}
-        publish: 1
-        calculate_metadata: false
+          tag_name: v${{ needs.setup.setup.build_number }}
+          release_name: Version ${{ needs.setup.setup.build_number }}
+          draft: false
+          prerelease: false
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./luxtorpeda.tar.xz
+        asset_name: luxtorpeda-${{ needs.setup.setup.build_number }}.tar.xz
+        asset_content_type: application/x-xz
