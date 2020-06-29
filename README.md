@@ -67,6 +67,13 @@ in `~/.cache/luxtorpeda/<appid>/`, remove it, and start the game again.
 see [#42](https://github.com/dreamer/luxtorpeda/issues/42) for details.
 
 
+## Configuration
+
+A configuration json file named `config.json` will be located in the luxtorpeda directory. It has the following paramters:
+
+- host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
+- should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
+
 ## Supported titles
 
 Just click "Play" and Luxtorpeda will download and install the package for you.

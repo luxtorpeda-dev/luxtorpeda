@@ -1,7 +1,7 @@
 [package]
 name = "luxtorpeda"
-version = "0.2.0"
-authors = ["Patryk Obara <dreamer.tan@gmail.com>"]
+version = "0.3.0"
+authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,3 +20,5 @@ users = "0.9"
 xdg = "^2.1"
 tar = "0.4"
 xz2 = "0.1"
+sha-1 = "0.9.1"
+hex = "0.4.2"
