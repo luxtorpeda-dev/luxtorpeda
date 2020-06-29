@@ -2,7 +2,7 @@ name: Build Luxtorpeda
 
 on:
   push:
-    branches: [ master, remote-packages ]
+    branches: [ master ]
     paths:
       - 'src/**'
       - 'Cargo*'
