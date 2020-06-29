@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate json;
+extern crate hex;
+extern crate reqwest;
 
 use regex::Regex;
 use std::env;
@@ -9,6 +11,8 @@ use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::process::Command;
+use sha1::{Sha1, Digest};
+use std::path::Path;
 
 mod fakescripteval;
 mod ipc;
@@ -76,6 +80,111 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
+pub fn get_remote_packages_hash(remote_hash_url: &String) -> Option<String> {
+    let mut remote_hash_response = match reqwest::get(remote_hash_url) {
+        Ok(s) => s,
+        Err(err) => {
+            println!("get_remote_packages_hash error in get: {:?}", err);
+            return None;
+        }
+    };
+    
+    let remote_hash_str = match remote_hash_response.text() {
+        Ok(s) => s,
+        Err(err) => {
+            println!("get_remote_packages_hash error in text: {:?}", err);
+            return None;
+        }
+    };
+    
+    return Some(remote_hash_str);
+}
+
+pub fn generate_hash_from_file_path(file_path: &std::path::PathBuf) -> io::Result<String> {
+    let json_str = fs::read_to_string(file_path)?;
+    let mut hasher = Sha1::new();
+    hasher.update(json_str);
+    let hash_result = hasher.finalize();
+    let hash_str = hex::encode(hash_result);
+    return Ok(hash_str);
+}
+
+pub fn update_packages_json() -> io::Result<()> {
+    let config_json_file = user_env::tool_dir().join("config.json");
+    let config_json_str = fs::read_to_string(config_json_file)?;
+    let config_parsed = json::parse(&config_json_str).unwrap();
+    
+    let should_do_update = &config_parsed["should_do_update"];
+    if should_do_update != true {
+        return Ok(());
+    }
+    
+    let packages_json_file = user_env::tool_dir().join("packages.json");
+    let mut should_download = true;
+    let mut remote_hash_str: String = String::new();
+    
+    let remote_hash_url = std::format!("{0}/packages.hash", &config_parsed["host_url"]);
+    match get_remote_packages_hash(&remote_hash_url) {
+        Some(tmp_hash_str) => {
+            remote_hash_str = tmp_hash_str;
+        },
+        None => {
+            println!("update_packages_json in get_remote_packages_hash call. received none");
+            should_download = false;
+        }
+    }
+    
+    if should_download {
+        if !Path::new(&packages_json_file).exists() {
+            should_download = true;
+            println!("update_packages_json. packages.json does not exist");
+        } else {
+            let hash_str = generate_hash_from_file_path(&packages_json_file)?;
+            println!("update_packages_json. found hash: {}", hash_str);
+            
+            println!("update_packages_json. found hash and remote hash: {0} {1}", hash_str, remote_hash_str);
+            if hash_str != remote_hash_str {
+                println!("update_packages_json. hash does not match. downloading");
+                should_download = true;
+            } else {
+                should_download = false;
+            }
+        }
+    }
+    
+    if should_download {
+        println!("update_packages_json. downloading new packages.json");
+        
+        let remote_packages_url = std::format!("{0}/packages.json", &config_parsed["host_url"]);
+        let mut download_complete = false;
+        let local_packages_temp_path = user_env::tool_dir().join("packages-temp.json");
+        
+        match reqwest::get(&remote_packages_url) {
+            Ok(mut response) => {
+                let mut dest = fs::File::create(&local_packages_temp_path)?;
+                io::copy(&mut response, &mut dest)?;
+                download_complete = true;
+            }
+            Err(err) => {
+                println!("update_packages_json. download err: {:?}", err);
+            }
+        }
+        
+        if download_complete {
+            let new_hash_str = generate_hash_from_file_path(&local_packages_temp_path)?;
+            if new_hash_str == remote_hash_str {
+                println!("update_packages_json. new downloaded hash matches");
+                fs::rename(local_packages_temp_path, packages_json_file)?;
+            } else {
+                println!("update_packages_json. new downloaded hash does not match");
+                fs::remove_file(local_packages_temp_path)?;
+            }
+        }
+    }
+    
+    Ok(())
+}
+
 fn run(args: &[&str]) -> io::Result<()> {
     if args.is_empty() {
         usage();
@@ -138,6 +247,8 @@ fn main() -> io::Result<()> {
 
     user_env::assure_xdg_runtime_dir()?;
     user_env::assure_tool_dir(args[0])?;
+    
+    update_packages_json().unwrap();
 
     let cmd = args[1];
     let cmd_args = &args[2..];
