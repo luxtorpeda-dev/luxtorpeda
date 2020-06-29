@@ -13,6 +13,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use tar::Archive;
 use xz2::read::XzDecoder;
+use dialog::DialogBox;
 
 use crate::ipc;
 use crate::user_env;
@@ -91,6 +92,32 @@ pub fn download_all(app_id: String) -> io::Result<()> {
 
     if downloads.is_empty() {
         return Ok(());
+    }
+    
+    if !game_info["information"].is_null() && game_info["information"]["non_free"] == true {
+        let dialog_message = std::format!("This engine uses a non-free engine ({0}). Are you sure you want to continue?", game_info["information"]["license"]);
+        let choice = dialog::Question::new(dialog_message)
+            .title("Non-Free License Warning")
+            .show()
+            .expect("Could not display dialog box");
+        
+        if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
+            println!("show_non_free_dialog. dialog was rejected");
+            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+        }
+    }
+    
+    if !game_info["information"].is_null() && game_info["information"]["closed_source"] == true {
+        let dialog_message = "This engine uses assets from the closed source release. Are you sure you want to continue?";
+        let choice = dialog::Question::new(dialog_message)
+            .title("Closed Source Engine Warning")
+            .show()
+            .expect("Could not display dialog box");
+        
+        if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
+            println!("show_non_free_dialog. dialog was rejected");
+            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+        }
     }
 
     let (tx, rx): (Sender<ipc::StatusMsg>, Receiver<ipc::StatusMsg>) = mpsc::channel();
