@@ -59,13 +59,8 @@ Fedora
 
 ## Known issues
 
-- If game does not start with error *"No command line defined"*, it means you
-need to force-update game package to a new format.  Find game package tarball
-in `~/.cache/luxtorpeda/<appid>/`, remove it, and start the game again.
-
 - Solus and Mint users might be affected by unintended dependency on `libssl.so.1.1`,
-see [#42](https://github.com/dreamer/luxtorpeda/issues/42) for details.
-
+see [#19](https://github.com/luxtorpeda-dev/luxtorpeda/issues/19) for details.
 
 ## Configuration
 
