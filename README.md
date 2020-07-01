@@ -59,8 +59,7 @@ Fedora
 
 ## Known issues
 
-- Solus and Mint users might be affected by unintended dependency on `libssl.so.1.1`,
-see [#19](https://github.com/luxtorpeda-dev/luxtorpeda/issues/19) for details.
+- No known issues at this time.
 
 ## Configuration
 
