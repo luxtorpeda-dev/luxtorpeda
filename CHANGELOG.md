@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 7.0 (2020-07-01)
+
+- Switch reqwest to use rustls instead of using installed openssl. This should help with problems on certain distros and their openssl versions.
+
 ### 6.0 (2020-06-28)
 
 - Support for dialog boxes for warning user about non-free engines
