@@ -1,5 +1,13 @@
 ## Changelog for luxtorpeda-dev
 
+### 8.0 (2020-07-06)
+
+- Support for new download parameter for "copy_only". This is useful for artifacts that just need to be copied, instead of being extracted.
+- Patch for Arx Libertatis engine to use borderless full screen mode.
+- Added new engines
+  - dxx-rebirth
+  - ctp2
+
 ### 7.0 (2020-07-01)
 
 - Switch reqwest to use rustls instead of using installed openssl. This should help with problems on certain distros and their openssl versions.
