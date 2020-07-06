@@ -174,14 +174,14 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     }
 }
 
-fn unpack_tarball(tarball: PathBuf) -> io::Result<()> {
+fn unpack_tarball(tarball: &PathBuf) -> io::Result<()> {
     let package_name = tarball
         .file_name()
         .and_then(|x| x.to_str())
         .and_then(|x| x.split('.').next())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
-    let transform = |path: PathBuf| -> PathBuf {
+    let transform = |path: &PathBuf| -> PathBuf {
         match path.as_path().to_str() {
             Some("manifest.json") => PathBuf::from(format!("manifests.lux/{}.json", &package_name)),
             _ => PathBuf::from(path.strip_prefix("dist").unwrap_or(&path)),
@@ -196,7 +196,7 @@ fn unpack_tarball(tarball: PathBuf) -> io::Result<()> {
     for entry in archive.entries()? {
         let mut file = entry?;
         let old_path = PathBuf::from(file.header().path()?);
-        let new_path = transform(old_path);
+        let new_path = transform(&old_path);
         if new_path.to_str().map_or(false, |x| x.is_empty()) {
             continue;
         }
@@ -211,21 +211,38 @@ fn unpack_tarball(tarball: PathBuf) -> io::Result<()> {
     Ok(())
 }
 
+fn copy_only(path: &PathBuf) -> io::Result<()> {
+    let package_name = path
+        .file_name()
+        .and_then(|x| x.to_str())
+        .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
+
+    eprintln!("copying: {}", package_name);
+    fs::copy(path, package_name)?;
+
+    Ok(())
+}
+
 pub fn install() -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
     let game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
-    let packages: Vec<String> = game_info["download"]
-        .members()
-        .map(|j| j["file"].to_string())
-        .collect();
+    let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
+        .members();
 
-    for file in packages {
+    for file_info in packages {
+        let file = file_info["file"].as_str()
+            .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
         match find_cached_file(&app_id, &file) {
             Some(path) => {
-                unpack_tarball(path)?;
+                if file_info["copy_only"] != true {
+                    unpack_tarball(&path)?;
+                }
+                else {
+                    copy_only(&path)?;
+                }
             }
             None => {
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
