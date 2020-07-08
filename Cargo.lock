@@ -582,7 +582,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "7.0.0"
+version = "9.0.0"
 dependencies = [
  "dialog 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hex 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
