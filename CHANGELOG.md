@@ -1,5 +1,16 @@
 ## Changelog for luxtorpeda-dev
 
+### 9.0 (2020-07-07)
+
+- Support for new download parameter for common packages called "cache_by_name". This is useful for engines that can support multiple games with one archive, to lessen the amount of disk and network activity used.
+- Changed engine package creation for the following games to use common packages:
+  - dhewm3
+  - arxlibertatis
+  - gzdoom
+  - yquake2
+  - ioquake3
+- Updated dxx-rebirth engine to use SDL2 instead of SDL1. Fixed an issue with playback of music files.
+
 ### 8.0 (2020-07-06)
 
 - Support for new download parameter for "copy_only". This is useful for artifacts that just need to be copied, instead of being extracted.
