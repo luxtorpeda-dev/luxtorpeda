@@ -48,6 +48,7 @@ struct PackageInfo {
     name: String,
     url: String,
     file: String,
+    cache_by_name: bool
 }
 
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
@@ -68,13 +69,20 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
         let name = entry["name"].to_string();
         let url = entry["url"].to_string();
         let file = entry["file"].to_string();
+        let mut cache_by_name = false;
+        
+        let mut cache_dir = app_id;
+        if entry["cache_by_name"] == true {
+            cache_dir = &name;
+            cache_by_name = true;
+        }
 
-        if find_cached_file(app_id, file.as_str()).is_some() {
+        if find_cached_file(cache_dir, file.as_str()).is_some() {
             println!("{} found in cache (skip)", file);
             continue;
         }
 
-        downloads.push(PackageInfo { name, url, file });
+        downloads.push(PackageInfo { name, url, file, cache_by_name });
     }
     Ok(downloads)
 }
@@ -160,9 +168,15 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
 
     // TODO handle 404 and other errors
     //
+    
+    let mut cache_dir = app_id;
+    if info.cache_by_name == true {
+        cache_dir = &info.name;
+    }
+    
     match reqwest::get(target.as_str()) {
         Ok(mut response) => {
-            let dest_file = place_cached_file(app_id, &info.file)?;
+            let dest_file = place_cached_file(&cache_dir, &info.file)?;
             let mut dest = fs::File::create(dest_file)?;
             io::copy(&mut response, &mut dest)?;
             Ok(())
@@ -235,7 +249,14 @@ pub fn install() -> io::Result<()> {
     for file_info in packages {
         let file = file_info["file"].as_str()
             .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
-        match find_cached_file(&app_id, &file) {
+            
+        let name = file_info["name"].to_string();
+        let mut cache_dir = &app_id;
+        if file_info["cache_by_name"] == true {
+            cache_dir = &name;
+        }
+
+        match find_cached_file(&cache_dir, &file) {
             Some(path) => {
                 if file_info["copy_only"] != true {
                     unpack_tarball(&path)?;
