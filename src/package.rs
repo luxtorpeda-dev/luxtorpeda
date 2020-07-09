@@ -14,6 +14,7 @@ use std::thread;
 use tar::Archive;
 use xz2::read::XzDecoder;
 use dialog::DialogBox;
+use sha1::{Sha1, Digest};
 
 use crate::ipc;
 use crate::user_env;
@@ -58,6 +59,111 @@ pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplace
     Ok(meta.commands)
 }
 
+pub fn get_remote_packages_hash(remote_hash_url: &String) -> Option<String> {
+    let remote_hash_response = match reqwest::blocking::get(remote_hash_url) {
+        Ok(s) => s,
+        Err(err) => {
+            println!("get_remote_packages_hash error in get: {:?}", err);
+            return None;
+        }
+    };
+    
+    let remote_hash_str = match remote_hash_response.text() {
+        Ok(s) => s,
+        Err(err) => {
+            println!("get_remote_packages_hash error in text: {:?}", err);
+            return None;
+        }
+    };
+    
+    return Some(remote_hash_str);
+}
+
+pub fn generate_hash_from_file_path(file_path: &std::path::PathBuf) -> io::Result<String> {
+    let json_str = fs::read_to_string(file_path)?;
+    let mut hasher = Sha1::new();
+    hasher.update(json_str);
+    let hash_result = hasher.finalize();
+    let hash_str = hex::encode(hash_result);
+    return Ok(hash_str);
+}
+
+pub fn update_packages_json() -> io::Result<()> {
+    let config_json_file = user_env::tool_dir().join("config.json");
+    let config_json_str = fs::read_to_string(config_json_file)?;
+    let config_parsed = json::parse(&config_json_str).unwrap();
+    
+    let should_do_update = &config_parsed["should_do_update"];
+    if should_do_update != true {
+        return Ok(());
+    }
+    
+    let packages_json_file = user_env::tool_dir().join("packages.json");
+    let mut should_download = true;
+    let mut remote_hash_str: String = String::new();
+    
+    let remote_hash_url = std::format!("{0}/packages.hash", &config_parsed["host_url"]);
+    match get_remote_packages_hash(&remote_hash_url) {
+        Some(tmp_hash_str) => {
+            remote_hash_str = tmp_hash_str;
+        },
+        None => {
+            println!("update_packages_json in get_remote_packages_hash call. received none");
+            should_download = false;
+        }
+    }
+    
+    if should_download {
+        if !Path::new(&packages_json_file).exists() {
+            should_download = true;
+            println!("update_packages_json. packages.json does not exist");
+        } else {
+            let hash_str = generate_hash_from_file_path(&packages_json_file)?;
+            println!("update_packages_json. found hash: {}", hash_str);
+            
+            println!("update_packages_json. found hash and remote hash: {0} {1}", hash_str, remote_hash_str);
+            if hash_str != remote_hash_str {
+                println!("update_packages_json. hash does not match. downloading");
+                should_download = true;
+            } else {
+                should_download = false;
+            }
+        }
+    }
+    
+    if should_download {
+        println!("update_packages_json. downloading new packages.json");
+        
+        let remote_packages_url = std::format!("{0}/packages.json", &config_parsed["host_url"]);
+        let mut download_complete = false;
+        let local_packages_temp_path = user_env::tool_dir().join("packages-temp.json");
+        
+        match reqwest::blocking::get(&remote_packages_url) {
+            Ok(mut response) => {
+                let mut dest = fs::File::create(&local_packages_temp_path)?;
+                io::copy(&mut response, &mut dest)?;
+                download_complete = true;
+            }
+            Err(err) => {
+                println!("update_packages_json. download err: {:?}", err);
+            }
+        }
+        
+        if download_complete {
+            let new_hash_str = generate_hash_from_file_path(&local_packages_temp_path)?;
+            if new_hash_str == remote_hash_str {
+                println!("update_packages_json. new downloaded hash matches");
+                fs::rename(local_packages_temp_path, packages_json_file)?;
+            } else {
+                println!("update_packages_json. new downloaded hash does not match");
+                fs::remove_file(local_packages_temp_path)?;
+            }
+        }
+    }
+    
+    Ok(())
+}
+
 fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Vec<PackageInfo>> {
     let mut downloads: Vec<PackageInfo> = Vec::new();
 
@@ -88,6 +194,8 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
 }
 
 pub fn download_all(app_id: String) -> io::Result<()> {
+    update_packages_json().unwrap();
+    
     let game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
@@ -174,7 +282,7 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
         cache_dir = &info.name;
     }
     
-    match reqwest::get(target.as_str()) {
+    match reqwest::blocking::get(target.as_str()) {
         Ok(mut response) => {
             let dest_file = place_cached_file(&cache_dir, &info.file)?;
             let mut dest = fs::File::create(dest_file)?;
