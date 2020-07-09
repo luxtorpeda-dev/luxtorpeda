@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 10.0 (2020-07-09)
+
+- Fixed regression related to the steam download progress bar not appearing.
+- Fixed regression related to slower download speeds.
+
 ### 9.0 (2020-07-07)
 
 - Support for new download parameter for common packages called "cache_by_name". This is useful for engines that can support multiple games with one archive, to lessen the amount of disk and network activity used.
