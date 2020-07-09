@@ -12,6 +12,7 @@
 - Updated dxx-rebirth engine to use SDL2 instead of SDL1. Fixed an issue with playback of music files.
 - Updated gzdoom engine to use 4.4.2, with included fluidsynth and GCC 9 build support. Newer version should also fix crashing issues.
 - Updated dxx-rebirth to latest master, using the new GCC 9 build support.
+- Added openrct2, using the new GCC 9 build system. Steam overlay needs to be disabled for this game.
 
 ### 8.0 (2020-07-06)
 
