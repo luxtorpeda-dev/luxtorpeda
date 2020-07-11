@@ -5,6 +5,10 @@
 - Fixed regression related to the steam download progress bar not appearing.
 - Fixed regression related to slower download speeds.
 - Added openapoc
+- Added quake 4 (proprietary engine)
+  - Client will ask before taking any steps if you want to use this engine
+  - Engine script and override default configuration will be downloaded
+  - Engine script will take care of presenting the original EULA, downloading the installer, extracting the data, and setting up. In this case, it'll also copy the cd key to the proper place, so it's just launch and go.
 
 ### 9.0 (2020-07-07)
 
