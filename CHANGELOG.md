@@ -1,5 +1,13 @@
 ## Changelog for luxtorpeda-dev
 
+### 11.0 (2020-07-11)
+
+- Added use_original_command_directory package switch, to be used for certain games like UT2004 that have pathing issues.
+- Added ut 2004 (proprietary engine)
+  - Client will ask before taking any steps if you want to use this engine
+  - Engine script will be downloaded
+  - Engine script will take care of presenting the original EULA, downloading the installer, extracting the data, and setting up. The process will ask for the cd key, which can be seen in the Steam client.
+
 ### 10.0 (2020-07-09)
 
 - Fixed regression related to the steam download progress bar not appearing.
