@@ -4,6 +4,7 @@
 
 - Fixed regression related to the steam download progress bar not appearing.
 - Fixed regression related to slower download speeds.
+- Added openapoc
 
 ### 9.0 (2020-07-07)
 
