@@ -10,6 +10,7 @@ use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 
 mod fakescripteval;
@@ -112,6 +113,16 @@ fn run(args: &[&str]) -> io::Result<()> {
 
     println!("json:");
     println!("{:#}", game_info);
+    
+    if game_info["use_original_command_directory"] == true {
+        let tmp_path = Path::new(args[0]);
+        let parent_path = tmp_path.parent().unwrap();
+        env::set_current_dir(parent_path).unwrap();
+        
+        println!("original command: {:?}", args);
+        println!("working dir: {:?}", env::current_dir());
+        println!("tool dir: {:?}", user_env::tool_dir());
+    }
 
     if !game_info["download"].is_null() {
         package::install()?;
