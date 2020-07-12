@@ -353,6 +353,13 @@ pub fn install() -> io::Result<()> {
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
         .members();
+        
+    let prelaunch = &game_info["prelaunch"];
+    let mut prelaunch_complete = false;
+    let mut should_check_prelaunch = false;
+    if !prelaunch.is_null() {
+        prelaunch_complete = Path::new(&prelaunch["complete_path"].to_string()).exists()
+    }
 
     for file_info in packages {
         let file = file_info["file"].as_str()
