@@ -127,6 +127,15 @@ fn run(args: &[&str]) -> io::Result<()> {
     if !game_info["download"].is_null() {
         package::install()?;
     }
+    
+    match package::run_setup(&game_info) {
+        Ok(()) => {
+            println!("setup complete");
+        },
+        Err(_err) => {
+            return Err(Error::new(ErrorKind::Other, "Setup failed"));
+        }
+    }
 
     match find_game_command(game_info, args) {
         None => Err(Error::new(ErrorKind::Other, "No command line defined")),

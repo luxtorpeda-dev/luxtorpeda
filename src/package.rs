@@ -15,6 +15,7 @@ use tar::Archive;
 use xz2::read::XzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
+use std::process::Command;
 
 use crate::ipc;
 use crate::user_env;
@@ -52,11 +53,12 @@ struct PackageInfo {
     cache_by_name: bool
 }
 
-struct SetupInfo {
-    complete_path: String,
-    command: String,
-    downloads: Vec<String>,
-    setup_complete: bool
+#[derive(Debug)]
+pub struct SetupInfo {
+    pub complete_path: String,
+    pub command: String,
+    pub downloads: json::JsonValue,
+    pub setup_complete: bool
 }
 
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
@@ -210,6 +212,12 @@ pub fn download_all(app_id: String) -> io::Result<()> {
         println!("skipping downloads (no urls defined for this package)");
         return Ok(());
     }
+
+    let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
+
+    if downloads.is_empty() {
+        return Ok(());
+    }
     
     if !game_info["information"].is_null() && game_info["information"]["non_free"] == true {
         let dialog_message = std::format!("This engine uses a non-free engine ({0}). Are you sure you want to continue?", game_info["information"]["license"]);
@@ -235,21 +243,6 @@ pub fn download_all(app_id: String) -> io::Result<()> {
             println!("show_non_free_dialog. dialog was rejected");
             return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
         }
-    }
-    
-    match get_setup_info(&game_info) {
-        Some(setup_info) => {
-            if !setup_info.setup_complete {
-                
-            }
-        },
-        None => {}
-    }
-
-    let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
-
-    if downloads.is_empty() {
-        return Ok(());
     }
 
     let (tx, rx): (Sender<ipc::StatusMsg>, Receiver<ipc::StatusMsg>) = mpsc::channel();
@@ -369,16 +362,6 @@ pub fn install() -> io::Result<()> {
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
         .members();
-        
-    let mut setup_info: SetupInfo;
-    let mut check_setup = false;
-    match get_setup_info(&game_info) {
-        Some(tmp_setup_info) => {
-            setup_info = &tmp_setup_info;
-            check_setup = true;
-        },
-        None => {}
-    }
 
     for file_info in packages {
         let file = file_info["file"].as_str()
@@ -390,17 +373,39 @@ pub fn install() -> io::Result<()> {
             cache_dir = &name;
         }
         
-        if check_setup && setup_info.setup_complete {
+        let mut file_mode = String::from("unpack_tarball");
+        if file_info["copy_only"] != true {
+            file_mode = String::from("copy_only");
+        }
+        
+        let stop_install;
+        match get_setup_info(&game_info) {
+            Some(tmp_setup_info) => {
+                println!("setup_info {:?}", tmp_setup_info);
+                let setup_info_file = &tmp_setup_info.downloads[&file.to_string()];
+                if !setup_info_file.is_null() && tmp_setup_info.setup_complete {
+                    stop_install = true;
+                } else {
+                    stop_install = false;
+                    if !setup_info_file.is_null() {
+                        file_mode = String::from(&setup_info_file["file_mode"].to_string());
+                    }
+                }
+            },
+            None => {
+                stop_install = false;
+            }
+        }
+        if stop_install {
             continue;
         }
 
         match find_cached_file(&cache_dir, &file) {
             Some(path) => {
-                if file_info["copy_only"] != true {
-                    unpack_tarball(&path)?;
-                }
-                else {
-                    copy_only(&path)?;
+                match file_mode.as_str() {
+                    "unpack_tarball" => unpack_tarball(&path)?,
+                    "copy_only" => copy_only(&path)?,
+                    _ => {}
                 }
             }
             None => {
@@ -411,19 +416,41 @@ pub fn install() -> io::Result<()> {
     Ok(())
 }
 
+pub fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
+    match get_setup_info(&game_info) {
+        Some(setup_info) => {
+            let dialog_message = "test eula";
+            let choice = dialog::Question::new(dialog_message)
+                .title("Closed Source Engine EULA")
+                .show()
+                .expect("Could not display dialog box");
+                        
+            if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
+                println!("show eula. dialog was rejected");
+                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+            }
+            
+            Command::new(setup_info.command)
+                .status()
+                .expect("failed to execute process");
+            
+            return Ok(());
+        },
+        None => {
+            return Ok(());
+        }
+    }    
+}
+
 pub fn get_setup_info(game_info: &json::JsonValue) -> Option<SetupInfo> {
     if !game_info["setup"].is_null() {
-        let mut downloads: Vec<String> = Vec::new();
         let setup_complete = Path::new(&game_info["setup"]["complete_path"].to_string()).exists();
-        for entry in game_info["setup"]["download"].members() {
-            downloads.push(entry.to_string());
-        }
 
         let setup_info = SetupInfo { 
             complete_path: game_info["setup"]["complete_path"].to_string(),
             command: game_info["setup"]["command"].to_string(),
             setup_complete: setup_complete,
-            downloads: downloads
+            downloads: game_info["setup"]["downloads"].clone()
         };
         return Some(setup_info);
     } else {
