@@ -52,6 +52,13 @@ struct PackageInfo {
     cache_by_name: bool
 }
 
+struct SetupInfo {
+    complete_path: String,
+    command: String,
+    downloads: Vec<String>,
+    setup_complete: bool
+}
+
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
     let file = fs::File::open(path)?;
     let reader = io::BufReader::new(file);
@@ -203,12 +210,6 @@ pub fn download_all(app_id: String) -> io::Result<()> {
         println!("skipping downloads (no urls defined for this package)");
         return Ok(());
     }
-
-    let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
-
-    if downloads.is_empty() {
-        return Ok(());
-    }
     
     if !game_info["information"].is_null() && game_info["information"]["non_free"] == true {
         let dialog_message = std::format!("This engine uses a non-free engine ({0}). Are you sure you want to continue?", game_info["information"]["license"]);
@@ -234,6 +235,21 @@ pub fn download_all(app_id: String) -> io::Result<()> {
             println!("show_non_free_dialog. dialog was rejected");
             return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
         }
+    }
+    
+    match get_setup_info(&game_info) {
+        Some(setup_info) => {
+            if !setup_info.setup_complete {
+                
+            }
+        },
+        None => {}
+    }
+
+    let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
+
+    if downloads.is_empty() {
+        return Ok(());
     }
 
     let (tx, rx): (Sender<ipc::StatusMsg>, Receiver<ipc::StatusMsg>) = mpsc::channel();
@@ -354,11 +370,14 @@ pub fn install() -> io::Result<()> {
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
         .members();
         
-    let prelaunch = &game_info["prelaunch"];
-    let mut prelaunch_complete = false;
-    let mut should_check_prelaunch = false;
-    if !prelaunch.is_null() {
-        prelaunch_complete = Path::new(&prelaunch["complete_path"].to_string()).exists()
+    let mut setup_info: SetupInfo;
+    let mut check_setup = false;
+    match get_setup_info(&game_info) {
+        Some(tmp_setup_info) => {
+            setup_info = &tmp_setup_info;
+            check_setup = true;
+        },
+        None => {}
     }
 
     for file_info in packages {
@@ -369,6 +388,10 @@ pub fn install() -> io::Result<()> {
         let mut cache_dir = &app_id;
         if file_info["cache_by_name"] == true {
             cache_dir = &name;
+        }
+        
+        if check_setup && setup_info.setup_complete {
+            continue;
         }
 
         match find_cached_file(&cache_dir, &file) {
@@ -386,6 +409,26 @@ pub fn install() -> io::Result<()> {
         }
     }
     Ok(())
+}
+
+pub fn get_setup_info(game_info: &json::JsonValue) -> Option<SetupInfo> {
+    if !game_info["setup"].is_null() {
+        let mut downloads: Vec<String> = Vec::new();
+        let setup_complete = Path::new(&game_info["setup"]["complete_path"].to_string()).exists();
+        for entry in game_info["setup"]["download"].members() {
+            downloads.push(entry.to_string());
+        }
+
+        let setup_info = SetupInfo { 
+            complete_path: game_info["setup"]["complete_path"].to_string(),
+            command: game_info["setup"]["command"].to_string(),
+            setup_complete: setup_complete,
+            downloads: downloads
+        };
+        return Some(setup_info);
+    } else {
+        return None;
+    }
 }
 
 pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
