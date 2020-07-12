@@ -15,7 +15,6 @@ use tar::Archive;
 use xz2::read::XzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
-use std::process::Command;
 
 use crate::ipc;
 use crate::user_env;
@@ -58,7 +57,8 @@ pub struct SetupInfo {
     pub complete_path: String,
     pub command: String,
     pub downloads: json::JsonValue,
-    pub setup_complete: bool
+    pub setup_complete: bool,
+    pub license_path: String
 }
 
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
@@ -416,42 +416,23 @@ pub fn install() -> io::Result<()> {
     Ok(())
 }
 
-pub fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
-    match get_setup_info(&game_info) {
-        Some(setup_info) => {
-            let dialog_message = "test eula";
-            let choice = dialog::Question::new(dialog_message)
-                .title("Closed Source Engine EULA")
-                .show()
-                .expect("Could not display dialog box");
-                        
-            if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
-                println!("show eula. dialog was rejected");
-                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-            }
-            
-            Command::new(setup_info.command)
-                .status()
-                .expect("failed to execute process");
-            
-            return Ok(());
-        },
-        None => {
-            return Ok(());
-        }
-    }    
-}
-
 pub fn get_setup_info(game_info: &json::JsonValue) -> Option<SetupInfo> {
     if !game_info["setup"].is_null() {
         let setup_complete = Path::new(&game_info["setup"]["complete_path"].to_string()).exists();
-
+        
+        let mut license_path = String::new().to_string();
+        if !game_info["setup"]["license_path"].is_null() {
+            license_path = game_info["setup"]["license_path"].to_string();
+        }
+        
         let setup_info = SetupInfo { 
             complete_path: game_info["setup"]["complete_path"].to_string(),
             command: game_info["setup"]["command"].to_string(),
             setup_complete: setup_complete,
-            downloads: game_info["setup"]["downloads"].clone()
+            downloads: game_info["setup"]["downloads"].clone(),
+            license_path: license_path
         };
+        
         return Some(setup_info);
     } else {
         return None;

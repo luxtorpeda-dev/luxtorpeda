@@ -12,6 +12,9 @@ use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::path::Path;
 use std::process::Command;
+use dialog::DialogBox;
+use std::fs::File;
+use std::io::Read;
 
 mod fakescripteval;
 mod ipc;
@@ -79,6 +82,39 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
+fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
+    match package::get_setup_info(&game_info) {
+        Some(setup_info) => {
+            if !setup_info.license_path.is_empty() && Path::new(&setup_info.license_path).exists() {
+                let mut license_file = File::open(setup_info.license_path)?;
+                let mut license_buf = vec![];
+                license_file.read_to_end(&mut license_buf)?;
+                let license_str = String::from_utf8_lossy(&license_buf);
+    
+                let choice = dialog::Question::new(license_str)
+                    .title("Closed Source Engine EULA")
+                    .show()
+                    .expect("Could not display dialog box");
+                            
+                if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
+                    println!("show eula. dialog was rejected");
+                    return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+                }
+            }
+            
+            Command::new(setup_info.command)
+                .status()
+                .expect("failed to execute process");
+                
+            File::create(&setup_info.complete_path)?;
+            return Ok(());
+        },
+        None => {
+            return Ok(());
+        }
+    }    
+}
+
 fn run(args: &[&str]) -> io::Result<()> {
     if args.is_empty() {
         usage();
@@ -128,12 +164,12 @@ fn run(args: &[&str]) -> io::Result<()> {
         package::install()?;
     }
     
-    match package::run_setup(&game_info) {
+    match run_setup(&game_info) {
         Ok(()) => {
             println!("setup complete");
         },
-        Err(_err) => {
-            return Err(Error::new(ErrorKind::Other, "Setup failed"));
+        Err(err) => {
+            return Err(err);
         }
     }
 
