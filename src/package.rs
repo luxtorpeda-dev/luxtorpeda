@@ -317,7 +317,7 @@ fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) ->
     let mut extract_location: String = String::new();
     let mut strip_prefix: String = String::new();
     
-    if !&game_info["download_config"].is_null() && !&game_info["download_config"][&name.to_string()].is_null() && game_info["download_config"][&name.to_string()]["setup"] == true {
+    if !&game_info["download_config"].is_null() && !&game_info["download_config"][&name.to_string()].is_null() {
         let file_download_config = &game_info["download_config"][&name.to_string()];
         if !file_download_config["extract_location"].is_null() {
             extract_location = file_download_config["extract_location"].to_string();
@@ -409,17 +409,24 @@ pub fn install() -> io::Result<()> {
             cache_dir = &name;
         }
         
-        if setup_complete && !&game_info["download_config"].is_null() && !&game_info["download_config"][&file.to_string()].is_null() && game_info["download_config"][&file.to_string()]["setup"] == true {
+        if setup_complete && !&game_info["download_config"].is_null() && !&game_info["download_config"][&name.to_string()].is_null() && !&game_info["download_config"][&name.to_string()]["setup"].is_null() && game_info["download_config"][&name.to_string()]["setup"] == true {
             continue;
         }
         
         match find_cached_file(&cache_dir, &file) {
             Some(path) => {
-                if file_info["copy_only"] != true {
-                    unpack_tarball(&path, &game_info, &name)?;
+                if file_info["copy_only"] == true {
+                    copy_only(&path)?;
+                }
+                else if
+                    !&game_info["download_config"].is_null() &&
+                    !&game_info["download_config"][&name.to_string()].is_null() &&
+                    !&game_info["download_config"][&name.to_string()]["copy_only"].is_null() &&
+                    game_info["download_config"][&name.to_string()]["copy_only"] == true {
+                    copy_only(&path)?;
                 }
                 else {
-                    copy_only(&path)?;
+                    unpack_tarball(&path, &game_info, &name)?;
                 }
             }
             None => {
