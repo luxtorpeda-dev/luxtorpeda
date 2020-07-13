@@ -316,6 +316,7 @@ fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) ->
     
     let mut extract_location: String = String::new();
     let mut strip_prefix: String = String::new();
+    let mut decode_as_zip = false;
     
     if !&game_info["download_config"].is_null() && !&game_info["download_config"][&name.to_string()].is_null() {
         let file_download_config = &game_info["download_config"][&name.to_string()];
@@ -327,42 +328,78 @@ fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) ->
             strip_prefix = file_download_config["strip_prefix"].to_string();
             println!("install changing prefix with config {}", strip_prefix);
         }
+        if !file_download_config["decode_as_zip"].is_null() && file_download_config["decode_as_zip"] == true {
+            decode_as_zip = true;
+            println!("install changing decoder to zip");
+        }
     }
 
     let file = fs::File::open(&tarball)?;
-    let file_extension = Path::new(&tarball).extension().and_then(OsStr::to_str).unwrap();
-    let decoder: Box<dyn std::io::Read>;
     
-    if file_extension == "bz2" {
-        decoder = Box::new(BzDecoder::new(file));
+    if decode_as_zip {
+        let mut archive = zip::ZipArchive::new(file).unwrap();
+        for i in 0..archive.len() {
+            let mut file = archive.by_index(i).unwrap();
+            
+            if file.is_dir() {
+                continue;
+            }
+            
+            let mut new_path = PathBuf::from(file.name());
+            
+            if !strip_prefix.is_empty() {
+                new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+            }
+            
+            if !extract_location.is_empty() {
+                new_path = Path::new(&extract_location).join(new_path);
+            }
+            
+            println!("install: {:?}", &new_path);
+            
+            if new_path.parent().is_some() {
+                fs::create_dir_all(new_path.parent().unwrap())?;
+            }
+            
+            let _ = fs::remove_file(&new_path);
+            let mut outfile = fs::File::create(&new_path).unwrap();
+            io::copy(&mut file, &mut outfile).unwrap();
+        }
     } else {
-        decoder = Box::new(XzDecoder::new(file));
-    }
-    
-    let mut archive = Archive::new(decoder);
+        let file_extension = Path::new(&tarball).extension().and_then(OsStr::to_str).unwrap();
+        let decoder: Box<dyn std::io::Read>;
+        
+        if file_extension == "bz2" {
+            decoder = Box::new(BzDecoder::new(file));
+        } else {
+            decoder = Box::new(XzDecoder::new(file));
+        }
+        
+        let mut archive = Archive::new(decoder);
 
-    for entry in archive.entries()? {
-        let mut file = entry?;
-        let old_path = PathBuf::from(file.header().path()?);
-        let mut new_path = transform(&old_path);
-        if new_path.to_str().map_or(false, |x| x.is_empty()) {
-            continue;
+        for entry in archive.entries()? {
+            let mut file = entry?;
+            let old_path = PathBuf::from(file.header().path()?);
+            let mut new_path = transform(&old_path);
+            if new_path.to_str().map_or(false, |x| x.is_empty()) {
+                continue;
+            }
+            
+            if !strip_prefix.is_empty() {
+                new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+            }
+            
+            if !extract_location.is_empty() {
+                new_path = Path::new(&extract_location).join(new_path);
+            }
+            
+            println!("install: {:?}", &new_path);
+            if new_path.parent().is_some() {
+                fs::create_dir_all(new_path.parent().unwrap())?;
+            }
+            let _ = fs::remove_file(&new_path);
+            file.unpack(&new_path)?;
         }
-        
-        if !strip_prefix.is_empty() {
-            new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
-        }
-        
-        if !extract_location.is_empty() {
-            new_path = Path::new(&extract_location).join(new_path);
-        }
-        
-        println!("install: {:?}", &new_path);
-        if new_path.parent().is_some() {
-            fs::create_dir_all(new_path.parent().unwrap())?;
-        }
-        let _ = fs::remove_file(&new_path);
-        file.unpack(&new_path)?;
     }
 
     Ok(())
