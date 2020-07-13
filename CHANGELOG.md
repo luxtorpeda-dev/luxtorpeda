@@ -1,6 +1,6 @@
 ## Changelog for luxtorpeda-dev
 
-### 13.0 (2020-07-11)
+### 13.0 (2020-07-13)
 
 - Added interactive setup to allow for presenting EULA, downloading installers, etc. 
 - Added support for tar.bz2 file extraction.
