@@ -83,44 +83,43 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
 }
 
 fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
-    if !game_info["setup"].is_null() {
-        let setup_info = &game_info["setup"];
-        match package::is_setup_complete(&setup_info) {
-            Ok(setup_complete) => {
-                if !setup_complete {
-                    if !&setup_info["license_path"].is_null() && Path::new(&setup_info["license_path"].to_string()).exists() {
-                        let mut license_file = File::open(&setup_info["license_path"].to_string())?;
-                        let mut license_buf = vec![];
-                        license_file.read_to_end(&mut license_buf)?;
-                        let license_str = String::from_utf8_lossy(&license_buf);
+    let setup_info = &game_info["setup"];
+    if !package::is_setup_complete(&game_info["setup"]) {
+        if !&setup_info["license_path"].is_null() && Path::new(&setup_info["license_path"].to_string()).exists() {
+            let mut license_file = File::open(&setup_info["license_path"].to_string())?;
+            let mut license_buf = vec![];
+            license_file.read_to_end(&mut license_buf)?;
+            let license_str = String::from_utf8_lossy(&license_buf);
             
-                        let choice = dialog::Question::new(license_str)
-                            .title("Closed Source Engine EULA")
-                            .show()
-                            .expect("Could not display dialog box");
+            let choice = dialog::Question::new(license_str)
+                .title("Closed Source Engine EULA")
+                .show()
+                .expect("Could not display dialog box");
                                     
-                        if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
-                            println!("show eula. dialog was rejected");
-                            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-                        }
-                    }
+            if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
+                println!("show eula. dialog was rejected");
+                
+                if !setup_info["uninstall_command"].is_null() {
+                    let command_str = setup_info["uninstall_command"].to_string();
+                    println!("uninstall run: \"{}\"", command_str);
                     
-                    let command_str = setup_info["command"].to_string();
-                    println!("setup run: \"{}\"", command_str);
                     Command::new(command_str)
                         .status()
                         .expect("failed to execute process");
-                        
-                    File::create(&setup_info["complete_path"].to_string())?;
-            return Ok(());
-                } else {
-                    return Ok(());
                 }
-            },
-            Err(err) => {
-                return Err(err);
+                
+                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         }
+                    
+        let command_str = setup_info["command"].to_string();
+        println!("setup run: \"{}\"", command_str);
+        Command::new(command_str)
+            .status()
+            .expect("failed to execute process");
+                        
+        File::create(&setup_info["complete_path"].to_string())?;
+        return Ok(());
     } else {
         return Ok(());
     }
@@ -175,12 +174,14 @@ fn run(args: &[&str]) -> io::Result<()> {
         package::install()?;
     }
     
-    match run_setup(&game_info) {
-        Ok(()) => {
-            println!("setup complete");
-        },
-        Err(err) => {
-            return Err(err);
+    if !game_info["setup"].is_null() {
+        match run_setup(&game_info) {
+            Ok(()) => {
+                println!("setup complete");
+            },
+            Err(err) => {
+                return Err(err);
+            }
         }
     }
 

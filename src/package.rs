@@ -298,7 +298,7 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     }
 }
 
-fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue) -> io::Result<()> {
+fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) -> io::Result<()> {
     let package_name = tarball
         .file_name()
         .and_then(|x| x.to_str())
@@ -313,6 +313,21 @@ fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue) -> io::Result<
     };
 
     eprintln!("installing: {}", package_name);
+    
+    let mut extract_location: String = String::new();
+    let mut strip_prefix: String = String::new();
+    
+    if !&game_info["download_config"].is_null() && !&game_info["download_config"][&name.to_string()].is_null() && game_info["download_config"][&name.to_string()]["setup"] == true {
+        let file_download_config = &game_info["download_config"][&name.to_string()];
+        if !file_download_config["extract_location"].is_null() {
+            extract_location = file_download_config["extract_location"].to_string();
+            println!("install changing extract location with config {}", extract_location);
+        }
+        if !file_download_config["strip_prefix"].is_null() {
+            strip_prefix = file_download_config["strip_prefix"].to_string();
+            println!("install changing prefix with config {}", strip_prefix);
+        }
+    }
 
     let file = fs::File::open(&tarball)?;
     let file_extension = Path::new(&tarball).extension().and_then(OsStr::to_str).unwrap();
@@ -329,16 +344,25 @@ fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue) -> io::Result<
     for entry in archive.entries()? {
         let mut file = entry?;
         let old_path = PathBuf::from(file.header().path()?);
-        let new_path = transform(&old_path);
+        let mut new_path = transform(&old_path);
         if new_path.to_str().map_or(false, |x| x.is_empty()) {
             continue;
         }
+        
+        if !strip_prefix.is_empty() {
+            new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+        }
+        
+        if !extract_location.is_empty() {
+            new_path = Path::new(&extract_location).join(new_path);
+        }
+        
         println!("install: {:?}", &new_path);
-        /*if new_path.parent().is_some() {
+        if new_path.parent().is_some() {
             fs::create_dir_all(new_path.parent().unwrap())?;
         }
         let _ = fs::remove_file(&new_path);
-        file.unpack(&new_path)?;*/
+        file.unpack(&new_path)?;
     }
 
     Ok(())
@@ -356,9 +380,9 @@ fn copy_only(path: &PathBuf) -> io::Result<()> {
     Ok(())
 }
 
-pub fn is_setup_complete(setup_info: &json::JsonValue) -> io::Result<bool> {
+pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     let setup_complete = Path::new(&setup_info["complete_path"].to_string()).exists();
-    return Ok(setup_complete);
+    return setup_complete;
 }
 
 pub fn install() -> io::Result<()> {
@@ -372,14 +396,7 @@ pub fn install() -> io::Result<()> {
         
     let mut setup_complete = false;
     if !game_info["setup"].is_null() {
-        match is_setup_complete(&game_info["setup"]) {
-            Ok(tmp_setup_complete) => {
-                setup_complete = tmp_setup_complete;
-            },
-            _ => {
-                setup_complete = false;
-            }
-        }
+        setup_complete = is_setup_complete(&game_info["setup"]);
     }
 
     for file_info in packages {
@@ -392,15 +409,14 @@ pub fn install() -> io::Result<()> {
             cache_dir = &name;
         }
         
-        if setup_complete && !&game_info["setup"]["downloads"][&file.to_string()].is_null() {
-            println!("ASDASD");
+        if setup_complete && !&game_info["download_config"].is_null() && !&game_info["download_config"][&file.to_string()].is_null() && game_info["download_config"][&file.to_string()]["setup"] == true {
             continue;
         }
         
         match find_cached_file(&cache_dir, &file) {
             Some(path) => {
                 if file_info["copy_only"] != true {
-                    unpack_tarball(&path, &game_info)?;
+                    unpack_tarball(&path, &game_info, &name)?;
                 }
                 else {
                     copy_only(&path)?;
