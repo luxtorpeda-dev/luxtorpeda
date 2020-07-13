@@ -83,8 +83,12 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
 }
 
 fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
-    match package::get_setup_info(&game_info) {
+    match package::get_setup_info(&game_info, true) {
         Some(setup_info) => {
+            if setup_info.setup_complete {
+                return Ok(());
+            }
+            
             if !setup_info.license_path.is_empty() && Path::new(&setup_info.license_path).exists() {
                 let mut license_file = File::open(setup_info.license_path)?;
                 let mut license_buf = vec![];

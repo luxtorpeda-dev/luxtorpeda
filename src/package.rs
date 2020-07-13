@@ -8,11 +8,13 @@ use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use tar::Archive;
 use xz2::read::XzDecoder;
+use bzip2::read::BzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
 
@@ -305,7 +307,7 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     }
 }
 
-fn unpack_tarball(tarball: &PathBuf) -> io::Result<()> {
+fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue) -> io::Result<()> {
     let package_name = tarball
         .file_name()
         .and_then(|x| x.to_str())
@@ -322,7 +324,16 @@ fn unpack_tarball(tarball: &PathBuf) -> io::Result<()> {
     eprintln!("installing: {}", package_name);
 
     let file = fs::File::open(&tarball)?;
-    let mut archive = Archive::new(XzDecoder::new(file));
+    let file_extension = Path::new(&tarball).extension().and_then(OsStr::to_str).unwrap();
+    let decoder: Box<dyn std::io::Read>;
+    
+    if file_extension == "bz2" {
+        decoder = Box::new(BzDecoder::new(file));
+    } else {
+        decoder = Box::new(XzDecoder::new(file));
+    }
+    
+    let mut archive = Archive::new(decoder);
 
     for entry in archive.entries()? {
         let mut file = entry?;
@@ -332,11 +343,11 @@ fn unpack_tarball(tarball: &PathBuf) -> io::Result<()> {
             continue;
         }
         println!("install: {:?}", &new_path);
-        if new_path.parent().is_some() {
+        /*if new_path.parent().is_some() {
             fs::create_dir_all(new_path.parent().unwrap())?;
         }
         let _ = fs::remove_file(&new_path);
-        file.unpack(&new_path)?;
+        file.unpack(&new_path)?;*/
     }
 
     Ok(())
@@ -373,39 +384,30 @@ pub fn install() -> io::Result<()> {
             cache_dir = &name;
         }
         
-        let mut file_mode = String::from("unpack_tarball");
-        if file_info["copy_only"] != true {
-            file_mode = String::from("copy_only");
-        }
-        
-        let stop_install;
-        match get_setup_info(&game_info) {
+        let mut stop_install = false;
+        match get_setup_info(&game_info, true) {
             Some(tmp_setup_info) => {
-                println!("setup_info {:?}", tmp_setup_info);
                 let setup_info_file = &tmp_setup_info.downloads[&file.to_string()];
                 if !setup_info_file.is_null() && tmp_setup_info.setup_complete {
                     stop_install = true;
-                } else {
-                    stop_install = false;
-                    if !setup_info_file.is_null() {
-                        file_mode = String::from(&setup_info_file["file_mode"].to_string());
-                    }
                 }
             },
             None => {
                 stop_install = false;
             }
         }
+        
         if stop_install {
             continue;
         }
-
+        
         match find_cached_file(&cache_dir, &file) {
             Some(path) => {
-                match file_mode.as_str() {
-                    "unpack_tarball" => unpack_tarball(&path)?,
-                    "copy_only" => copy_only(&path)?,
-                    _ => {}
+                if file_info["copy_only"] != true {
+                    unpack_tarball(&path, &game_info)?;
+                }
+                else {
+                    copy_only(&path)?;
                 }
             }
             None => {
@@ -416,9 +418,12 @@ pub fn install() -> io::Result<()> {
     Ok(())
 }
 
-pub fn get_setup_info(game_info: &json::JsonValue) -> Option<SetupInfo> {
+pub fn get_setup_info(game_info: &json::JsonValue, check_file: bool) -> Option<SetupInfo> {
     if !game_info["setup"].is_null() {
-        let setup_complete = Path::new(&game_info["setup"]["complete_path"].to_string()).exists();
+        let mut setup_complete = false;
+        if check_file {
+            Path::new(&game_info["setup"]["complete_path"].to_string()).exists();
+        }
         
         let mut license_path = String::new().to_string();
         if !game_info["setup"]["license_path"].is_null() {
