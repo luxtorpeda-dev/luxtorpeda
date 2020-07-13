@@ -8,11 +8,13 @@ use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use tar::Archive;
 use xz2::read::XzDecoder;
+use bzip2::read::BzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
 
@@ -296,7 +298,7 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     }
 }
 
-fn unpack_tarball(tarball: &PathBuf) -> io::Result<()> {
+fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) -> io::Result<()> {
     let package_name = tarball
         .file_name()
         .and_then(|x| x.to_str())
@@ -311,17 +313,50 @@ fn unpack_tarball(tarball: &PathBuf) -> io::Result<()> {
     };
 
     eprintln!("installing: {}", package_name);
+    
+    let mut extract_location: String = String::new();
+    let mut strip_prefix: String = String::new();
+    
+    if !&game_info["download_config"].is_null() && !&game_info["download_config"][&name.to_string()].is_null() && game_info["download_config"][&name.to_string()]["setup"] == true {
+        let file_download_config = &game_info["download_config"][&name.to_string()];
+        if !file_download_config["extract_location"].is_null() {
+            extract_location = file_download_config["extract_location"].to_string();
+            println!("install changing extract location with config {}", extract_location);
+        }
+        if !file_download_config["strip_prefix"].is_null() {
+            strip_prefix = file_download_config["strip_prefix"].to_string();
+            println!("install changing prefix with config {}", strip_prefix);
+        }
+    }
 
     let file = fs::File::open(&tarball)?;
-    let mut archive = Archive::new(XzDecoder::new(file));
+    let file_extension = Path::new(&tarball).extension().and_then(OsStr::to_str).unwrap();
+    let decoder: Box<dyn std::io::Read>;
+    
+    if file_extension == "bz2" {
+        decoder = Box::new(BzDecoder::new(file));
+    } else {
+        decoder = Box::new(XzDecoder::new(file));
+    }
+    
+    let mut archive = Archive::new(decoder);
 
     for entry in archive.entries()? {
         let mut file = entry?;
         let old_path = PathBuf::from(file.header().path()?);
-        let new_path = transform(&old_path);
+        let mut new_path = transform(&old_path);
         if new_path.to_str().map_or(false, |x| x.is_empty()) {
             continue;
         }
+        
+        if !strip_prefix.is_empty() {
+            new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+        }
+        
+        if !extract_location.is_empty() {
+            new_path = Path::new(&extract_location).join(new_path);
+        }
+        
         println!("install: {:?}", &new_path);
         if new_path.parent().is_some() {
             fs::create_dir_all(new_path.parent().unwrap())?;
@@ -345,6 +380,11 @@ fn copy_only(path: &PathBuf) -> io::Result<()> {
     Ok(())
 }
 
+pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
+    let setup_complete = Path::new(&setup_info["complete_path"].to_string()).exists();
+    return setup_complete;
+}
+
 pub fn install() -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
@@ -353,6 +393,11 @@ pub fn install() -> io::Result<()> {
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
         .members();
+        
+    let mut setup_complete = false;
+    if !game_info["setup"].is_null() {
+        setup_complete = is_setup_complete(&game_info["setup"]);
+    }
 
     for file_info in packages {
         let file = file_info["file"].as_str()
@@ -363,11 +408,15 @@ pub fn install() -> io::Result<()> {
         if file_info["cache_by_name"] == true {
             cache_dir = &name;
         }
-
+        
+        if setup_complete && !&game_info["download_config"].is_null() && !&game_info["download_config"][&file.to_string()].is_null() && game_info["download_config"][&file.to_string()]["setup"] == true {
+            continue;
+        }
+        
         match find_cached_file(&cache_dir, &file) {
             Some(path) => {
                 if file_info["copy_only"] != true {
-                    unpack_tarball(&path)?;
+                    unpack_tarball(&path, &game_info, &name)?;
                 }
                 else {
                     copy_only(&path)?;
