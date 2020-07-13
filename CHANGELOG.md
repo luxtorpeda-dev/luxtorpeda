@@ -1,6 +1,11 @@
 ## Changelog for luxtorpeda-dev
 
-### 13.0 (2020-07-13)
+### 14.0 (2020-07-13)
+
+- Added support for zip file extraction, for use in MojoSetup extraction.
+- Added prey 2006 (proprietary engine)
+
+### 13.0 (2020-07-12)
 
 - Added interactive setup to allow for presenting EULA, downloading installers, etc. 
 - Added support for tar.bz2 file extraction.
