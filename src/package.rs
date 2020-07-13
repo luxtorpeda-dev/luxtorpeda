@@ -54,15 +54,6 @@ struct PackageInfo {
     cache_by_name: bool
 }
 
-#[derive(Debug)]
-pub struct SetupInfo {
-    pub complete_path: String,
-    pub command: String,
-    pub downloads: json::JsonValue,
-    pub setup_complete: bool,
-    pub license_path: String
-}
-
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
     let file = fs::File::open(path)?;
     let reader = io::BufReader::new(file);
@@ -365,6 +356,11 @@ fn copy_only(path: &PathBuf) -> io::Result<()> {
     Ok(())
 }
 
+pub fn is_setup_complete(setup_info: &json::JsonValue) -> io::Result<bool> {
+    let setup_complete = Path::new(&setup_info["complete_path"].to_string()).exists();
+    return Ok(setup_complete);
+}
+
 pub fn install() -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
@@ -373,6 +369,18 @@ pub fn install() -> io::Result<()> {
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
         .members();
+        
+    let mut setup_complete = false;
+    if !game_info["setup"].is_null() {
+        match is_setup_complete(&game_info["setup"]) {
+            Ok(tmp_setup_complete) => {
+                setup_complete = tmp_setup_complete;
+            },
+            _ => {
+                setup_complete = false;
+            }
+        }
+    }
 
     for file_info in packages {
         let file = file_info["file"].as_str()
@@ -384,20 +392,8 @@ pub fn install() -> io::Result<()> {
             cache_dir = &name;
         }
         
-        let mut stop_install = false;
-        match get_setup_info(&game_info, true) {
-            Some(tmp_setup_info) => {
-                let setup_info_file = &tmp_setup_info.downloads[&file.to_string()];
-                if !setup_info_file.is_null() && tmp_setup_info.setup_complete {
-                    stop_install = true;
-                }
-            },
-            None => {
-                stop_install = false;
-            }
-        }
-        
-        if stop_install {
+        if setup_complete && !&game_info["setup"]["downloads"][&file.to_string()].is_null() {
+            println!("ASDASD");
             continue;
         }
         
@@ -416,32 +412,6 @@ pub fn install() -> io::Result<()> {
         }
     }
     Ok(())
-}
-
-pub fn get_setup_info(game_info: &json::JsonValue, check_file: bool) -> Option<SetupInfo> {
-    if !game_info["setup"].is_null() {
-        let mut setup_complete = false;
-        if check_file {
-            Path::new(&game_info["setup"]["complete_path"].to_string()).exists();
-        }
-        
-        let mut license_path = String::new().to_string();
-        if !game_info["setup"]["license_path"].is_null() {
-            license_path = game_info["setup"]["license_path"].to_string();
-        }
-        
-        let setup_info = SetupInfo { 
-            complete_path: game_info["setup"]["complete_path"].to_string(),
-            command: game_info["setup"]["command"].to_string(),
-            setup_complete: setup_complete,
-            downloads: game_info["setup"]["downloads"].clone(),
-            license_path: license_path
-        };
-        
-        return Some(setup_info);
-    } else {
-        return None;
-    }
 }
 
 pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
