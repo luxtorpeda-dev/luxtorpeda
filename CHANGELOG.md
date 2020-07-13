@@ -1,5 +1,13 @@
 ## Changelog for luxtorpeda-dev
 
+### 13.0 (2020-07-11)
+
+- Added interactive setup to allow for presenting EULA, downloading installers, etc. 
+- Added support for tar.bz2 file extraction.
+- Added download_config metadata.
+- Changed quake4 to use new interactive setup.
+- Changed ut2004 to use new interactive setup.
+
 ### 11.0 (2020-07-11)
 
 - Added use_original_command_directory package switch, to be used for certain games like UT2004 that have pathing issues.
