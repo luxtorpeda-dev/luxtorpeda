@@ -95,7 +95,7 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
             converted_license_file.write_all(license_str.as_bytes())?;
             
             let choice = Command::new("zenity")
-                .args(&["--text-info", "--title=License", "--filename=converted_license.txt"])
+                .args(&["--text-info", "--title=Closed Source Engine EULA", "--filename=converted_license.txt"])
                 .status()
                 .expect("failed to show eula");
                                     
