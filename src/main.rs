@@ -12,9 +12,9 @@ use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::path::Path;
 use std::process::Command;
-use dialog::DialogBox;
 use std::fs::File;
 use std::io::Read;
+use std::io::Write;
 
 mod fakescripteval;
 mod ipc;
@@ -91,12 +91,15 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
             license_file.read_to_end(&mut license_buf)?;
             let license_str = String::from_utf8_lossy(&license_buf);
             
-            let choice = dialog::Question::new(license_str)
-                .title("Closed Source Engine EULA")
-                .show()
-                .expect("Could not display dialog box");
+            let mut converted_license_file = File::create("converted_license.txt")?;
+            converted_license_file.write_all(license_str.as_bytes())?;
+            
+            let choice = Command::new("zenity")
+                .args(&["--text-info", "--title=Closed Source Engine EULA", "--filename=converted_license.txt"])
+                .status()
+                .expect("failed to show eula");
                                     
-            if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
+            if !choice.success() {
                 println!("show eula. dialog was rejected");
                 
                 if !setup_info["uninstall_command"].is_null() {
