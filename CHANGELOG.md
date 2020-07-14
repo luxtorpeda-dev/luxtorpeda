@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 15.0 (2020-07-13)
+
+- Fix for interactive setup, where zenity was unable to show EULA step.
+
 ### 14.0 (2020-07-13)
 
 - Added support for zip file extraction, for use in MojoSetup extraction.
