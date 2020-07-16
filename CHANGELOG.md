@@ -1,9 +1,13 @@
 ## Changelog for luxtorpeda-dev
 
+### 16.0 (2020-07-15)
+
+- Moved packages to use github releases, instead of bintray
+- Added ut99 (proprietary engine)
+
 ### 15.0 (2020-07-13)
 
 - Fix for interactive setup, where zenity was unable to show EULA step.
-- Moved packages to use github releases, instead of bintray
 
 ### 14.0 (2020-07-13)
 
