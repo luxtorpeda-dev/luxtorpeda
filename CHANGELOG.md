@@ -3,6 +3,7 @@
 ### 16.0 (2020-07-15)
 
 - Moved packages to use github releases, instead of bintray
+- Added support for tar.gz extraction
 - Added ut99 (proprietary engine)
 
 ### 15.0 (2020-07-13)
