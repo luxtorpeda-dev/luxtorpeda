@@ -615,10 +615,11 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "15.0.0"
+version = "16.0.0"
 dependencies = [
  "bzip2 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "dialog 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "flate2 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "hex 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "inotify 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.11.14 (registry+https://github.com/rust-lang/crates.io-index)",
