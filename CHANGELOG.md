@@ -3,6 +3,7 @@
 ### 15.0 (2020-07-13)
 
 - Fix for interactive setup, where zenity was unable to show EULA step.
+- Moved packages to use github releases, instead of bintray
 
 ### 14.0 (2020-07-13)
 
