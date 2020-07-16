@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "15.0.0"
+version = "16.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2018"
 
@@ -25,3 +25,4 @@ hex = "0.4.2"
 dialog = "0.3.0"
 bzip2 = "0.4.1"
 zip = "0.5.6"
+flate2 = "1.0.16"

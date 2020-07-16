@@ -15,6 +15,7 @@ use std::thread;
 use tar::Archive;
 use xz2::read::XzDecoder;
 use bzip2::read::BzDecoder;
+use flate2::read::GzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
 
@@ -371,6 +372,8 @@ fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) ->
         
         if file_extension == "bz2" {
             decoder = Box::new(BzDecoder::new(file));
+        } else if file_extension == "gz" {
+            decoder = Box::new(GzDecoder::new(file));
         } else {
             decoder = Box::new(XzDecoder::new(file));
         }
