@@ -180,7 +180,6 @@ fn pick_engine_choice(game_info: &json::JsonValue) -> io::Result<String> {
         if entry["name"].is_null() {
             return Err(Error::new(ErrorKind::Other, "missing choice info"));
         }
-
         zenity_list_command.push(entry["name"].to_string());
     }
     
@@ -202,7 +201,6 @@ fn pick_engine_choice(game_info: &json::JsonValue) -> io::Result<String> {
     };
     
     println!("picked engine: {:?}", choice_name);
-    
     return Ok(choice_name);
 }
 
@@ -213,7 +211,6 @@ fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::Json
         if entry["name"].is_null() {
             return Err(Error::new(ErrorKind::Other, "missing choice info"));
         }
-
         choice_data.insert(
             entry["name"].to_string(),
             entry.clone()
@@ -228,7 +225,6 @@ fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::Json
     }
     
     let mut download_array = json::JsonValue::new_array();
-    
     for entry in game_info["download"].members() {
         if choice_data[&choice_name]["download"].is_null() || choice_data[&choice_name]["download"].contains(entry["name"].clone()) {
             match download_array.push(entry.clone()) {
@@ -288,13 +284,14 @@ pub fn download_all(app_id: String) -> io::Result<()> {
     
     if !game_info["choices"].is_null() {
         println!("showing engine choices");
+        
         let engine_choice = match pick_engine_choice(&game_info) {
             Ok(s) => s,
             Err(err) => {
                 return Err(err);
             }
         };
-        
+
         match convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {
                 println!("engine choice complete");
@@ -305,7 +302,7 @@ pub fn download_all(app_id: String) -> io::Result<()> {
         };
     }
     
-     println!("picked engine: {:#}", game_info);
+    println!("picked engine: {:#}", game_info);
 
     let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
 
