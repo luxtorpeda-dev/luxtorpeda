@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 17.0 (2020-07-29)
+
+- Added support for choices for engines
+- Added support for default choice, when app id is not in packages.json
+
 ### 16.0 (2020-07-15)
 
 - Moved packages to use github releases, instead of bintray
