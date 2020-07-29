@@ -18,7 +18,6 @@ use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
-use std::process::Command;
 use std::collections::HashMap;
 
 use crate::ipc;
@@ -169,43 +168,13 @@ pub fn update_packages_json() -> io::Result<()> {
     Ok(())
 }
 
-fn pick_engine_choice(game_info: &json::JsonValue) -> io::Result<String> {
-    let mut zenity_list_command: Vec<String> = vec![
-        "--list".to_string(),
-        "--title=Pick the engine below".to_string(),
-        "--column=Name".to_string()
-    ];
-    
-    for entry in game_info["choices"].members() {
-        if entry["name"].is_null() {
-            return Err(Error::new(ErrorKind::Other, "missing choice info"));
-        }
-        zenity_list_command.push(entry["name"].to_string());
-    }
-    
-    let choice = Command::new("zenity")
-        .args(&zenity_list_command)
-        .output()
-        .expect("failed to show choices");
-                                    
-    if !choice.status.success() {
-        println!("show choice. dialog was rejected");
-        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-    }
-    
-    let choice_name = match String::from_utf8(choice.stdout) {
-        Ok(s) => String::from(s.trim()),
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
-        }
-    };
-    
-    println!("picked engine: {:?}", choice_name);
-    return Ok(choice_name);
-}
-
-fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::JsonValue) -> io::Result<()> {
+pub fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::JsonValue) -> io::Result<()> {
     let mut choice_data = HashMap::new();
+    let mut download_array = json::JsonValue::new_array();
+    
+    if game_info["choices"].is_null() {
+        return Err(Error::new(ErrorKind::Other, "choices array null"));
+    }
     
     for entry in game_info["choices"].members() {
         if entry["name"].is_null() {
@@ -217,6 +186,10 @@ fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::Json
         );
     }
     
+    if !choice_data.contains_key(&choice_name) {
+        return Err(Error::new(ErrorKind::Other, "choices array does not contain engine choice"));
+    }
+    
     for (key, value) in choice_data[&choice_name].entries() {
         if key == "name" || key == "download" {
             continue;
@@ -224,7 +197,6 @@ fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::Json
         game_info[key] = value.clone();
     }
     
-    let mut download_array = json::JsonValue::new_array();
     for entry in game_info["download"].members() {
         if choice_data[&choice_name]["download"].is_null() || choice_data[&choice_name]["download"].contains(entry["name"].clone()) {
             match download_array.push(entry.clone()) {
@@ -274,35 +246,13 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
 pub fn download_all(app_id: String) -> io::Result<()> {
     update_packages_json().unwrap();
     
-    let mut game_info = get_game_info(app_id.as_str())
+    let game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     if game_info["download"].is_null() {
         println!("skipping downloads (no urls defined for this package)");
         return Ok(());
     }
-    
-    if !game_info["choices"].is_null() {
-        println!("showing engine choices");
-        
-        let engine_choice = match pick_engine_choice(&game_info) {
-            Ok(s) => s,
-            Err(err) => {
-                return Err(err);
-            }
-        };
-
-        match convert_game_info_with_choice(engine_choice, &mut game_info) {
-            Ok(()) => {
-                println!("engine choice complete");
-            },
-            Err(err) => {
-                return Err(err);
-            }
-        };
-    }
-    
-    println!("picked engine: {:#}", game_info);
 
     let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
 
@@ -522,11 +472,8 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     return setup_complete;
 }
 
-pub fn install() -> io::Result<()> {
+pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
-
-    let game_info = get_game_info(app_id.as_str())
-        .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
         .members();
@@ -592,7 +539,13 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
     };
     let game_info = parsed[app_id].clone();
     if game_info.is_null() {
-        None
+        if !parsed["default"].is_null() {
+            println!("game info using default");
+            return Some(parsed["default"].clone());
+        }
+        else {
+            None
+        }
     } else {
         Some(game_info)
     }

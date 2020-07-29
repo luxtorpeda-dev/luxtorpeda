@@ -82,6 +82,46 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
+fn pick_engine_choice(game_info: &json::JsonValue) -> io::Result<String> {
+    let mut zenity_list_command: Vec<String> = vec![
+        "--list".to_string(),
+        "--title=Pick the engine below".to_string(),
+        "--column=Name".to_string(),
+        "--hide-header".to_string()
+    ];
+    
+    for entry in game_info["choices"].members() {
+        if entry["name"].is_null() {
+            return Err(Error::new(ErrorKind::Other, "missing choice info"));
+        }
+        zenity_list_command.push(entry["name"].to_string());
+    }
+    
+    let choice = Command::new("zenity")
+        .args(&zenity_list_command)
+        .output()
+        .expect("failed to show choices");
+                                    
+    if !choice.status.success() {
+        println!("show choice. dialog was rejected");
+        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+    }
+    
+    let choice_name = match String::from_utf8(choice.stdout) {
+        Ok(s) => String::from(s.trim()),
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
+        }
+    };
+    
+    println!("engine choice: {:?}", choice_name);
+    
+    let mut engine_choice_file = File::create("engine_choice.txt")?;
+    engine_choice_file.write_all(choice_name.as_bytes())?;
+    
+    return Ok(choice_name);
+}
+
 fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
     let setup_info = &game_info["setup"];
     if !package::is_setup_complete(&game_info["setup"]) {
@@ -151,11 +191,31 @@ fn run(args: &[&str]) -> io::Result<()> {
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
     
-    let game_info = package::get_game_info(app_id.as_str())
+    let mut game_info = package::get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     if game_info.is_null() {
         return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
+    }
+    
+    if !game_info["choices"].is_null() {
+        println!("showing engine choices");
+        
+        let engine_choice = match pick_engine_choice(&game_info) {
+            Ok(s) => s,
+            Err(err) => {
+                return Err(err);
+            }
+        };
+
+        match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
+            Ok(()) => {
+                println!("engine choice complete");
+            },
+            Err(err) => {
+                return Err(err);
+            }
+        };
     }
 
     println!("json:");
@@ -172,7 +232,7 @@ fn run(args: &[&str]) -> io::Result<()> {
     }
 
     if !game_info["download"].is_null() {
-        package::install()?;
+        package::install(&game_info)?;
     }
     
     if !game_info["setup"].is_null() {
