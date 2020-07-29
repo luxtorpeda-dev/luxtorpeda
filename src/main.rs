@@ -116,9 +116,6 @@ fn pick_engine_choice(game_info: &json::JsonValue) -> io::Result<String> {
     
     println!("engine choice: {:?}", choice_name);
     
-    let mut engine_choice_file = File::create("engine_choice.txt")?;
-    engine_choice_file.write_all(choice_name.as_bytes())?;
-    
     return Ok(choice_name);
 }
 
