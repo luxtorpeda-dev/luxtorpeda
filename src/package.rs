@@ -18,6 +18,7 @@ use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
+use std::collections::HashMap;
 
 use crate::ipc;
 use crate::user_env;
@@ -165,6 +166,52 @@ pub fn update_packages_json() -> io::Result<()> {
     }
     
     Ok(())
+}
+
+pub fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::JsonValue) -> io::Result<()> {
+    let mut choice_data = HashMap::new();
+    let mut download_array = json::JsonValue::new_array();
+    
+    if game_info["choices"].is_null() {
+        return Err(Error::new(ErrorKind::Other, "choices array null"));
+    }
+    
+    for entry in game_info["choices"].members() {
+        if entry["name"].is_null() {
+            return Err(Error::new(ErrorKind::Other, "missing choice info"));
+        }
+        choice_data.insert(
+            entry["name"].to_string(),
+            entry.clone()
+        );
+    }
+    
+    if !choice_data.contains_key(&choice_name) {
+        return Err(Error::new(ErrorKind::Other, "choices array does not contain engine choice"));
+    }
+    
+    for (key, value) in choice_data[&choice_name].entries() {
+        if key == "name" || key == "download" {
+            continue;
+        }
+        game_info[key] = value.clone();
+    }
+    
+    for entry in game_info["download"].members() {
+        if choice_data[&choice_name]["download"].is_null() || choice_data[&choice_name]["download"].contains(entry["name"].clone()) {
+            match download_array.push(entry.clone()) {
+                Ok(()) => {},
+                Err(_) => {
+                    return Err(Error::new(ErrorKind::Other, "Error pushing to download array"));
+                }
+            };
+        }
+    }
+    
+    game_info["download"] = download_array;
+    game_info.remove("choices");
+    
+    return Ok(());
 }
 
 fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Vec<PackageInfo>> {
@@ -425,11 +472,8 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     return setup_complete;
 }
 
-pub fn install() -> io::Result<()> {
+pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
-
-    let game_info = get_game_info(app_id.as_str())
-        .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
         .members();
@@ -495,7 +539,13 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
     };
     let game_info = parsed[app_id].clone();
     if game_info.is_null() {
-        None
+        if !parsed["default"].is_null() {
+            println!("game info using default");
+            return Some(parsed["default"].clone());
+        }
+        else {
+            None
+        }
     } else {
         Some(game_info)
     }
