@@ -150,11 +150,9 @@ fn run(args: &[&str]) -> io::Result<()> {
     println!("original command: {:?}", args);
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
-
-    let packages_json_file = user_env::tool_dir().join("packages.json");
-    let json_str = fs::read_to_string(packages_json_file)?;
-    let parsed = json::parse(&json_str).unwrap();
-    let game_info = &parsed[app_id];
+    
+    let game_info = package::get_game_info(app_id.as_str())
+        .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     if game_info.is_null() {
         return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
@@ -188,7 +186,7 @@ fn run(args: &[&str]) -> io::Result<()> {
         }
     }
 
-    match find_game_command(game_info, args) {
+    match find_game_command(&game_info, args) {
         None => Err(Error::new(ErrorKind::Other, "No command line defined")),
         Some((cmd, cmd_args)) => {
             println!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
