@@ -4,6 +4,8 @@
 
 - Added support for choices for engines
 - Added support for default choice, when app id is not in packages.json
+- Added openxcom
+- Added openxcom-oxce
 
 ### 16.0 (2020-07-15)
 
