@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 18.0 (2020-07-30)
+
+- Change to ask for engine choice before starting download. This will store in the ~/.config/luxtorpeda folder for the run command to use.
+
 ### 17.0 (2020-07-29)
 
 - Added support for choices for engines
