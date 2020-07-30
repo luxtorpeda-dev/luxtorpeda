@@ -82,43 +82,6 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
-fn pick_engine_choice(game_info: &json::JsonValue) -> io::Result<String> {
-    let mut zenity_list_command: Vec<String> = vec![
-        "--list".to_string(),
-        "--title=Pick the engine below".to_string(),
-        "--column=Name".to_string(),
-        "--hide-header".to_string()
-    ];
-    
-    for entry in game_info["choices"].members() {
-        if entry["name"].is_null() {
-            return Err(Error::new(ErrorKind::Other, "missing choice info"));
-        }
-        zenity_list_command.push(entry["name"].to_string());
-    }
-    
-    let choice = Command::new("zenity")
-        .args(&zenity_list_command)
-        .output()
-        .expect("failed to show choices");
-                                    
-    if !choice.status.success() {
-        println!("show choice. dialog was rejected");
-        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-    }
-    
-    let choice_name = match String::from_utf8(choice.stdout) {
-        Ok(s) => String::from(s.trim()),
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
-        }
-    };
-    
-    println!("engine choice: {:?}", choice_name);
-    
-    return Ok(choice_name);
-}
-
 fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
     let setup_info = &game_info["setup"];
     if !package::is_setup_complete(&game_info["setup"]) {
@@ -195,15 +158,16 @@ fn run(args: &[&str]) -> io::Result<()> {
         return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
     }
     
-    if !game_info["choices"].is_null() {
-        println!("showing engine choices");
-        
-        let engine_choice = match pick_engine_choice(&game_info) {
-            Ok(s) => s,
-            Err(err) => {
-                return Err(err);
+    if !game_info["choices"].is_null() {        
+        let engine_choice_path = match package::find_config_file(&app_id, "engine_choice.txt") {
+            Some(s) => s,
+            None => {
+                println!("choices with no engine choice picked");
+                return Err(Error::new(ErrorKind::Other, "choices with no engine choice picked"));
             }
         };
+        
+        let engine_choice = fs::read_to_string(engine_choice_path)?;
 
         match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {

@@ -19,6 +19,9 @@ use flate2::read::GzDecoder;
 use dialog::DialogBox;
 use sha1::{Sha1, Digest};
 use std::collections::HashMap;
+use std::process::Command;
+use std::fs::File;
+use std::io::Write;
 
 use crate::ipc;
 use crate::user_env;
@@ -33,6 +36,18 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}/{}", app_id, file);
     xdg_dirs.find_cache_file(path_str)
+}
+
+fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let path_str = format!("luxtorpeda/{}/{}", app_id, file);
+    xdg_dirs.place_config_file(path_str)
+}
+
+pub fn find_config_file(app_id: &str, file: &str) -> Option<PathBuf> {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let path_str = format!("luxtorpeda/{}/{}", app_id, file);
+    xdg_dirs.find_config_file(path_str)
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -168,6 +183,47 @@ pub fn update_packages_json() -> io::Result<()> {
     Ok(())
 }
 
+fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<String> {
+    let mut zenity_list_command: Vec<String> = vec![
+        "--list".to_string(),
+        "--title=Pick the engine below".to_string(),
+        "--column=Name".to_string(),
+        "--hide-header".to_string()
+    ];
+    
+    for entry in game_info["choices"].members() {
+        if entry["name"].is_null() {
+            return Err(Error::new(ErrorKind::Other, "missing choice info"));
+        }
+        zenity_list_command.push(entry["name"].to_string());
+    }
+    
+    let choice = Command::new("zenity")
+        .args(&zenity_list_command)
+        .output()
+        .expect("failed to show choices");
+                                    
+    if !choice.status.success() {
+        println!("show choice. dialog was rejected");
+        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+    }
+    
+    let choice_name = match String::from_utf8(choice.stdout) {
+        Ok(s) => String::from(s.trim()),
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
+        }
+    };
+    
+    println!("engine choice: {:?}", choice_name);
+    
+    let choice_file_path = place_config_file(&app_id, "engine_choice.txt")?;
+    let mut choice_file = File::create(choice_file_path)?;
+    choice_file.write_all(choice_name.as_bytes())?;
+    
+    return Ok(choice_name);
+}
+
 pub fn convert_game_info_with_choice(choice_name: String, game_info: &mut json::JsonValue) -> io::Result<()> {
     let mut choice_data = HashMap::new();
     let mut download_array = json::JsonValue::new_array();
@@ -246,8 +302,28 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
 pub fn download_all(app_id: String) -> io::Result<()> {
     update_packages_json().unwrap();
     
-    let game_info = get_game_info(app_id.as_str())
+    let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
+        
+    if !game_info["choices"].is_null() {
+        println!("showing engine choices");
+        
+        let engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
+            Ok(s) => s,
+            Err(err) => {
+                return Err(err);
+            }
+        };
+
+        match convert_game_info_with_choice(engine_choice, &mut game_info) {
+            Ok(()) => {
+                println!("engine choice complete");
+            },
+            Err(err) => {
+                return Err(err);
+            }
+        };
+    }
 
     if game_info["download"].is_null() {
         println!("skipping downloads (no urls defined for this package)");
