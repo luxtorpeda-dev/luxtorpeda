@@ -120,6 +120,10 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
         let setup_cmd = Command::new(command_str)
             .status()
             .expect("failed to execute process");
+            
+        if !setup_cmd.success() {
+            return Err(Error::new(ErrorKind::Other, "setup failed"));
+        }
                         
         File::create(&setup_info["complete_path"].to_string())?;
         return Ok(());
