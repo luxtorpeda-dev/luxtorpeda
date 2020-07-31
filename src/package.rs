@@ -16,12 +16,12 @@ use tar::Archive;
 use xz2::read::XzDecoder;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
-use dialog::DialogBox;
 use sha1::{Sha1, Digest};
 use std::collections::HashMap;
 use std::process::Command;
 use std::fs::File;
 use std::io::Write;
+use std::env;
 
 use crate::ipc;
 use crate::user_env;
@@ -69,6 +69,17 @@ struct PackageInfo {
     url: String,
     file: String,
     cache_by_name: bool
+}
+
+pub fn get_zenity_path() -> Result<String, Error>  {
+    let zenity_path = match env::var("STEAM_ZENITY") {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "Path could not be found"));
+        }
+    };
+    
+    return Ok(zenity_path);
 }
 
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
@@ -198,7 +209,14 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         zenity_list_command.push(entry["name"].to_string());
     }
     
-    let choice = Command::new("zenity")
+    let zenity_path = match get_zenity_path() {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        }
+    };
+    
+    let choice = Command::new(zenity_path)
         .args(&zenity_list_command)
         .output()
         .expect("failed to show choices");
@@ -342,28 +360,36 @@ pub fn download_all(app_id: String) -> io::Result<()> {
         return Ok(());
     }
     
+    let mut dialog_message = String::new();
+    
     if !game_info["information"].is_null() && game_info["information"]["non_free"] == true {
-        let dialog_message = std::format!("This engine uses a non-free engine ({0}). Are you sure you want to continue?", game_info["information"]["license"]);
-        let choice = dialog::Question::new(dialog_message)
-            .title("Non-Free License Warning")
-            .show()
-            .expect("Could not display dialog box");
-        
-        if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
-            println!("show_non_free_dialog. dialog was rejected");
-            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-        }
+        dialog_message = std::format!("This engine uses a non-free engine ({0}). Are you sure you want to continue?", game_info["information"]["license"]);
+    }
+    else if !game_info["information"].is_null() && game_info["information"]["closed_source"] == true {
+        dialog_message = "This engine uses assets from the closed source release. Are you sure you want to continue?".to_string();
     }
     
-    if !game_info["information"].is_null() && game_info["information"]["closed_source"] == true {
-        let dialog_message = "This engine uses assets from the closed source release. Are you sure you want to continue?";
-        let choice = dialog::Question::new(dialog_message)
-            .title("Closed Source Engine Warning")
-            .show()
-            .expect("Could not display dialog box");
+    if !dialog_message.is_empty() {
+        let zenity_path = match get_zenity_path() {
+            Ok(s) => s,
+            Err(_) => {
+                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+            }
+        };
         
-        if choice == dialog::Choice::No || choice == dialog::Choice::Cancel {
-            println!("show_non_free_dialog. dialog was rejected");
+        let zenity_command: Vec<String> = vec![
+            "--question".to_string(),
+             std::format!("--text={}", dialog_message).to_string(),
+            "--title=License Warning".to_string()
+        ];
+        
+        let choice = Command::new(zenity_path)
+            .args(&zenity_command)
+            .status()
+            .expect("failed to show license warning");
+
+        if !choice.success() {
+            println!("show license warning. dialog was rejected");
             return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
         }
     }
