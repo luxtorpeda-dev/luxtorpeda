@@ -105,7 +105,7 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
                 .args(&["--text-info", "--title=Closed Source Engine EULA", "--filename=converted_license.txt"])
                 .status()
                 .expect("failed to show eula");
-                
+                                    
             if !choice.success() {
                 println!("show eula. dialog was rejected");
                 
