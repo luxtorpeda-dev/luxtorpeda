@@ -94,7 +94,14 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
             let mut converted_license_file = File::create("converted_license.txt")?;
             converted_license_file.write_all(license_str.as_bytes())?;
             
-            let choice = Command::new("zenity")
+            let zenity_path = match package::get_zenity_path() {
+                Ok(s) => s,
+                Err(_) => {
+                    return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+                }
+            };
+            
+            let choice = Command::new(zenity_path)
                 .args(&["--text-info", "--title=Closed Source Engine EULA", "--filename=converted_license.txt"])
                 .status()
                 .expect("failed to show eula");
@@ -117,9 +124,13 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
                     
         let command_str = setup_info["command"].to_string();
         println!("setup run: \"{}\"", command_str);
-        Command::new(command_str)
+        let setup_cmd = Command::new(command_str)
             .status()
             .expect("failed to execute process");
+            
+        if !setup_cmd.success() {
+            return Err(Error::new(ErrorKind::Other, "setup failed"));
+        }
                         
         File::create(&setup_info["complete_path"].to_string())?;
         return Ok(());

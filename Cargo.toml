@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "18.0.0"
+version = "19.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2018"
 
@@ -22,7 +22,6 @@ tar = "0.4"
 xz2 = "0.1"
 sha-1 = "0.9.1"
 hex = "0.4.2"
-dialog = "0.3.0"
 bzip2 = "0.4.1"
 zip = "0.5.6"
 flate2 = "1.0.16"
