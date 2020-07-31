@@ -205,6 +205,12 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
                                     
     if !choice.status.success() {
         println!("show choice. dialog was rejected");
+        
+        let choice_file_path = place_config_file(&app_id, "engine_choice.txt")?;
+        if choice_file_path.exists() {
+            fs::remove_file(choice_file_path)?;
+        }
+        
         return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
     }
     
