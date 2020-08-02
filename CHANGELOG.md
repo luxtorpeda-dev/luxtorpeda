@@ -5,6 +5,9 @@
 * Change to clear engine choice if dialog canceled
 * Check for return from setup, in case of errors
 * Use steam zenity instead of dialog and zenity command. This should improve look of the zenity pop-ups.
+* Added common QT 5.9 for use with engine building and usage.
+* Added openmw launcher support using common qt
+* Added openapoc launcher support using common qt
 
 ### 18.0 (2020-07-30)
 
