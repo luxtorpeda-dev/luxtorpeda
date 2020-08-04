@@ -8,7 +8,8 @@
 * Added common QT 5.9 for use with engine building and usage.
 * Added openmw launcher support using common qt
 * Added openapoc launcher support using common qt
-* Added warzone 2100 support using common qt
+* Added warzone 2100 using common qt
+* Added openmw-tes3mp support using common qt
 
 ### 18.0 (2020-07-30)
 
