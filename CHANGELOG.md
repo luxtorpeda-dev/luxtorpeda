@@ -3,6 +3,8 @@
 ### 20.0 (2020-08-06)
 
 * Add manual-download command for integration with other programs. Example: ```./luxtorpeda manual-download 3730```. STEAM_ZENITY environment variable should point to the path of system zenity if not running inside steam.
+* Added scummvm as an engine option
+* Added residualvm as an engine option
 
 ### 19.0 (2020-07-30)
 
