@@ -535,7 +535,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "19.0.0"
+version = "20.0.0"
 dependencies = [
  "bzip2 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",

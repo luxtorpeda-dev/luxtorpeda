@@ -23,7 +23,7 @@ mod pid_file;
 mod user_env;
 
 fn usage() {
-    println!("usage: lux [run | wait-before-run] <exe> [<exe_args>]");
+    println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
 }
 
 fn json_to_args(args: &json::JsonValue) -> Vec<String> {
@@ -232,6 +232,18 @@ fn run(args: &[&str]) -> io::Result<()> {
     }
 }
 
+fn manual_download(args: &[&str]) -> io::Result<()> {
+    if args.is_empty() {
+        usage();
+        std::process::exit(0)
+    }
+    
+    let app_id = args[0];
+    package::download_all(app_id.to_string())?;
+    
+    return Ok(());
+}
+
 fn main() -> io::Result<()> {
     let env_args: Vec<String> = env::args().collect();
     let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
@@ -252,7 +264,8 @@ fn main() -> io::Result<()> {
         "wait-before-run" => {
             pid_file::wait_while_exists();
             run(cmd_args)
-        }
+        },
+        "manual-download" => manual_download(cmd_args),
         _ => {
             usage();
             std::process::exit(1)

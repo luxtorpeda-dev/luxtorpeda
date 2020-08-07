@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 20.0 (2020-08-06)
+
+* Add manual-download command for integration with other programs. Example: ```./luxtorpeda manual-download 3730```. STEAM_ZENITY environment variable should point to the path of system zenity if not running inside steam.
+
 ### 19.0 (2020-07-30)
 
 * Change to clear engine choice if dialog canceled
