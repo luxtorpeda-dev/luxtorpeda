@@ -5,6 +5,8 @@
 * Add manual-download command for integration with other programs. Example: ```./luxtorpeda manual-download 3730```. STEAM_ZENITY environment variable should point to the path of system zenity if not running inside steam.
 * Added scummvm as an engine option
 * Added residualvm as an engine option
+* Added choice of container for use in building
+* Added openxray, using ubuntu 18.04 container
 
 ### 19.0 (2020-07-30)
 
