@@ -7,6 +7,7 @@
 * Added residualvm as an engine option
 * Added choice of container for use in building
 * Added openxray, using ubuntu 18.04 container
+* Added initial dosbox-staging support
 
 ### 19.0 (2020-07-30)
 
