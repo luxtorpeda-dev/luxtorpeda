@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 20.1 (2020-08-17)
+
+* Updated openrct2 to 0.3.0
+
 ### 20.0 (2020-08-06)
 
 * Add manual-download command for integration with other programs. Example: ```./luxtorpeda manual-download 3730```. STEAM_ZENITY environment variable should point to the path of system zenity if not running inside steam.
