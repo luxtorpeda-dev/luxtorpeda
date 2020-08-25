@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 20.2 (2020-08-24)
+
+* Added good robot using ubuntu 18.04 container
+
 ### 20.1 (2020-08-17)
 
 * Updated openrct2 to 0.3.0
