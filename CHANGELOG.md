@@ -3,6 +3,7 @@
 ### 20.2 (2020-08-24)
 
 * Added good robot using ubuntu 18.04 container
+* Updated openxray with fix for SDL full screen
 
 ### 20.1 (2020-08-17)
 
