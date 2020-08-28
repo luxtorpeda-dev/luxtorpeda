@@ -4,6 +4,8 @@
 
 * Added good robot using ubuntu 18.04 container
 * Updated openxray with fix for SDL full screen
+* opengothic - Upgrade to v0.29
+* dosbox-staging - Upgrade to 0.75.1
 
 ### 20.1 (2020-08-17)
 
