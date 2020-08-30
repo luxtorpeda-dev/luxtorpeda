@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 21.0 (2020-08-29)
+
+* Changed location of packages.json to ~/.cache/luxtorpeda/packages.json
+
 ### 20.2 (2020-08-24)
 
 * Added good robot using ubuntu 18.04 container
