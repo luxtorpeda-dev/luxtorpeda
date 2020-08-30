@@ -50,6 +50,13 @@ pub fn find_config_file(app_id: &str, file: &str) -> Option<PathBuf> {
     xdg_dirs.find_config_file(path_str)
 }
 
+fn path_to_packages_file() -> PathBuf {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let config_home = xdg_dirs.get_cache_home();
+    let path = config_home.join("luxtorpeda").join("packages.json");
+    return path;
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CmdReplacement {
     #[serde(with = "serde_regex")]
@@ -128,7 +135,7 @@ pub fn update_packages_json() -> io::Result<()> {
         return Ok(());
     }
     
-    let packages_json_file = user_env::tool_dir().join("packages.json");
+    let packages_json_file = path_to_packages_file();
     let mut should_download = true;
     let mut remote_hash_str: String = String::new();
     
@@ -630,7 +637,7 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
 }
 
 pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
-    let packages_json_file = user_env::tool_dir().join("packages.json");
+    let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
         Err(err) => {
