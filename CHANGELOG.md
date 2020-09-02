@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 22.0 (2020-09-02)
+
+* [ZeroPointEnergy] Fix path of packages-temp.json when downloading the packages.json
+
 ### 21.0 (2020-08-29)
 
 * Changed location of packages.json to ~/.cache/luxtorpeda/packages.json

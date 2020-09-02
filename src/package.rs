@@ -173,7 +173,7 @@ pub fn update_packages_json() -> io::Result<()> {
         
         let remote_packages_url = std::format!("{0}/packages.json", &config_parsed["host_url"]);
         let mut download_complete = false;
-        let local_packages_temp_path = user_env::tool_dir().join("packages-temp.json");
+        let local_packages_temp_path = path_to_packages_file().with_file_name("packages-temp.json");
         
         match reqwest::blocking::get(&remote_packages_url) {
             Ok(mut response) => {
