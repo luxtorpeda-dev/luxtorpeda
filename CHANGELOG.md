@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 22.1 (2020-09-06)
+
+* Added classic-rbdoom-3-bfg
+* Added doomsday
+
 ### 22.0 (2020-09-02)
 
 * [ZeroPointEnergy] Fix path of packages-temp.json when downloading the packages.json
