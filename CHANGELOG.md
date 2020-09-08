@@ -1,5 +1,11 @@
 ## Changelog for luxtorpeda-dev
 
+### 22.2 (2020-09-07)
+
+* Added chocolate doom
+* Added serious engine
+* Added REminiscence
+
 ### 22.1 (2020-09-06)
 
 * Added classic-rbdoom-3-bfg
