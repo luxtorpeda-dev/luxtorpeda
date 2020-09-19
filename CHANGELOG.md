@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 22.3 (2020-09-18)
+
+* Added cortex-command
+
 ### 22.2 (2020-09-07)
 
 * Added chocolate doom
