@@ -3,6 +3,7 @@
 ### 23.0 (2020-09-23)
 
 * Fix for ~/.cache/luxtorpeda folder not being created on first launch.
+* Added support for ut99 469a
 
 ### 22.3 (2020-09-18)
 
