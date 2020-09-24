@@ -53,7 +53,9 @@ pub fn find_config_file(app_id: &str, file: &str) -> Option<PathBuf> {
 fn path_to_packages_file() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_cache_home();
-    let path = config_home.join("luxtorpeda").join("packages.json");
+    let folder_path = config_home.join("luxtorpeda");
+    fs::create_dir_all(&folder_path).unwrap();
+    let path = folder_path.join("packages.json");
     return path;
 }
 

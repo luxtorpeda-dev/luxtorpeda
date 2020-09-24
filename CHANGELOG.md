@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.0 (2020-09-23)
+
+* Fix for ~/.cache/luxtorpeda folder not being created on first launch.
+
 ### 22.3 (2020-09-18)
 
 * Added cortex-command
