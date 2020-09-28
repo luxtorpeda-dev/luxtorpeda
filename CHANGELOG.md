@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.2 (2020-09-28)
+
+* Fix for re3 to include TEXT directory
+* Update scummvm to 2.2.0
+
 ### 23.1 (2020-09-27)
 
 * Added realrtcw - Currently has to download about 5 gb worth of assets, so first launch will take a while.
