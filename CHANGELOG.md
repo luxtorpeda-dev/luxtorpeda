@@ -5,6 +5,7 @@
 * Added realrtcw - Currently has to download about 5 gb worth of assets, so first launch will take a while.
 * Added reone - Engine is still very much WIP
 * Added re3 for Grand Theft Auto 3
+* Updated openrct2 to 0.3.1
 
 ### 23.0 (2020-09-23)
 
