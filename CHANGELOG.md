@@ -1,5 +1,11 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.1 (2020-09-27)
+
+* Added realrtcw - Currently has to download about 5 gb worth of assets, so first launch will take a while.
+* Added reone - Engine is still very much WIP
+* Added re3 for Grand Theft Auto 3
+
 ### 23.0 (2020-09-23)
 
 * Fix for ~/.cache/luxtorpeda folder not being created on first launch.
