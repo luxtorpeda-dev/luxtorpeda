@@ -1,5 +1,18 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.3 (2020-10-31)
+
+* Fix for deprecated github action environment variable use
+* opengothic - Update to v0.31
+* realrtcw - Support steam release
+* fs2open - Update to latest master
+* dosbox-staging - Update to 0.75.2
+* julius - Update to 1.5.1
+* re3 - Update to 4cfb3b0984c1de2820691b4b5f1c63cd19c498fb
+* gzdoom - Update to 4.5.0
+* openxray - Update to October 2020 Preview
+* reone - Update to lastest master
+
 ### 23.2 (2020-09-28)
 
 * Fix for re3 to include TEXT directory
