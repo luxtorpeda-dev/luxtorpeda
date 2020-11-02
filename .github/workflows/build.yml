@@ -18,7 +18,7 @@ jobs:
     steps:
     - name: Generate build number
       id: buildnumber
-      uses: einaregilsson/build-number@v2 
+      uses: luxtorpeda-dev/build-number@28d7a55
       with:
         token: ${{ secrets.github_token }}
   build:
