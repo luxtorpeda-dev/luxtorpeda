@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.4 (2020-11-06)
+
+* openrct2 - Update to 0.3.2
+* reone - Update to 0.9.0
+
 ### 23.3 (2020-10-31)
 
 * Fix for deprecated github action environment variable use
