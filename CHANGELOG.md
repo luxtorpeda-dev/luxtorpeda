@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.5 (2020-11-08)
+
+* reone - Update to 0.10.0
+* Add augustus
+
 ### 23.4 (2020-11-06)
 
 * openrct2 - Update to 0.3.2
