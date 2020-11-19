@@ -1,9 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
-### 23.5 (2020-11-08)
+### 23.5 (2020-11-18)
 
 * reone - Update to 0.10.0
 * Add augustus
+* opengothic - Update to 0.32
 
 ### 23.4 (2020-11-06)
 
