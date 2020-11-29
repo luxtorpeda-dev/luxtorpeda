@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.6 (2020-11-28)
+
+* reone - Update to 0.11.1
+* Added reVC
+
 ### 23.5 (2020-11-18)
 
 * reone - Update to 0.10.0
