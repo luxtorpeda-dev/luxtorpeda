@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.7 (2020-12-02)
+
+* realrtcw - Update to latest
+* Added quake3e
+
 ### 23.6 (2020-11-28)
 
 * reone - Update to 0.11.1
