@@ -4,6 +4,7 @@
 
 * realrtcw - Update to latest
 * Added quake3e
+* dosbox-staging - Update to 0.76.0
 
 ### 23.6 (2020-11-28)
 
