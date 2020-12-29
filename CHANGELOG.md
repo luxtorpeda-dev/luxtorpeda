@@ -1,5 +1,15 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.8 (2020-12-27)
+
+* Added rune
+* classic rbdoom 3 bfg - Update to 1.2.7
+* fs2open - Update to 20.1 RC1
+* openxray - Update December 2020 Preview
+* reone - Update to 0.12.0
+* re3 - Update to 14f7dba
+* reVC - Update to c93fb5e443f9afe082abf708918fcd3db807596d
+
 ### 23.7 (2020-12-02)
 
 * realrtcw - Update to latest
