@@ -1,5 +1,12 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.9 (2021-01-05)
+
+* fs2open - Update to Release 21.0 RC2
+* julius - Update to 1.6.0
+* cortex command - Update to pre release 3.0
+* rune - Fix for default.ini path
+
 ### 23.8 (2020-12-27)
 
 * Added rune
