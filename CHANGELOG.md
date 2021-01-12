@@ -1,5 +1,11 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.10 (2021-01-11)
+
+* fs2open - Update to Release 21.0 RC3
+* reone - Update to 0.13.0
+* rune - Add User.ini template for download speed
+
 ### 23.9 (2021-01-05)
 
 * fs2open - Update to Release 21.0 RC2
