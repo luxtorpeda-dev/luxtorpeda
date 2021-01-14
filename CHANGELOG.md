@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.11 (2021-01-14)
+
+* Added wrath-darkplaces
+
 ### 23.10 (2021-01-11)
 
 * fs2open - Update to Release 21.0 RC3
