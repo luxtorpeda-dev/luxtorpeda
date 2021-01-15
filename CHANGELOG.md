@@ -3,6 +3,7 @@
 ### 23.11 (2021-01-14)
 
 * Added wrath-darkplaces
+* Updated arx-libertatis
 
 ### 23.10 (2021-01-11)
 
