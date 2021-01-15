@@ -4,6 +4,7 @@
 
 * Added wrath-darkplaces
 * Updated arx-libertatis
+* fs2open - Update to Release 21.0 RC
 
 ### 23.10 (2021-01-11)
 
