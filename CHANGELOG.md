@@ -4,6 +4,7 @@
 
 * quake3e - Update to 2021-01-16
 * vkquake - Update to 1.05.2
+* doomsday - Update to 2.3.0
 
 ### 23.11 (2021-01-14)
 
