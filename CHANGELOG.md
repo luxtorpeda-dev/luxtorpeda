@@ -1,11 +1,17 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.12 (2021-01-16)
+
+* quake3e - Update to 2021-01-16
+* vkquake - Update to 1.05.2
+
 ### 23.11 (2021-01-14)
 
 * Added wrath-darkplaces
 * Updated arx-libertatis
 * fs2open - Update to Release 21.0 RC4
 * Added Daikatana
+* Added serious sam 2
 
 ### 23.10 (2021-01-11)
 
