@@ -5,6 +5,9 @@
 * quake3e - Update to 2021-01-16
 * vkquake - Update to 1.05.2
 * doomsday - Update to 2.3.0
+* reone - Update to 0.14.0
+* Added sonic CD decomp
+* ut2004 - Update foxWSFix-UT2k4 to 2.1.0
 
 ### 23.11 (2021-01-14)
 
