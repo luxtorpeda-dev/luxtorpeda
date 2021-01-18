@@ -8,6 +8,7 @@
 * reone - Update to 0.14.0
 * Added sonic CD decomp
 * ut2004 - Update foxWSFix-UT2k4 to 2.1.0
+* opengothic - Update to 0.35
 
 ### 23.11 (2021-01-14)
 
