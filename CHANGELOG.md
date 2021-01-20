@@ -1,5 +1,10 @@
 ## Changelog for luxtorpeda-dev
 
+
+### 23.13 (2021-01-19)
+
+* Added vkQuake2
+
 ### 23.12 (2021-01-16)
 
 * quake3e - Update to 2021-01-16
