@@ -4,6 +4,7 @@
 ### 23.13 (2021-01-19)
 
 * Added vkQuake2
+* Added alive_reversing
 
 ### 23.12 (2021-01-16)
 
