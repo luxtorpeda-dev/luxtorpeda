@@ -5,6 +5,7 @@
 * Added shockolate
 * realrtcw - Update to 1/24/2021 release
 * fs2open - Update to 21.0 RC5
+* Added OpenLoco
 
 ### 23.13 (2021-01-19)
 
