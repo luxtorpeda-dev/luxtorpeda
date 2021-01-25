@@ -1,11 +1,15 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.14 (2021-01-24)
+
+* Added shockolate
+* realrtcw - Update to 1/24/2021 release
+* fs2open - Update to 21.0 RC5
 
 ### 23.13 (2021-01-19)
 
 * Added vkQuake2
 * Added alive_reversing
-* Added shockolate
 
 ### 23.12 (2021-01-16)
 
