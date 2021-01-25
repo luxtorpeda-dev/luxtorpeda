@@ -5,6 +5,7 @@
 
 * Added vkQuake2
 * Added alive_reversing
+* Added shockolate
 
 ### 23.12 (2021-01-16)
 
