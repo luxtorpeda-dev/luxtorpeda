@@ -18,7 +18,7 @@ jobs:
     steps:
     - name: Generate build number
       id: buildnumber
-      uses: luxtorpeda-dev/build-number@28d7a55
+      uses: luxtorpeda-dev/build-number@28d7a5563af2dd582178bab6b5a50dc8e10f1061
       with:
         token: ${{ secrets.github_token }}
   build:
