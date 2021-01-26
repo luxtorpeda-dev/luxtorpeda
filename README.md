@@ -22,6 +22,8 @@ additional dependencies.
 
 *This is pre-release quality software, expect bugs and missing features.*
 
+*The packages.json for the supported packages and getting the latest versions will get updated on each launch of luxtorpeda.*
+
 1. Close Steam.
 2. Download latest version at https://github.com/luxtorpeda-dev/luxtorpeda/releases
 3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
