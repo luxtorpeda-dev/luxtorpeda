@@ -22,7 +22,7 @@ additional dependencies.
 
 *This is pre-release quality software, expect bugs and missing features.*
 
-*The packages.json for the supported packages and getting the latest versions will get updated on each launch of luxtorpeda.*
+*The packages.json for the supported packages and getting the latest versions will get updated on each launch of luxtorpeda, without any input needed from the user. New releases of the luxtorpeda client will need to be downloaded manually, but a new release of the client is not required when a package is created or updated, unless that package depends on a new feature (which will be noted in the release notes).*
 
 1. Close Steam.
 2. Download latest version at https://github.com/luxtorpeda-dev/luxtorpeda/releases
