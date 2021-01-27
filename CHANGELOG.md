@@ -11,6 +11,7 @@
 * vkquake - Add mission packs
 * Added darkplaces-2017
 * yquake2 - Fix mission packs
+* Added prboom-plus
 
 ### 23.13 (2021-01-19)
 
