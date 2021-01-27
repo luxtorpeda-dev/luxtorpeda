@@ -4,7 +4,6 @@
 
 * Added shockolate
 * realrtcw - Update to 1/24/2021 release
-* fs2open - Update to 21.0 RC5
 * Added OpenLoco
 * Added Unreal Gold - See https://github.com/luxtorpeda-dev/packages/blob/master/engines/unreal-gold/assets/README.txt
 * sonic-cd-11-decomp - Update to v1.1.0
@@ -12,6 +11,7 @@
 * Added darkplaces-2017
 * yquake2 - Fix mission packs
 * Added prboom-plus
+* fs2open - Update to 21.0
 
 ### 23.13 (2021-01-19)
 
