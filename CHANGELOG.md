@@ -8,6 +8,8 @@
 * Added OpenLoco
 * Added Unreal Gold - See https://github.com/luxtorpeda-dev/packages/blob/master/engines/unreal-gold/assets/README.txt
 * sonic-cd-11-decomp - Update to v1.1.0
+* vkquake - Add mission packs
+* Added darkplaces-2017
 
 ### 23.13 (2021-01-19)
 
