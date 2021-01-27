@@ -10,6 +10,7 @@
 * sonic-cd-11-decomp - Update to v1.1.0
 * vkquake - Add mission packs
 * Added darkplaces-2017
+* yquake2 - Fix mission packs
 
 ### 23.13 (2021-01-19)
 
