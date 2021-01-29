@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.15 (2021-01-28)
+
+* Added quakespasm-spiked
+
 ### 23.14 (2021-01-24)
 
 * Added shockolate
