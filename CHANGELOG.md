@@ -3,6 +3,8 @@
 ### 23.15 (2021-01-28)
 
 * Added quakespasm-spiked
+* reone - Update to 0.15.0
+* xash3d-fwgs-19 - Added support for absolute zero via upstream download
 
 ### 23.14 (2021-01-24)
 
