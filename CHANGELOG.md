@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 23.16 (2021-2-11)
+
+* Added hammer of thyrion
+
 ### 23.15 (2021-01-28)
 
 * Added quakespasm-spiked
