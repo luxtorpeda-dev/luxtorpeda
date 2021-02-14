@@ -9,6 +9,7 @@
 * openjk - Update to d2ed03a016f54917bc1dcf06bcc59d3f674fb533
 * vkquake2 - Update to 1.5.6
 * Added eduke32 voidsw
+* Added NBlood
 
 ### 23.15 (2021-01-28)
 
