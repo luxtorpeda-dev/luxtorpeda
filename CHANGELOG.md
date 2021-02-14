@@ -8,6 +8,7 @@
 * re3 - Update to 8d27dba4cdec4d3b39bf87ce5baef5962e58312c
 * openjk - Update to d2ed03a016f54917bc1dcf06bcc59d3f674fb533
 * vkquake2 - Update to 1.5.6
+* Added eduke32 voidsw
 
 ### 23.15 (2021-01-28)
 
