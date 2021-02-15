@@ -1,6 +1,14 @@
 ## Changelog for luxtorpeda-dev
 
-### 23.16 (2021-2-11)
+### 23.17 (2021-02-14)
+
+* reVC - Update to v1.0
+* re3 - Update to v1.0
+* Added eduke32
+* Added rednukem
+* Added commander-genius
+
+### 23.16 (2021-02-11)
 
 * Added hammer of thyrion
 * openlara - Update to latest master
