@@ -204,6 +204,14 @@ pub fn update_packages_json() -> io::Result<()> {
 }
 
 fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<String> {
+    let check_default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
+    if check_default_choice_file_path.exists() {
+        println!("show choice. found default choice.");
+        let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
+        println!("show choice. found default choice. choice is {:?}", default_engine_choice_str);
+        return Ok(default_engine_choice_str)
+    }
+        
     let mut zenity_list_command: Vec<String> = vec![
         "--list".to_string(),
         "--title=Pick the engine below".to_string(),
@@ -253,6 +261,34 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
     let choice_file_path = place_config_file(&app_id, "engine_choice.txt")?;
     let mut choice_file = File::create(choice_file_path)?;
     choice_file.write_all(choice_name.as_bytes())?;
+        
+    let default_zenity_command: Vec<String> = vec![
+        "--question".to_string(),
+        std::format!("--text=Do you want this engine choice to become the default?"),
+        "--title=Default Engine Question".to_string()
+    ];
+    
+    let default_choice_zenity_path = match get_zenity_path() {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        }
+    };
+        
+    let default_choice = Command::new(default_choice_zenity_path)
+        .args(&default_zenity_command)
+        .status()
+        .expect("failed to show default engine choice");
+
+    if default_choice.success() {
+        println!("default engine choice requested");
+        let default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
+        let mut default_choice_file = File::create(default_choice_file_path)?;
+        default_choice_file.write_all(choice_name.as_bytes())?;
+        
+    } else {
+        println!("default engine choice denied");
+    }
     
     return Ok(choice_name);
 }
