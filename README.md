@@ -75,6 +75,8 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 Just click "Play" and Luxtorpeda will download and install the package for you.
 You need to select Luxtorpeda as a compatibility tool first, of course.
 
+When you launch a game that supports multiple engines, a Zenity-based prompt will appear asking for the engine that should be downloaded and launched. Once the engine has been picked, a second prompt will ask if the engine should become the default. Launches after this if "Yes" is picked in this dialog will not ask for the engine again. A file can be deleted to restore the engine prompt for a particular game. The file will have the following format: `~/.config/luxtorpeda/<app_id>/default_engine_choice.txt`
+
 To see a list of supported titles, go to https://luxtorpeda-dev.github.io/packages.html
 
 Want a specific game? 
