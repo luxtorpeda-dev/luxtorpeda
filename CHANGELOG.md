@@ -1,5 +1,9 @@
 ## Changelog for luxtorpeda-dev
 
+### 24.0 (2021-02-14)
+
+* New client release to support setting engine choice as default for games with multiple engines supported. README describes how it works and a file to delete to restore the engine choice prompt after picking a default.
+
 ### 23.17 (2021-02-14)
 
 * reVC - Update to v1.0
