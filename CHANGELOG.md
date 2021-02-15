@@ -1,4 +1,6 @@
-## Changelog for luxtorpeda-dev - Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
+## Changelog for luxtorpeda-dev
+
+* Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
 ### 24.0 (2021-02-14)
 
