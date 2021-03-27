@@ -59,6 +59,12 @@ fn path_to_packages_file() -> PathBuf {
     return path;
 }
 
+pub fn find_user_packages_file() -> Option<PathBuf> {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let path_str = format!("luxtorpeda/user-packages.json");
+    xdg_dirs.find_config_file(path_str)
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CmdReplacement {
     #[serde(with = "serde_regex")]
@@ -89,6 +95,28 @@ pub fn get_zenity_path() -> Result<String, Error>  {
     };
     
     return Ok(zenity_path);
+}
+
+fn show_zenity_error(title: &String, error_message: &String) -> io::Result<()> {
+    let zenity_path = match get_zenity_path() {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        }
+    };
+                
+    let zenity_command: Vec<String> = vec![
+        "--error".to_string(),
+        std::format!("--text={}", error_message).to_string(),
+        std::format!("--title={}", title).to_string()
+    ];
+                
+    Command::new(zenity_path)
+        .args(&zenity_command)
+        .status()
+        .expect("failed to show zenity error");
+        
+    Ok(())
 }
 
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
@@ -476,9 +504,6 @@ pub fn download_all(app_id: String) -> io::Result<()> {
 
 fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     let target = info.url.clone() + &info.file;
-
-    // TODO handle 404 and other errors
-    //
     
     let mut cache_dir = app_id;
     if info.cache_by_name == true {
@@ -487,10 +512,20 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     
     match reqwest::blocking::get(target.as_str()) {
         Ok(mut response) => {
-            let dest_file = place_cached_file(&cache_dir, &info.file)?;
-            let mut dest = fs::File::create(dest_file)?;
-            io::copy(&mut response, &mut dest)?;
-            Ok(())
+            if response.status().is_success() {
+                let dest_file = place_cached_file(&cache_dir, &info.file)?;
+                let mut dest = fs::File::create(dest_file)?;
+                io::copy(&mut response, &mut dest)?;
+                Ok(())
+            } else if response.status().is_server_error() {
+                let error_message = "Request failed due to server error".to_string();
+                show_zenity_error(&"Download Error".to_string(), &error_message)?;
+                Err(Error::new(ErrorKind::Other, "Request failed due to server error"))
+            } else {
+                let error_message = std::format!("Request failed. Status code: {:?}", response.status());
+                show_zenity_error(&"Download Error".to_string(), &error_message)?;
+                Err(Error::new(ErrorKind::Other, error_message.as_str()))
+            }
         }
         Err(err) => {
             println!("download err: {:?}", err);
@@ -691,6 +726,53 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
         }
     };
     let game_info = parsed[app_id].clone();
+    
+    match find_user_packages_file() {
+        Some(user_packages_file) => {
+            println!("{:?}", user_packages_file);
+            
+            let user_json_str = match fs::read_to_string(user_packages_file) {
+                Ok(s) => s,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json read err: {:?}", err);
+                    println!("{:?}", error_message);
+                    match show_zenity_error(&"User Packages Error".to_string(), &error_message) {
+                        Ok(s) => s,
+                        Err(_err) => {}
+                    }
+                    return None;
+                }
+            };
+            
+            let user_parsed = match json::parse(&user_json_str) {
+                Ok(j) => j,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json parsing err: {:?}", err);
+                    println!("{:?}", error_message);
+                    match show_zenity_error(&"User Packages Error".to_string(), &error_message) {
+                        Ok(s) => s,
+                        Err(_err) => {}
+                    }
+                    return None;
+                }
+            };
+            
+            let game_info = user_parsed[app_id].clone();
+            if game_info.is_null() {
+                if !user_parsed["default"].is_null() {
+                    println!("game info using user default");
+                    return Some(user_parsed["default"].clone());
+                }
+            } else {
+                println!("user_packages_file used for game_info");
+                return Some(game_info)
+            }
+        },
+        None => {
+            println!("user_packages_file not found");
+        }
+    };
+    
     if game_info.is_null() {
         if !parsed["default"].is_null() {
             println!("game info using default");
