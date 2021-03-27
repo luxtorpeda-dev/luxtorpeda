@@ -61,7 +61,7 @@ Fedora
 
 ## Known issues
 
-- No known issues at this time.
+- When uninstalling a game that has engine choices, the Steam client will launch the luxtorpeda client and that causes the choice dialog to appear. The luxtorpeda client does not appear to get any signals from the steam client that this is an uninstall, instead of a normal launch. Recommendation would be either to click cancel or remove the compatibility tool setting before uninstalling. More information can be seen here: https://github.com/luxtorpeda-dev/luxtorpeda/issues/47
 
 ## Configuration
 
