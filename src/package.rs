@@ -59,6 +59,12 @@ fn path_to_packages_file() -> PathBuf {
     return path;
 }
 
+pub fn find_user_packages_file() -> Option<PathBuf> {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let path_str = format!("luxtorpeda/user-packages.json");
+    xdg_dirs.find_config_file(path_str)
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CmdReplacement {
     #[serde(with = "serde_regex")]
@@ -720,6 +726,53 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
         }
     };
     let game_info = parsed[app_id].clone();
+    
+    match find_user_packages_file() {
+        Some(user_packages_file) => {
+            println!("{:?}", user_packages_file);
+            
+            let user_json_str = match fs::read_to_string(user_packages_file) {
+                Ok(s) => s,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json read err: {:?}", err);
+                    println!("{:?}", error_message);
+                    match show_zenity_error(&"User Packages Error".to_string(), &error_message) {
+                        Ok(s) => s,
+                        Err(_err) => {}
+                    }
+                    return None;
+                }
+            };
+            
+            let user_parsed = match json::parse(&user_json_str) {
+                Ok(j) => j,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json parsing err: {:?}", err);
+                    println!("{:?}", error_message);
+                    match show_zenity_error(&"User Packages Error".to_string(), &error_message) {
+                        Ok(s) => s,
+                        Err(_err) => {}
+                    }
+                    return None;
+                }
+            };
+            
+            let game_info = user_parsed[app_id].clone();
+            if game_info.is_null() {
+                if !user_parsed["default"].is_null() {
+                    println!("game info using user default");
+                    return Some(user_parsed["default"].clone());
+                }
+            } else {
+                println!("user_packages_file used for game_info");
+                return Some(game_info)
+            }
+        },
+        None => {
+            println!("user_packages_file not found");
+        }
+    };
+    
     if game_info.is_null() {
         if !parsed["default"].is_null() {
             println!("game info using default");
