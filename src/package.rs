@@ -91,6 +91,28 @@ pub fn get_zenity_path() -> Result<String, Error>  {
     return Ok(zenity_path);
 }
 
+fn show_zenity_error(title: &String, error_message: &String) -> io::Result<()> {
+    let zenity_path = match get_zenity_path() {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        }
+    };
+                
+    let zenity_command: Vec<String> = vec![
+        "--error".to_string(),
+        std::format!("--text={}", error_message).to_string(),
+        std::format!("--title={}", title).to_string()
+    ];
+                
+    Command::new(zenity_path)
+        .args(&zenity_command)
+        .status()
+        .expect("failed to show zenity error");
+        
+    Ok(())
+}
+
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
     let file = fs::File::open(path)?;
     let reader = io::BufReader::new(file);
@@ -476,9 +498,6 @@ pub fn download_all(app_id: String) -> io::Result<()> {
 
 fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     let target = info.url.clone() + &info.file;
-
-    // TODO handle 404 and other errors
-    //
     
     let mut cache_dir = app_id;
     if info.cache_by_name == true {
@@ -487,10 +506,20 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     
     match reqwest::blocking::get(target.as_str()) {
         Ok(mut response) => {
-            let dest_file = place_cached_file(&cache_dir, &info.file)?;
-            let mut dest = fs::File::create(dest_file)?;
-            io::copy(&mut response, &mut dest)?;
-            Ok(())
+            if response.status().is_success() {
+                let dest_file = place_cached_file(&cache_dir, &info.file)?;
+                let mut dest = fs::File::create(dest_file)?;
+                io::copy(&mut response, &mut dest)?;
+                Ok(())
+            } else if response.status().is_server_error() {
+                let error_message = "Request failed due to server error".to_string();
+                show_zenity_error(&"Download Error".to_string(), &error_message)?;
+                Err(Error::new(ErrorKind::Other, "Request failed due to server error"))
+            } else {
+                let error_message = std::format!("Request failed. Status code: {:?}", response.status());
+                show_zenity_error(&"Download Error".to_string(), &error_message)?;
+                Err(Error::new(ErrorKind::Other, error_message.as_str()))
+            }
         }
         Err(err) => {
             println!("download err: {:?}", err);
