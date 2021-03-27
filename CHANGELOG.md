@@ -2,6 +2,12 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+
+### 25.0 (2021-03-26)
+
+* Add checks for download errors for packages
+* Add support for user-packages.json. See https://github.com/luxtorpeda-dev/luxtorpeda/issues/65 for more information
+
 ### 24.0 (2021-02-14)
 
 * New client release to support setting engine choice as default for games with multiple engines supported. README describes how it works and a file to delete to restore the engine choice prompt after picking a default.
