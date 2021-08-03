@@ -75,7 +75,7 @@ pub fn iscriptevaluator(exe: &str, args: &[&str]) -> io::Result<()> {
                 Some(app_id) => {
                     match check_for_uninstall(exe, script_vdf) {
                         Ok(()) => {
-                            package::download_all(app_id.to_string())
+                            package::download_all(app_id.to_string(), true)
                         },
                         Err(err) => {
                             let error_message = std::format!("script_vdf: {:?}", err);

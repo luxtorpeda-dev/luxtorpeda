@@ -152,7 +152,7 @@ fn run(args: &[&str]) -> io::Result<()> {
         println!("iscriptevaluator run");
         return fakescripteval::iscriptevaluator(&exe, exe_args);
     }
-    
+
     package::update_packages_json().unwrap();
 
     let _pid_file = pid_file::new()?;
@@ -170,16 +170,47 @@ fn run(args: &[&str]) -> io::Result<()> {
         return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
     }
     
-    if !game_info["choices"].is_null() {        
-        let engine_choice_path = match package::find_config_file(&app_id, "engine_choice.txt") {
+    if !game_info["choices"].is_null() {
+        let engine_choice_path = match package::find_config_file(&app_id, "picked_engine_choice.txt") {
             Some(s) => s,
             None => {
-                println!("choices with no engine choice picked");
-                return Err(Error::new(ErrorKind::Other, "choices with no engine choice picked"));
+                println!("choices with no engine choice picked, checking if canceled.");
+                let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
+                if canceled_engine_choice_path.exists() {
+                    fs::remove_file(canceled_engine_choice_path)?;
+                    return Err(Error::new(ErrorKind::Other, "choices with no engine choice picked. previously canceled."));
+                }
+                else {
+                    match package::download_all(app_id.to_string(), false) {
+                        Ok(()) => {},
+                        Err(err) => {
+                            println!("download all error: {:?}", err);
+                            let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
+                            if canceled_engine_choice_path.exists() {
+                                fs::remove_file(canceled_engine_choice_path)?;
+                            }
+                            return Err(Error::new(ErrorKind::Other, "download all error"));
+                        }
+                    };
+
+                     let engine_choice_path_ask = match package::find_config_file(&app_id, "picked_engine_choice.txt") {
+                        Some(s) => s,
+                        None => {
+                            println!("choices with no engine choice picked, error");
+                            let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
+                            if canceled_engine_choice_path.exists() {
+                                fs::remove_file(canceled_engine_choice_path)?;
+                            }
+                            return Err(Error::new(ErrorKind::Other, "choices with no engine choice picked"));
+                        }
+                    };
+                    engine_choice_path_ask
+                }
             }
         };
         
-        let engine_choice = fs::read_to_string(engine_choice_path)?;
+        let engine_choice = fs::read_to_string(&engine_choice_path)?;
+        fs::remove_file(&engine_choice_path)?;
 
         match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {
@@ -189,6 +220,8 @@ fn run(args: &[&str]) -> io::Result<()> {
                 return Err(err);
             }
         };
+    } else {
+        package::download_all(app_id.to_string(), false)?;
     }
 
     println!("json:");
@@ -240,7 +273,7 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
     }
     
     let app_id = args[0];
-    package::download_all(app_id.to_string())?;
+    package::download_all(app_id.to_string(), true)?;
     
     return Ok(());
 }

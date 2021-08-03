@@ -38,7 +38,7 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
     xdg_dirs.find_cache_file(path_str)
 }
 
-fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
+pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}/{}", app_id, file);
     xdg_dirs.place_config_file(path_str)
@@ -237,6 +237,11 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         println!("show choice. found default choice.");
         let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
         println!("show choice. found default choice. choice is {:?}", default_engine_choice_str);
+
+        let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
+        let mut choice_file = File::create(choice_file_path)?;
+        choice_file.write_all(default_engine_choice_str.as_bytes())?;
+
         return Ok(default_engine_choice_str)
     }
         
@@ -269,10 +274,13 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
     if !choice.status.success() {
         println!("show choice. dialog was rejected");
         
-        let choice_file_path = place_config_file(&app_id, "engine_choice.txt")?;
+        let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
         if choice_file_path.exists() {
             fs::remove_file(choice_file_path)?;
         }
+
+        let canceled_engine_choice_path = place_config_file(&app_id, "canceled_engine_choice.txt")?;
+        File::create(canceled_engine_choice_path)?;
         
         return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
     }
@@ -286,7 +294,7 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
     
     println!("engine choice: {:?}", choice_name);
     
-    let choice_file_path = place_config_file(&app_id, "engine_choice.txt")?;
+    let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
     let mut choice_file = File::create(choice_file_path)?;
     choice_file.write_all(choice_name.as_bytes())?;
         
@@ -396,10 +404,12 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(app_id: String) -> io::Result<()> {
+pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Result<()> {
     println!("download_all");
-    update_packages_json().unwrap();
-    println!("download_all finished update_packages_json");
+    if should_update_package_json {
+        update_packages_json().unwrap();
+        println!("download_all finished update_packages_json");
+    }
     
     let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
