@@ -28,7 +28,6 @@ use crate::dialog::show_error;
 use crate::dialog::show_choices;
 use crate::dialog::show_question;
 
-
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}/{}", app_id, file);
