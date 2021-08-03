@@ -18,13 +18,16 @@ use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use sha1::{Sha1, Digest};
 use std::collections::HashMap;
-use std::process::Command;
 use std::fs::File;
 use std::io::Write;
-use std::env;
 
 use crate::ipc;
 use crate::user_env;
+
+use crate::dialog::show_error;
+use crate::dialog::show_choices;
+use crate::dialog::show_question;
+
 
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
@@ -84,39 +87,6 @@ struct PackageInfo {
     url: String,
     file: String,
     cache_by_name: bool
-}
-
-pub fn get_zenity_path() -> Result<String, Error>  {
-    let zenity_path = match env::var("STEAM_ZENITY") {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "Path could not be found"));
-        }
-    };
-    
-    return Ok(zenity_path);
-}
-
-fn show_zenity_error(title: &String, error_message: &String) -> io::Result<()> {
-    let zenity_path = match get_zenity_path() {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-        }
-    };
-                
-    let zenity_command: Vec<String> = vec![
-        "--error".to_string(),
-        std::format!("--text={}", error_message).to_string(),
-        std::format!("--title={}", title).to_string()
-    ];
-                
-    Command::new(zenity_path)
-        .args(&zenity_command)
-        .status()
-        .expect("failed to show zenity error");
-        
-    Ok(())
 }
 
 pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
@@ -245,50 +215,27 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         return Ok(default_engine_choice_str)
     }
         
-    let mut zenity_list_command: Vec<String> = vec![
-        "--list".to_string(),
-        "--title=Pick the engine below".to_string(),
-        "--column=Name".to_string(),
-        "--hide-header".to_string()
-    ];
-    
+    let mut choices: Vec<String> = vec![];
     for entry in game_info["choices"].members() {
         if entry["name"].is_null() {
             return Err(Error::new(ErrorKind::Other, "missing choice info"));
         }
-        zenity_list_command.push(entry["name"].to_string());
+        choices.push(entry["name"].to_string());
     }
     
-    let zenity_path = match get_zenity_path() {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-        }
-    };
-    
-    let choice = Command::new(zenity_path)
-        .args(&zenity_list_command)
-        .output()
-        .expect("failed to show choices");
-                                    
-    if !choice.status.success() {
-        println!("show choice. dialog was rejected");
-        
-        let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
-        if choice_file_path.exists() {
-            fs::remove_file(choice_file_path)?;
-        }
-
-        let canceled_engine_choice_path = place_config_file(&app_id, "canceled_engine_choice.txt")?;
-        File::create(canceled_engine_choice_path)?;
-        
-        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-    }
-    
-    let choice_name = match String::from_utf8(choice.stdout) {
+    let choice_name = match show_choices("Pick the engine below", "Name", &choices) {
         Ok(s) => String::from(s.trim()),
         Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
+            println!("show choice. dialog was rejected");
+
+            let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
+            if choice_file_path.exists() {
+                fs::remove_file(choice_file_path)?;
+            }
+
+            let canceled_engine_choice_path = place_config_file(&app_id, "canceled_engine_choice.txt")?;
+            File::create(canceled_engine_choice_path)?;
+            return Err(Error::new(ErrorKind::Other, "Show choices failed"));
         }
     };
     
@@ -297,34 +244,18 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
     let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
     let mut choice_file = File::create(choice_file_path)?;
     choice_file.write_all(choice_name.as_bytes())?;
-        
-    let default_zenity_command: Vec<String> = vec![
-        "--question".to_string(),
-        std::format!("--text=Do you want this engine choice to become the default?"),
-        "--title=Default Engine Question".to_string()
-    ];
-    
-    let default_choice_zenity_path = match get_zenity_path() {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+
+    match show_question("Default Engine Question", "Do you want this engine choice to become the default?") {
+        Some(_) => {
+            println!("default engine choice requested");
+            let default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
+            let mut default_choice_file = File::create(default_choice_file_path)?;
+            default_choice_file.write_all(choice_name.as_bytes())?;
+        },
+        None => {
+             println!("default engine choice denied");
         }
     };
-        
-    let default_choice = Command::new(default_choice_zenity_path)
-        .args(&default_zenity_command)
-        .status()
-        .expect("failed to show default engine choice");
-
-    if default_choice.success() {
-        println!("default engine choice requested");
-        let default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
-        let mut default_choice_file = File::create(default_choice_file_path)?;
-        default_choice_file.write_all(choice_name.as_bytes())?;
-        
-    } else {
-        println!("default engine choice denied");
-    }
     
     return Ok(choice_name);
 }
@@ -455,28 +386,16 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
     }
     
     if !dialog_message.is_empty() {
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        match show_question("License Warning", &dialog_message.to_string()) {
+            Some(_) => {
+                println!("show license warning. dialog was accepted");
+                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+            },
+            None => {
+                println!("show license warning. dialog was rejected");
+                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         };
-        
-        let zenity_command: Vec<String> = vec![
-            "--question".to_string(),
-             std::format!("--text={}", dialog_message).to_string(),
-            "--title=License Warning".to_string()
-        ];
-        
-        let choice = Command::new(zenity_path)
-            .args(&zenity_command)
-            .status()
-            .expect("failed to show license warning");
-
-        if !choice.success() {
-            println!("show license warning. dialog was rejected");
-            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-        }
     }
 
     let (tx, rx): (Sender<ipc::StatusMsg>, Receiver<ipc::StatusMsg>) = mpsc::channel();
@@ -534,11 +453,11 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
                 Ok(())
             } else if response.status().is_server_error() {
                 let error_message = "Request failed due to server error".to_string();
-                show_zenity_error(&"Download Error".to_string(), &error_message)?;
+                show_error(&"Download Error".to_string(), &error_message)?;
                 Err(Error::new(ErrorKind::Other, "Request failed due to server error"))
             } else {
                 let error_message = std::format!("Request failed. Status code: {:?}", response.status());
-                show_zenity_error(&"Download Error".to_string(), &error_message)?;
+                show_error(&"Download Error".to_string(), &error_message)?;
                 Err(Error::new(ErrorKind::Other, error_message.as_str()))
             }
         }
@@ -751,7 +670,7 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json read err: {:?}", err);
                     println!("{:?}", error_message);
-                    match show_zenity_error(&"User Packages Error".to_string(), &error_message) {
+                    match show_error(&"User Packages Error".to_string(), &error_message) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }
@@ -764,7 +683,7 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json parsing err: {:?}", err);
                     println!("{:?}", error_message);
-                    match show_zenity_error(&"User Packages Error".to_string(), &error_message) {
+                    match show_error(&"User Packages Error".to_string(), &error_message) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }
