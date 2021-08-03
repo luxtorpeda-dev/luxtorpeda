@@ -181,7 +181,7 @@ fn run(args: &[&str]) -> io::Result<()> {
                     return Err(Error::new(ErrorKind::Other, "choices with no engine choice picked. previously canceled."));
                 }
                 else {
-                    match package::download_all(app_id.to_string()) {
+                    match package::download_all(app_id.to_string(), false) {
                         Ok(()) => {},
                         Err(err) => {
                             println!("download all error: {:?}", err);
@@ -221,7 +221,7 @@ fn run(args: &[&str]) -> io::Result<()> {
             }
         };
     } else {
-        package::download_all(app_id.to_string())?;
+        package::download_all(app_id.to_string(), false)?;
     }
 
     println!("json:");
@@ -273,7 +273,7 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
     }
     
     let app_id = args[0];
-    package::download_all(app_id.to_string())?;
+    package::download_all(app_id.to_string(), true)?;
     
     return Ok(());
 }

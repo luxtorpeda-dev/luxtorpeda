@@ -404,10 +404,12 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(app_id: String) -> io::Result<()> {
+pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Result<()> {
     println!("download_all");
-    update_packages_json().unwrap();
-    println!("download_all finished update_packages_json");
+    if should_update_package_json {
+        update_packages_json().unwrap();
+        println!("download_all finished update_packages_json");
+    }
     
     let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
