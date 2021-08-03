@@ -29,7 +29,7 @@ additional dependencies.
 3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ tar xJf luxtorpeda-25.tar.xz
+        $ tar xJf luxtorpeda-26.tar.xz
 
 4. Start Steam.
 5. In game properties window select "Force the use of a specific Steam Play
@@ -61,7 +61,7 @@ Fedora
 
 ## Known issues
 
-- When uninstalling a game that has engine choices, the Steam client will launch the luxtorpeda client and that causes the choice dialog to appear. The luxtorpeda client does not appear to get any signals from the steam client that this is an uninstall, instead of a normal launch. Recommendation would be either to click cancel or remove the compatibility tool setting before uninstalling. The dialog is the only strange behavior in this case, as the uninstall will proceed normally. More information can be seen here: https://github.com/luxtorpeda-dev/luxtorpeda/issues/47
+- No known issues at this time.
 
 ## Configuration
 
