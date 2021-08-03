@@ -397,7 +397,9 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
 }
 
 pub fn download_all(app_id: String) -> io::Result<()> {
+    println!("download_all");
     update_packages_json().unwrap();
+    println!("download_all finished update_packages_json");
     
     let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
@@ -509,10 +511,13 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     if info.cache_by_name == true {
         cache_dir = &info.name;
     }
+
+    println!("download target: {:?}", target);
     
     match reqwest::blocking::get(target.as_str()) {
         Ok(mut response) => {
             if response.status().is_success() {
+                println!("download target: {:?} success!", target);
                 let dest_file = place_cached_file(&cache_dir, &info.file)?;
                 let mut dest = fs::File::create(dest_file)?;
                 io::copy(&mut response, &mut dest)?;

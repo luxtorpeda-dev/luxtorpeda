@@ -36,12 +36,19 @@ fn check_for_uninstall(exe: &str, script_vdf: &str) -> io::Result<()> {
 
     if vdf_path.exists() {
         let config = vdf::load(vdf_path).unwrap();
-        let uninstall_flag = config.lookup("evaluatorscript.0.uninstall").unwrap().as_str().unwrap();
-        println!("check_for_uninstall uninstall_flag: {:?}", uninstall_flag);
+        let uninstall_flag_ref = config.lookup("evaluatorscript.0.uninstall");
+        if !uninstall_flag_ref.is_none() {
+            let uninstall_flag = uninstall_flag_ref.unwrap().as_str().unwrap();
+            println!("check_for_uninstall uninstall_flag: {:?}", uninstall_flag);
 
-        if uninstall_flag == "1" {
-            return Err(Error::new(ErrorKind::Other, "User uninstalling, so should exit"))
+            if uninstall_flag == "1" {
+                return Err(Error::new(ErrorKind::Other, "User uninstalling, so should exit"))
+            }
+        } else {
+            println!("check_for_uninstall uninstall_flag not found");
         }
+    } else {
+        println!("check_for_uninstall vdf not found");
     }
 
     return Ok(())

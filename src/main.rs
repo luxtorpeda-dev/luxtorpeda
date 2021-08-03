@@ -149,6 +149,7 @@ fn run(args: &[&str]) -> io::Result<()> {
     let exe_args = &args[1..];
 
     if exe.ends_with("iscriptevaluator.exe") {
+        println!("iscriptevaluator run");
         return fakescripteval::iscriptevaluator(&exe, exe_args);
     }
     
