@@ -2,6 +2,9 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 26.0 (2021-08-03)
+
+* Fix issue related to uninstall of a game set for luxtorpeda bringing up the game choice dialog. See https://github.com/luxtorpeda-dev/luxtorpeda/issues/47 for more information.
 
 ### 25.0 (2021-03-26)
 
