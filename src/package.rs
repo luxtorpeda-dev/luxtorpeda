@@ -20,14 +20,11 @@ use sha1::{Sha1, Digest};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
-<<<<<<< HEAD
 use reqwest::Client;
 use futures_util::StreamExt;
 use tokio::runtime::Runtime;
 use std::cmp::min;
 use tokio;
-=======
->>>>>>> master
 
 use crate::ipc;
 use crate::user_env;
@@ -35,13 +32,10 @@ use crate::user_env;
 use crate::dialog::show_error;
 use crate::dialog::show_choices;
 use crate::dialog::show_question;
-<<<<<<< HEAD
 use crate::dialog::start_progress;
 use crate::dialog::progress_change;
 use crate::dialog::progress_text_change;
 use crate::dialog::progress_close;
-=======
->>>>>>> master
 
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
@@ -520,7 +514,6 @@ async fn download(app_id: &str, info: &PackageInfo, progress_id: &str, client: &
     }
 
     println!("download target: {:?}", target);
-<<<<<<< HEAD
 
     let res = client
         .get(&target)
@@ -551,30 +544,6 @@ async fn download(app_id: &str, info: &PackageInfo, progress_id: &str, client: &
             println!("download {}%: {} out of {}", percentage, downloaded, total_size);
             progress_change(percentage, &progress_id)?;
             total_percentage = percentage;
-=======
-    
-    match reqwest::blocking::get(target.as_str()) {
-        Ok(mut response) => {
-            if response.status().is_success() {
-                println!("download target: {:?} success!", target);
-                let dest_file = place_cached_file(&cache_dir, &info.file)?;
-                let mut dest = fs::File::create(dest_file)?;
-                io::copy(&mut response, &mut dest)?;
-                Ok(())
-            } else if response.status().is_server_error() {
-                let error_message = "Request failed due to server error".to_string();
-                show_error(&"Download Error".to_string(), &error_message)?;
-                Err(Error::new(ErrorKind::Other, "Request failed due to server error"))
-            } else {
-                let error_message = std::format!("Request failed. Status code: {:?}", response.status());
-                show_error(&"Download Error".to_string(), &error_message)?;
-                Err(Error::new(ErrorKind::Other, error_message.as_str()))
-            }
-        }
-        Err(err) => {
-            println!("download err: {:?}", err);
-            Err(Error::new(ErrorKind::Other, "download error"))
->>>>>>> master
         }
     }
     
