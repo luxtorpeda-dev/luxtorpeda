@@ -2,6 +2,13 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 28.0 (2021-08-03)
+
+* Create generic dialog library for creation and processing of user interface.
+* Add KDialog support for KDE Plasma based systems
+* Add active_dialog_command parameter in config.json for default (pick the best for the running desktop), zenity, or kdialog
+* Fix issue from last release where the license prompt could come up twice.
+
 ### 27.0 (2021-08-03)
 
 * Support game launch running by itself without scripteval. Related to steam changes in regards to how luxtorpeda receives the commands from steam to download then launch the game. Now as a fallback the game launch command will also download the game files and ask for engine choices if the previous step was not done. See https://github.com/luxtorpeda-dev/luxtorpeda/issues/75 for more information.

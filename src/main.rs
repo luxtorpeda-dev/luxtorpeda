@@ -167,10 +167,17 @@ fn run(args: &[&str]) -> io::Result<()> {
                         Ok(()) => {},
                         Err(err) => {
                             println!("download all error: {:?}", err);
+
                             let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
                             if canceled_engine_choice_path.exists() {
                                 fs::remove_file(canceled_engine_choice_path)?;
                             }
+
+                            let canceled_license_choice_path = package::place_config_file(&app_id, "canceled_license_choice.txt")?;
+                            if canceled_license_choice_path.exists() {
+                                fs::remove_file(canceled_license_choice_path)?;
+                            }
+
                             return Err(Error::new(ErrorKind::Other, "download all error"));
                         }
                     };

@@ -385,13 +385,19 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
     }
     
     if !dialog_message.is_empty() {
+        let canceled_license_choice_path = place_config_file(&app_id, "canceled_license_choice.txt")?;
+        if canceled_license_choice_path.exists() {
+            fs::remove_file(canceled_license_choice_path)?;
+            return Err(Error::new(ErrorKind::Other, "license request previously canceled."));
+        }
         match show_question("License Warning", &dialog_message.to_string()) {
             Some(_) => {
                 println!("show license warning. dialog was accepted");
-                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             },
             None => {
                 println!("show license warning. dialog was rejected");
+                let canceled_license_choice_path = place_config_file(&app_id, "canceled_license_choice.txt")?;
+                File::create(canceled_license_choice_path)?;
                 return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         };

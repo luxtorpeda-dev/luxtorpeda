@@ -69,6 +69,7 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
+- active_dialog_command - default (pick the best for the running desktop), zenity, or kdialog. If this parameter does not exist, luxtorpeda assumes zenity.
 
 ## Supported titles
 
