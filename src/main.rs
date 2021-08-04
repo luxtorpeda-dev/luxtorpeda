@@ -13,14 +13,13 @@ use std::path::PathBuf;
 use std::path::Path;
 use std::process::Command;
 use std::fs::File;
-use std::io::Read;
-use std::io::Write;
 
 mod fakescripteval;
 mod ipc;
 mod package;
 mod pid_file;
 mod user_env;
+mod dialog;
 
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -86,39 +85,22 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
     let setup_info = &game_info["setup"];
     if !package::is_setup_complete(&game_info["setup"]) {
         if !&setup_info["license_path"].is_null() && Path::new(&setup_info["license_path"].to_string()).exists() {
-            let mut license_file = File::open(&setup_info["license_path"].to_string())?;
-            let mut license_buf = vec![];
-            license_file.read_to_end(&mut license_buf)?;
-            let license_str = String::from_utf8_lossy(&license_buf);
-            
-            let mut converted_license_file = File::create("converted_license.txt")?;
-            converted_license_file.write_all(license_str.as_bytes())?;
-            
-            let zenity_path = match package::get_zenity_path() {
-                Ok(s) => s,
+            match dialog::show_file_with_confirm("Closed Source Engine EULA", &setup_info["license_path"].to_string()) {
+                Ok(()) => {
+                    println!("show eula. dialog was accepted");
+                }
                 Err(_) => {
-                    return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+                    println!("show eula. dialog was rejected");
+                    if !setup_info["uninstall_command"].is_null() {
+                        let command_str = setup_info["uninstall_command"].to_string();
+                        println!("uninstall run: \"{}\"", command_str);
+
+                        Command::new(command_str)
+                            .status()
+                            .expect("failed to execute process");
+                    }
+                    return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
                 }
-            };
-            
-            let choice = Command::new(zenity_path)
-                .args(&["--text-info", "--title=Closed Source Engine EULA", "--filename=converted_license.txt"])
-                .status()
-                .expect("failed to show eula");
-                                    
-            if !choice.success() {
-                println!("show eula. dialog was rejected");
-                
-                if !setup_info["uninstall_command"].is_null() {
-                    let command_str = setup_info["uninstall_command"].to_string();
-                    println!("uninstall run: \"{}\"", command_str);
-                    
-                    Command::new(command_str)
-                        .status()
-                        .expect("failed to execute process");
-                }
-                
-                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         }
                     
@@ -185,10 +167,17 @@ fn run(args: &[&str]) -> io::Result<()> {
                         Ok(()) => {},
                         Err(err) => {
                             println!("download all error: {:?}", err);
+
                             let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
                             if canceled_engine_choice_path.exists() {
                                 fs::remove_file(canceled_engine_choice_path)?;
                             }
+
+                            let canceled_license_choice_path = package::place_config_file(&app_id, "canceled_license_choice.txt")?;
+                            if canceled_license_choice_path.exists() {
+                                fs::remove_file(canceled_license_choice_path)?;
+                            }
+
                             return Err(Error::new(ErrorKind::Other, "download all error"));
                         }
                     };
