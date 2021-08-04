@@ -31,22 +31,34 @@ fn get_current_desktop() -> Option<String> {
     return Some(current_desktop);
 }
 
+<<<<<<< HEAD
 fn active_dialog_command(silent: bool) -> io::Result<String> {
+=======
+fn active_dialog_command() -> io::Result<String> {
+>>>>>>> master
     let config_json_file = user_env::tool_dir().join("config.json");
     let config_json_str = fs::read_to_string(config_json_file)?;
     let config_parsed = json::parse(&config_json_str).unwrap();
 
     if config_parsed["active_dialog_command"].is_null() {
+<<<<<<< HEAD
         if !silent {
             println!("active_dialog_command. config not found, assuming zenity");
         }
+=======
+        println!("active_dialog_command. config not found, assuming zenity");
+>>>>>>> master
         Ok("zenity".to_string())
     } else {
         let active_dialog_command = &config_parsed["active_dialog_command"];
         let active_dialog_command_str = active_dialog_command.to_string();
+<<<<<<< HEAD
         if !silent {
             println!("active_dialog_command. active_dialog_command_str: {:?}", active_dialog_command_str);
         }
+=======
+        println!("active_dialog_command. active_dialog_command_str: {:?}", active_dialog_command_str);
+>>>>>>> master
 
         if active_dialog_command_str != "default" {
             Ok(active_dialog_command_str)
@@ -54,6 +66,7 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
         else {
             match get_current_desktop() {
                 Some(current_desktop) => {
+<<<<<<< HEAD
                     if !silent {
                         println!("active_dialog_command. current_desktop: {:?}", current_desktop);
                     }
@@ -66,13 +79,25 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
                         if !silent {
                             println!("active_dialog_command. current desktop unknown, assuming zenity");
                         }
+=======
+                    println!("active_dialog_command. current_desktop: {:?}", current_desktop);
+                    if current_desktop == "KDE" {
+                        println!("active_dialog_command. current desktop of kde found, assuming kdialog");
+                        Ok("kdialog".to_string())
+                    } else {
+                        println!("active_dialog_command. current desktop unknown, assuming zenity");
+>>>>>>> master
                         Ok("zenity".to_string())
                     }
                 },
                 None => {
+<<<<<<< HEAD
                     if !silent {
                         println!("active_dialog_command. no current desktop found, assuming zenity");
                     }
+=======
+                    println!("active_dialog_command. no current desktop found, assuming zenity");
+>>>>>>> master
                     Ok("zenity".to_string())
                 }
             }
@@ -81,7 +106,11 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
 }
 
 pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
+<<<<<<< HEAD
     if active_dialog_command(false)? == "kdialog" {
+=======
+    if active_dialog_command()? == "kdialog" {
+>>>>>>> master
         let command: Vec<String> = vec![
             "--error".to_string(),
             error_message.to_string(),
@@ -117,7 +146,11 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
 }
 
 pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<String> {
+<<<<<<< HEAD
     if active_dialog_command(false)? == "kdialog" {
+=======
+    if active_dialog_command()? == "kdialog" {
+>>>>>>> master
         let mut list_command: Vec<String> = vec![
             "--geometry".to_string(),
             "350x300".to_string(),
@@ -198,7 +231,11 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let mut converted_file = File::create("converted.txt")?;
     converted_file.write_all(file_str.as_bytes())?;
 
+<<<<<<< HEAD
     if active_dialog_command(false)? == "kdialog" {
+=======
+    if active_dialog_command()? == "kdialog" {
+>>>>>>> master
         let command: Vec<String> = vec![
             "--geometry".to_string(),
             "400x600".to_string(),
@@ -247,7 +284,11 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
 }
 
 pub fn show_question(title: &str, text: &str) -> Option<()> {
+<<<<<<< HEAD
     if active_dialog_command(false).ok()? == "kdialog" {
+=======
+    if active_dialog_command().ok()? == "kdialog" {
+>>>>>>> master
         let command: Vec<String> = vec![
             "--yesno".to_string(),
             text.to_string(),
@@ -291,6 +332,7 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
         }
     }
 }
+<<<<<<< HEAD
 
 pub fn start_progress(title: &str, status: &str, interval: usize) -> io::Result<String> {
     if active_dialog_command(false)? == "kdialog" {
@@ -429,3 +471,5 @@ pub fn progress_close(progress_id: &str) -> io::Result<()> {
          return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
     }
 }
+=======
+>>>>>>> master
