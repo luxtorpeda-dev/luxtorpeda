@@ -2,6 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 29.0 (2021-08-04)
+
+* Add support for downloading progress dialog. This will show the amount of items being downloaded and the percentage of the download progress of the current item. This dialog will then disappear once all of the downloads are complete.
+* Disable legacy way of communication with steam for the download process. Originally, luxtorpeda communicated with steam for triggering the download, and the Steam client would then show the progress. Since this appears to be removed in fresh steam installs, this will no longer be needed.
+
 ### 28.0 (2021-08-03)
 
 * Create generic dialog library for creation and processing of user interface.

@@ -31,18 +31,22 @@ fn get_current_desktop() -> Option<String> {
     return Some(current_desktop);
 }
 
-fn active_dialog_command() -> io::Result<String> {
+fn active_dialog_command(silent: bool) -> io::Result<String> {
     let config_json_file = user_env::tool_dir().join("config.json");
     let config_json_str = fs::read_to_string(config_json_file)?;
     let config_parsed = json::parse(&config_json_str).unwrap();
 
     if config_parsed["active_dialog_command"].is_null() {
-        println!("active_dialog_command. config not found, assuming zenity");
+        if !silent {
+            println!("active_dialog_command. config not found, assuming zenity");
+        }
         Ok("zenity".to_string())
     } else {
         let active_dialog_command = &config_parsed["active_dialog_command"];
         let active_dialog_command_str = active_dialog_command.to_string();
-        println!("active_dialog_command. active_dialog_command_str: {:?}", active_dialog_command_str);
+        if !silent {
+            println!("active_dialog_command. active_dialog_command_str: {:?}", active_dialog_command_str);
+        }
 
         if active_dialog_command_str != "default" {
             Ok(active_dialog_command_str)
@@ -50,17 +54,25 @@ fn active_dialog_command() -> io::Result<String> {
         else {
             match get_current_desktop() {
                 Some(current_desktop) => {
-                    println!("active_dialog_command. current_desktop: {:?}", current_desktop);
+                    if !silent {
+                        println!("active_dialog_command. current_desktop: {:?}", current_desktop);
+                    }
                     if current_desktop == "KDE" {
-                        println!("active_dialog_command. current desktop of kde found, assuming kdialog");
+                        if !silent {
+                            println!("active_dialog_command. current desktop of kde found, assuming kdialog");
+                        }
                         Ok("kdialog".to_string())
                     } else {
-                        println!("active_dialog_command. current desktop unknown, assuming zenity");
+                        if !silent {
+                            println!("active_dialog_command. current desktop unknown, assuming zenity");
+                        }
                         Ok("zenity".to_string())
                     }
                 },
                 None => {
-                    println!("active_dialog_command. no current desktop found, assuming zenity");
+                    if !silent {
+                        println!("active_dialog_command. no current desktop found, assuming zenity");
+                    }
                     Ok("zenity".to_string())
                 }
             }
@@ -69,7 +81,7 @@ fn active_dialog_command() -> io::Result<String> {
 }
 
 pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    if active_dialog_command()? == "kdialog" {
+    if active_dialog_command(false)? == "kdialog" {
         let command: Vec<String> = vec![
             "--error".to_string(),
             error_message.to_string(),
@@ -105,7 +117,7 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
 }
 
 pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<String> {
-    if active_dialog_command()? == "kdialog" {
+    if active_dialog_command(false)? == "kdialog" {
         let mut list_command: Vec<String> = vec![
             "--geometry".to_string(),
             "350x300".to_string(),
@@ -186,7 +198,7 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let mut converted_file = File::create("converted.txt")?;
     converted_file.write_all(file_str.as_bytes())?;
 
-    if active_dialog_command()? == "kdialog" {
+    if active_dialog_command(false)? == "kdialog" {
         let command: Vec<String> = vec![
             "--geometry".to_string(),
             "400x600".to_string(),
@@ -235,7 +247,7 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
 }
 
 pub fn show_question(title: &str, text: &str) -> Option<()> {
-    if active_dialog_command().ok()? == "kdialog" {
+    if active_dialog_command(false).ok()? == "kdialog" {
         let command: Vec<String> = vec![
             "--yesno".to_string(),
             text.to_string(),
@@ -277,5 +289,143 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
         } else {
             return None
         }
+    }
+}
+
+pub fn start_progress(title: &str, status: &str, interval: usize) -> io::Result<String> {
+    if active_dialog_command(false)? == "kdialog" {
+        let progress_command: Vec<String> = vec![
+            "--geometry".to_string(),
+            "600x200".to_string(),
+            "--title".to_string(),
+            title.to_string(),
+            "--progressbar".to_string(),
+            status.to_string(),
+            (interval).to_string()
+        ];
+
+        println!("progress_command  {:?}", progress_command);
+
+        let progress = Command::new("kdialog")
+            .args(&progress_command)
+            .output()
+            .expect("failed to show progress");
+
+        if !progress.status.success() {
+            return Err(Error::new(ErrorKind::Other, "progress start failed"));
+        }
+
+        let progress_id = match String::from_utf8(progress.stdout) {
+            Ok(s) => String::from(s.trim()),
+            Err(_) => {
+                return Err(Error::new(ErrorKind::Other, "Failed to parse progress_id"));
+            }
+        };
+
+        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
+        let progress_cancel_command: Vec<String> = vec![
+            progress_id_array[0].to_string(),
+            progress_id_array[1].to_string(),
+            "showCancelButton".to_string(),
+            "false".to_string()
+        ];
+
+        println!("progress_cancel_command  {:?}", progress_cancel_command);
+
+        let progress_cancel = Command::new("qdbus")
+            .args(&progress_cancel_command)
+            .output()
+            .expect("failed to update cancel progress");
+
+        if !progress_cancel.status.success() {
+            return Err(Error::new(ErrorKind::Other, "progress update cancel failed"));
+        }
+
+        Ok(progress_id)
+    } else {
+         return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
+    }
+}
+
+pub fn progress_text_change(title: &str, progress_id: &str) -> io::Result<()> {
+    if active_dialog_command(false)? == "kdialog" {
+        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
+        if progress_id_array.len() == 2 {
+            let progress_command_label: Vec<String> = vec![
+                progress_id_array[0].to_string(),
+                progress_id_array[1].to_string(),
+                "setLabelText".to_string(),
+                title.to_string()
+            ];
+
+            println!("progress_command_label {:?}", progress_command_label);
+
+            let progress_label = Command::new("qdbus")
+                .args(&progress_command_label)
+                .output()
+                .expect("failed to update progress label");
+
+            if !progress_label.status.success() {
+                return Err(Error::new(ErrorKind::Other, "progress update label failed"));
+            }
+        }
+
+        Ok(())
+    } else {
+         return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
+    }
+}
+
+pub fn progress_change(value: i64, progress_id: &str) -> io::Result<()> {
+    if active_dialog_command(true)? == "kdialog" {
+        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
+        if progress_id_array.len() == 2 {
+            let progress_command: Vec<String> = vec![
+                progress_id_array[0].to_string(),
+                progress_id_array[1].to_string(),
+                "Set".to_string(),
+                "".to_string(),
+                "value".to_string(),
+                value.to_string()
+            ];
+
+            let progress = Command::new("qdbus")
+                .args(&progress_command)
+                .output()
+                .expect("failed to update progress");
+
+            if !progress.status.success() {
+                return Err(Error::new(ErrorKind::Other, "progress update failed"));
+            }
+        }
+        Ok(())
+    } else {
+         return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
+    }
+}
+
+pub fn progress_close(progress_id: &str) -> io::Result<()> {
+    if active_dialog_command(false)? == "kdialog" {
+        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
+        if progress_id_array.len() == 2 {
+            let progress_command: Vec<String> = vec![
+                progress_id_array[0].to_string(),
+                progress_id_array[1].to_string(),
+                "close".to_string()
+            ];
+
+            let progress = Command::new("qdbus")
+                .args(&progress_command)
+                .output()
+                .expect("failed to close progress");
+
+            if !progress.status.success() {
+                return Err(Error::new(ErrorKind::Other, "progress close failed"));
+            }
+        }
+
+        Ok(())
+    } else {
+         return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
     }
 }

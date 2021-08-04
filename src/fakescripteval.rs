@@ -8,7 +8,6 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use crate::ipc;
-use crate::package;
 
 fn get_vdf_path(exe: &str, script_vdf: &str)  -> io::Result<PathBuf> {
     let exe_path = Path::new(exe);
@@ -75,7 +74,8 @@ pub fn iscriptevaluator(exe: &str, args: &[&str]) -> io::Result<()> {
                 Some(app_id) => {
                     match check_for_uninstall(exe, script_vdf) {
                         Ok(()) => {
-                            package::download_all(app_id.to_string(), true)
+                            println!("iscriptevaluator ignoring for {}", app_id);
+                            Ok(())
                         },
                         Err(err) => {
                             let error_message = std::format!("script_vdf: {:?}", err);

@@ -20,6 +20,11 @@ use sha1::{Sha1, Digest};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
+use reqwest::Client;
+use futures_util::StreamExt;
+use tokio::runtime::Runtime;
+use std::cmp::min;
+use tokio;
 
 use crate::ipc;
 use crate::user_env;
@@ -27,6 +32,10 @@ use crate::user_env;
 use crate::dialog::show_error;
 use crate::dialog::show_choices;
 use crate::dialog::show_question;
+use crate::dialog::start_progress;
+use crate::dialog::progress_change;
+use crate::dialog::progress_text_change;
+use crate::dialog::progress_close;
 
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
@@ -412,7 +421,23 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
 
     let mut err = Ok(());
     let n = downloads.len() as i32;
+
+    let mut progress_id = String::new();
+
+    if !should_update_package_json {
+        progress_id = match start_progress("Download Progress", "Downloading...", 100) {
+            Ok(s) => s,
+            Err(_) => {
+                println!("download_all. warning: progress not started");
+                "".to_string()
+            }
+        };
+    }
+
+    let client = reqwest::Client::new();
+
     for (i, info) in downloads.iter().enumerate() {
+        println!("starting download on: {} {}", i, info.name.clone());
         // update status
         //
         match tx.send(ipc::StatusMsg::Status(i as i32, n, info.name.clone())) {
@@ -421,7 +446,42 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
                 print!("err: {}", e);
             }
         }
-        err = download(app_id.as_str(), info);
+
+        if !should_update_package_json {
+            match progress_text_change(&std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone()), &progress_id) {
+                Ok(()) => {},
+                Err(_) => {
+                    println!("download_all. warning: progress not updated");
+                }
+            };
+
+            match progress_change(0, &progress_id) {
+                Ok(()) => {},
+                Err(_) => {
+                    println!("download_all. warning: progress not updated");
+                }
+            };
+        }
+
+        err = Runtime::new().unwrap().block_on(download(app_id.as_str(), info, &progress_id, &client));
+        match err {
+            Ok(_) => {},
+            Err(ref err) => {
+                println!("download of {} error: {}",info.name.clone(), err);
+
+                let mut cache_dir = app_id;
+                if info.cache_by_name == true {
+                    cache_dir = info.name.clone();
+                }
+                let dest_file = place_cached_file(&cache_dir, &info.file)?;
+                if dest_file.exists() {
+                    fs::remove_file(dest_file)?;
+                }
+
+                return Err(Error::new(ErrorKind::Other, "Download failed"));
+            }
+        };
+        println!("completed download on: {} {}", i, info.name.clone());
     }
 
     // stop relay thread
@@ -433,12 +493,19 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
         }
     };
 
+    match progress_close(&progress_id) {
+        Ok(()) => {},
+        Err(_) => {
+            println!("download_all. warning: progress not closed");
+        }
+    };
+
     status_relay.join().expect("status relay thread panicked");
 
     err
 }
 
-fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
+async fn download(app_id: &str, info: &PackageInfo, progress_id: &str, client: &Client) -> io::Result<()> {
     let target = info.url.clone() + &info.file;
     
     let mut cache_dir = app_id;
@@ -447,30 +514,40 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     }
 
     println!("download target: {:?}", target);
-    
-    match reqwest::blocking::get(target.as_str()) {
-        Ok(mut response) => {
-            if response.status().is_success() {
-                println!("download target: {:?} success!", target);
-                let dest_file = place_cached_file(&cache_dir, &info.file)?;
-                let mut dest = fs::File::create(dest_file)?;
-                io::copy(&mut response, &mut dest)?;
-                Ok(())
-            } else if response.status().is_server_error() {
-                let error_message = "Request failed due to server error".to_string();
-                show_error(&"Download Error".to_string(), &error_message)?;
-                Err(Error::new(ErrorKind::Other, "Request failed due to server error"))
-            } else {
-                let error_message = std::format!("Request failed. Status code: {:?}", response.status());
-                show_error(&"Download Error".to_string(), &error_message)?;
-                Err(Error::new(ErrorKind::Other, error_message.as_str()))
-            }
-        }
-        Err(err) => {
-            println!("download err: {:?}", err);
-            Err(Error::new(ErrorKind::Other, "download error"))
+
+    let res = client
+        .get(&target)
+        .send()
+        .await
+        .or(Err(Error::new(ErrorKind::Other, format!("Failed to GET from '{}'", &target))))?;
+
+    let total_size = res
+        .content_length()
+        .ok_or(Error::new(ErrorKind::Other, format!("Failed to get content length from '{}'", &target)))?;
+
+    let dest_file = place_cached_file(&cache_dir, &info.file)?;
+    let mut dest = fs::File::create(dest_file)?;
+    let mut downloaded: u64 = 0;
+    let mut stream = res.bytes_stream();
+    let mut total_percentage: i64 = 0;
+
+    while let Some(item) = stream.next().await {
+        let chunk = item.or(Err(Error::new(ErrorKind::Other, format!("Error while downloading file"))))?;
+        dest.write(&chunk)
+            .or(Err(Error::new(ErrorKind::Other, format!("Error while writing to file"))))?;
+
+        let new = min(downloaded + (chunk.len() as u64), total_size);
+        downloaded = new;
+        let percentage = ((downloaded as f64 / total_size as f64) * 100 as f64) as i64;
+
+        if percentage != total_percentage {
+            println!("download {}%: {} out of {}", percentage, downloaded, total_size);
+            progress_change(percentage, &progress_id)?;
+            total_percentage = percentage;
         }
     }
+    
+    Ok(())
 }
 
 fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) -> io::Result<()> {
