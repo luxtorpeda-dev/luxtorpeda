@@ -9,9 +9,6 @@ use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::ffi::OsStr;
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
-use std::thread;
 use tar::Archive;
 use xz2::read::XzDecoder;
 use bzip2::read::BzDecoder;
@@ -26,7 +23,6 @@ use tokio::runtime::Runtime;
 use std::cmp::min;
 use tokio;
 
-use crate::ipc;
 use crate::user_env;
 
 use crate::dialog::show_error;
@@ -216,10 +212,6 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
         println!("show choice. found default choice. choice is {:?}", default_engine_choice_str);
 
-        let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
-        let mut choice_file = File::create(choice_file_path)?;
-        choice_file.write_all(default_engine_choice_str.as_bytes())?;
-
         return Ok(default_engine_choice_str)
     }
         
@@ -235,23 +227,11 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         Ok(s) => String::from(s.trim()),
         Err(_) => {
             println!("show choice. dialog was rejected");
-
-            let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
-            if choice_file_path.exists() {
-                fs::remove_file(choice_file_path)?;
-            }
-
-            let canceled_engine_choice_path = place_config_file(&app_id, "canceled_engine_choice.txt")?;
-            File::create(canceled_engine_choice_path)?;
             return Err(Error::new(ErrorKind::Other, "Show choices failed"));
         }
     };
     
     println!("engine choice: {:?}", choice_name);
-    
-    let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
-    let mut choice_file = File::create(choice_file_path)?;
-    choice_file.write_all(choice_name.as_bytes())?;
 
     match show_question("Default Engine Question", "Do you want this engine choice to become the default?") {
         Some(_) => {
@@ -343,27 +323,23 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Result<()> {
-    println!("download_all");
-    if should_update_package_json {
-        update_packages_json().unwrap();
-        println!("download_all finished update_packages_json");
-    }
-    
+pub fn download_all(app_id: String) -> io::Result<String> {
     let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
+
+    let mut engine_choice = String::new();
         
     if !game_info["choices"].is_null() {
         println!("showing engine choices");
         
-        let engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
+        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
             Ok(s) => s,
             Err(err) => {
                 return Err(err);
             }
         };
 
-        match convert_game_info_with_choice(engine_choice, &mut game_info) {
+        match convert_game_info_with_choice(engine_choice.clone(), &mut game_info) {
             Ok(()) => {
                 println!("engine choice complete");
             },
@@ -375,13 +351,13 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
 
     if game_info["download"].is_null() {
         println!("skipping downloads (no urls defined for this package)");
-        return Ok(());
+        return Ok(engine_choice);
     }
 
     let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
 
     if downloads.is_empty() {
-        return Ok(());
+        return Ok(engine_choice);
     }
     
     let mut dialog_message = String::new();
@@ -394,77 +370,45 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
     }
     
     if !dialog_message.is_empty() {
-        let canceled_license_choice_path = place_config_file(&app_id, "canceled_license_choice.txt")?;
-        if canceled_license_choice_path.exists() {
-            fs::remove_file(canceled_license_choice_path)?;
-            return Err(Error::new(ErrorKind::Other, "license request previously canceled."));
-        }
         match show_question("License Warning", &dialog_message.to_string()) {
             Some(_) => {
                 println!("show license warning. dialog was accepted");
             },
             None => {
                 println!("show license warning. dialog was rejected");
-                let canceled_license_choice_path = place_config_file(&app_id, "canceled_license_choice.txt")?;
-                File::create(canceled_license_choice_path)?;
                 return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         };
     }
 
-    let (tx, rx): (Sender<ipc::StatusMsg>, Receiver<ipc::StatusMsg>) = mpsc::channel();
-
-    let app = app_id.clone();
-    let status_relay = thread::spawn(move || {
-        ipc::status_relay(rx, app);
-    });
-
-    let mut err = Ok(());
-    let n = downloads.len() as i32;
-
-    let mut progress_id = String::new();
-
-    if !should_update_package_json {
-        progress_id = match start_progress("Download Progress", "Downloading...", 100) {
-            Ok(s) => s,
-            Err(_) => {
-                println!("download_all. warning: progress not started");
-                "".to_string()
-            }
-        };
-    }
+    let progress_id = match start_progress("Download Progress", "Downloading...", 100) {
+        Ok(s) => s,
+        Err(_) => {
+            println!("download_all. warning: progress not started");
+            "".to_string()
+        }
+    };
 
     let client = reqwest::Client::new();
 
     for (i, info) in downloads.iter().enumerate() {
         println!("starting download on: {} {}", i, info.name.clone());
-        // update status
-        //
-        match tx.send(ipc::StatusMsg::Status(i as i32, n, info.name.clone())) {
-            Ok(()) => {}
-            Err(e) => {
-                print!("err: {}", e);
+
+        match progress_text_change(&std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone()), &progress_id) {
+            Ok(()) => {},
+            Err(_) => {
+                println!("download_all. warning: progress not updated");
             }
-        }
+        };
 
-        if !should_update_package_json {
-            match progress_text_change(&std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone()), &progress_id) {
-                Ok(()) => {},
-                Err(_) => {
-                    println!("download_all. warning: progress not updated");
-                }
-            };
+        match progress_change(0, &progress_id) {
+            Ok(()) => {},
+            Err(_) => {
+                println!("download_all. warning: progress not updated");
+            }
+        };
 
-            match progress_change(0, &progress_id) {
-                Ok(()) => {},
-                Err(_) => {
-                    println!("download_all. warning: progress not updated");
-                }
-            };
-        }
-
-        err = Runtime::new().unwrap().block_on(download(app_id.as_str(), info, &progress_id, &client));
-        match err {
+        match Runtime::new().unwrap().block_on(download(app_id.as_str(), info, &progress_id, &client)) {
             Ok(_) => {},
             Err(ref err) => {
                 println!("download of {} error: {}",info.name.clone(), err);
@@ -478,20 +422,18 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
                     fs::remove_file(dest_file)?;
                 }
 
+                match progress_close(&progress_id) {
+                    Ok(()) => {},
+                    Err(_) => {
+                        println!("download. warning: progress not closed");
+                    }
+                };
+
                 return Err(Error::new(ErrorKind::Other, "Download failed"));
             }
         };
         println!("completed download on: {} {}", i, info.name.clone());
     }
-
-    // stop relay thread
-    //
-    match tx.send(ipc::StatusMsg::Done) {
-        Ok(()) => {}
-        Err(e) => {
-            print!("err: {}", e);
-        }
-    };
 
     match progress_close(&progress_id) {
         Ok(()) => {},
@@ -500,9 +442,7 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
         }
     };
 
-    status_relay.join().expect("status relay thread panicked");
-
-    err
+    return Ok(engine_choice);
 }
 
 async fn download(app_id: &str, info: &PackageInfo, progress_id: &str, client: &Client) -> io::Result<()> {

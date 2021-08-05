@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate lazy_static;
 extern crate json;
 extern crate hex;
@@ -14,8 +13,6 @@ use std::path::Path;
 use std::process::Command;
 use std::fs::File;
 
-mod fakescripteval;
-mod ipc;
 mod package;
 mod pid_file;
 mod user_env;
@@ -131,8 +128,7 @@ fn run(args: &[&str]) -> io::Result<()> {
     let exe_args = &args[1..];
 
     if exe.ends_with("iscriptevaluator.exe") {
-        println!("iscriptevaluator run");
-        return fakescripteval::iscriptevaluator(&exe, exe_args);
+        return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
     }
 
     package::update_packages_json().unwrap();
@@ -153,54 +149,13 @@ fn run(args: &[&str]) -> io::Result<()> {
     }
     
     if !game_info["choices"].is_null() {
-        let engine_choice_path = match package::find_config_file(&app_id, "picked_engine_choice.txt") {
-            Some(s) => s,
-            None => {
-                println!("choices with no engine choice picked, checking if canceled.");
-                let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
-                if canceled_engine_choice_path.exists() {
-                    fs::remove_file(canceled_engine_choice_path)?;
-                    return Err(Error::new(ErrorKind::Other, "choices with no engine choice picked. previously canceled."));
-                }
-                else {
-                    match package::download_all(app_id.to_string(), false) {
-                        Ok(()) => {},
-                        Err(err) => {
-                            println!("download all error: {:?}", err);
-
-                            let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
-                            if canceled_engine_choice_path.exists() {
-                                fs::remove_file(canceled_engine_choice_path)?;
-                            }
-
-                            let canceled_license_choice_path = package::place_config_file(&app_id, "canceled_license_choice.txt")?;
-                            if canceled_license_choice_path.exists() {
-                                fs::remove_file(canceled_license_choice_path)?;
-                            }
-
-                            return Err(Error::new(ErrorKind::Other, "download all error"));
-                        }
-                    };
-
-                     let engine_choice_path_ask = match package::find_config_file(&app_id, "picked_engine_choice.txt") {
-                        Some(s) => s,
-                        None => {
-                            println!("choices with no engine choice picked, error");
-                            let canceled_engine_choice_path = package::place_config_file(&app_id, "canceled_engine_choice.txt")?;
-                            if canceled_engine_choice_path.exists() {
-                                fs::remove_file(canceled_engine_choice_path)?;
-                            }
-                            return Err(Error::new(ErrorKind::Other, "choices with no engine choice picked"));
-                        }
-                    };
-                    engine_choice_path_ask
-                }
+        let engine_choice = match package::download_all(app_id.to_string()) {
+            Ok(s) => s,
+            Err(err) => {
+                println!("download all error: {:?}", err);
+                return Err(Error::new(ErrorKind::Other, "download all error"));
             }
         };
-        
-        let engine_choice = fs::read_to_string(&engine_choice_path)?;
-        fs::remove_file(&engine_choice_path)?;
-
         match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {
                 println!("engine choice complete");
@@ -210,7 +165,7 @@ fn run(args: &[&str]) -> io::Result<()> {
             }
         };
     } else {
-        package::download_all(app_id.to_string(), false)?;
+        package::download_all(app_id.to_string())?;
     }
 
     println!("json:");
@@ -262,7 +217,8 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
     }
     
     let app_id = args[0];
-    package::download_all(app_id.to_string(), true)?;
+    package::update_packages_json().unwrap();
+    package::download_all(app_id.to_string())?;
     
     return Ok(());
 }

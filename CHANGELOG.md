@@ -5,7 +5,7 @@
 ### 29.0 (2021-08-04)
 
 * Add support for downloading progress dialog. This will show the amount of items being downloaded and the percentage of the download progress of the current item. This dialog will then disappear once all of the downloads are complete.
-* Disable legacy way of communication with steam for the download process. Originally, luxtorpeda communicated with steam for triggering the download, and the Steam client would then show the progress. Since this appears to be removed in fresh steam installs, this will no longer be needed.
+* Removed legacy way of communication with steam for the download process. Originally, Steam would call luxtorpeda twice, once for the download and setup, and once for the launch of the game. This appears to be removed in new steam installs, so now luxtorpeda will only respond to the launch game command and show a progress dialog created by luxtorpeda.
 
 ### 28.0 (2021-08-03)
 
