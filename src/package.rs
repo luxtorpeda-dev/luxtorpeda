@@ -406,6 +406,9 @@ pub fn download_all(app_id: String) -> io::Result<String> {
             Ok(_) => {},
             Err(ref err) => {
                 println!("download of {} error: {}",info.name.clone(), err);
+                if err.to_string() != "progress update failed" {
+                    show_error(&"Download Error".to_string(), &std::format!("Download of {} Error: {}",info.name.clone(), err))?;
+                }
 
                 let mut cache_dir = app_id;
                 if info.cache_by_name == true {
