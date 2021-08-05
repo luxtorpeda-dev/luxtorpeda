@@ -51,12 +51,6 @@ pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     xdg_dirs.place_config_file(path_str)
 }
 
-pub fn find_config_file(app_id: &str, file: &str) -> Option<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let path_str = format!("luxtorpeda/{}/{}", app_id, file);
-    xdg_dirs.find_config_file(path_str)
-}
-
 fn path_to_packages_file() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_cache_home();
