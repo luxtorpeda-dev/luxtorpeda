@@ -406,7 +406,15 @@ pub fn download_all(app_id: String) -> io::Result<String> {
             Ok(_) => {},
             Err(ref err) => {
                 println!("download of {} error: {}",info.name.clone(), err);
+
                 if err.to_string() != "progress update failed" {
+                    match progress_close(&progress_id) {
+                        Ok(()) => {},
+                        Err(_) => {
+                            println!("download. warning: progress not closed");
+                        }
+                    };
+
                     show_error(&"Download Error".to_string(), &std::format!("Download of {} Error: {}",info.name.clone(), err))?;
                 }
 
@@ -418,13 +426,6 @@ pub fn download_all(app_id: String) -> io::Result<String> {
                 if dest_file.exists() {
                     fs::remove_file(dest_file)?;
                 }
-
-                match progress_close(&progress_id) {
-                    Ok(()) => {},
-                    Err(_) => {
-                        println!("download. warning: progress not closed");
-                    }
-                };
 
                 return Err(Error::new(ErrorKind::Other, "Download failed"));
             }
@@ -655,6 +656,7 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
                 }
             }
             None => {
+                show_error(&"Run Error".to_string(), &"Package file not found".to_string())?;
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
             }
         }
