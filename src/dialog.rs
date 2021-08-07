@@ -362,7 +362,6 @@ pub fn start_progress(title: &str, status: &str, interval: usize) -> io::Result<
     } else {
          let progress_command: Vec<String> = vec![
             "--progress".to_string(),
-            "--no-cancel".to_string(),
             std::format!("--title={}", title).to_string(),
             std::format!("--percentage=0").to_string(),
             std::format!("--text={}", status).to_string()
@@ -415,8 +414,20 @@ pub fn progress_text_change(title: &str, progress_ref: &mut ProgressCreateOutput
         Ok(())
     } else if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
         {
-            let stdin = progress.stdin.as_mut().expect("Failed to open stdin");
-            stdin.write_all(std::format!("# {}\n", title).as_bytes()).expect("Failed to write to stdin");
+            let stdin = match progress.stdin.as_mut() {
+                Some(s) => s,
+                None => {
+                    return Err(Error::new(ErrorKind::Other, "progress update label failed"));
+                }
+            };
+
+            match stdin.write_all(std::format!("# {}\n", title).as_bytes()) {
+                Ok(()) => {},
+                Err(err) => {
+                    println!("progress update label failed: {}", err);
+                    return Err(Error::new(ErrorKind::Other, "progress update label failed"));
+                }
+            };
             drop(stdin);
         }
         Ok(())
@@ -455,8 +466,21 @@ pub fn progress_change(value: i64, progress_ref: &mut ProgressCreateOutput) -> i
             if final_value == 100 {
                 final_value = 99;
             }
-            let stdin = progress.stdin.as_mut().expect("Failed to open stdin");
-            stdin.write_all(std::format!("{}\n", final_value).as_bytes()).expect("Failed to write to stdin");
+
+            let stdin = match progress.stdin.as_mut() {
+                Some(s) => s,
+                None => {
+                    return Err(Error::new(ErrorKind::Other, "progress update failed"));
+                }
+            };
+
+            match stdin.write_all(std::format!("{}\n", final_value).as_bytes()) {
+                Ok(()) => {},
+                Err(err) => {
+                    println!("progress update failed: {}", err);
+                    return Err(Error::new(ErrorKind::Other, "progress update failed"));
+                }
+            };
             drop(stdin);
         }
         Ok(())
