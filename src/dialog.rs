@@ -8,6 +8,7 @@ use std::io::Read;
 use std::io::Write;
 use std::fs;
 use std::process::Stdio;
+use which::which;
 
 use crate::user_env;
 
@@ -65,10 +66,20 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
                         println!("active_dialog_command. current_desktop: {:?}", current_desktop);
                     }
                     if current_desktop == "KDE" {
-                        if !silent {
-                            println!("active_dialog_command. current desktop of kde found, assuming kdialog");
+                        match which("kdialog") {
+                            Ok(path) => {
+                                if !silent {
+                                    println!("active_dialog_command. current desktop of kde found, kdialog found at {:?}", path);
+                                }
+                                Ok("kdialog".to_string())
+                            },
+                            Err(err) => {
+                                if !silent {
+                                    println!("active_dialog_command. current desktop of kde found, kdialog find err so assuming zenity: {}", err);
+                                }
+                                Ok("zenity".to_string())
+                            }
                         }
-                        Ok("kdialog".to_string())
                     } else {
                         if !silent {
                             println!("active_dialog_command. current desktop unknown, assuming zenity");

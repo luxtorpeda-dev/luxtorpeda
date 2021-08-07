@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 30.0 (2021-08-07)
+
+* Fix issue in dialog detection for case of KDE Plasma with kdialog not installed. Now it will fall back to zenity. If kdialog is found, it will use that.
+
 ### 29.0 (2021-08-06)
 
 * Add support for downloading progress dialog. This will show the amount of items being downloaded and the percentage of the download progress of the current item. This dialog will then disappear once all of the downloads are complete.
