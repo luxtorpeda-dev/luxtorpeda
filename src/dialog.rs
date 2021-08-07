@@ -74,7 +74,9 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
                                 Ok("kdialog".to_string())
                             },
                             Err(err) => {
-                                println!("active_dialog_command. current desktop of kde found, kdialog find err so assuming zenity: {}", err);
+                                if !silent {
+                                    println!("active_dialog_command. current desktop of kde found, kdialog find err so assuming zenity: {}", err);
+                                }
                                 Ok("zenity".to_string())
                             }
                         }
