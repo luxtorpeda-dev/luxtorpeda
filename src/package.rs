@@ -9,9 +9,6 @@ use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::ffi::OsStr;
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
-use std::thread;
 use tar::Archive;
 use xz2::read::XzDecoder;
 use bzip2::read::BzDecoder;
@@ -20,13 +17,22 @@ use sha1::{Sha1, Digest};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
+use reqwest::Client;
+use futures_util::StreamExt;
+use tokio::runtime::Runtime;
+use std::cmp::min;
+use tokio;
 
-use crate::ipc;
 use crate::user_env;
 
 use crate::dialog::show_error;
 use crate::dialog::show_choices;
 use crate::dialog::show_question;
+use crate::dialog::start_progress;
+use crate::dialog::progress_change;
+use crate::dialog::progress_text_change;
+use crate::dialog::progress_close;
+use crate::dialog::ProgressCreateOutput;
 
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
@@ -44,12 +50,6 @@ pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}/{}", app_id, file);
     xdg_dirs.place_config_file(path_str)
-}
-
-pub fn find_config_file(app_id: &str, file: &str) -> Option<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let path_str = format!("luxtorpeda/{}/{}", app_id, file);
-    xdg_dirs.find_config_file(path_str)
 }
 
 fn path_to_packages_file() -> PathBuf {
@@ -207,10 +207,6 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
         println!("show choice. found default choice. choice is {:?}", default_engine_choice_str);
 
-        let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
-        let mut choice_file = File::create(choice_file_path)?;
-        choice_file.write_all(default_engine_choice_str.as_bytes())?;
-
         return Ok(default_engine_choice_str)
     }
         
@@ -226,23 +222,11 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         Ok(s) => String::from(s.trim()),
         Err(_) => {
             println!("show choice. dialog was rejected");
-
-            let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
-            if choice_file_path.exists() {
-                fs::remove_file(choice_file_path)?;
-            }
-
-            let canceled_engine_choice_path = place_config_file(&app_id, "canceled_engine_choice.txt")?;
-            File::create(canceled_engine_choice_path)?;
             return Err(Error::new(ErrorKind::Other, "Show choices failed"));
         }
     };
     
     println!("engine choice: {:?}", choice_name);
-    
-    let choice_file_path = place_config_file(&app_id, "picked_engine_choice.txt")?;
-    let mut choice_file = File::create(choice_file_path)?;
-    choice_file.write_all(choice_name.as_bytes())?;
 
     match show_question("Default Engine Question", "Do you want this engine choice to become the default?") {
         Some(_) => {
@@ -334,27 +318,23 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Result<()> {
-    println!("download_all");
-    if should_update_package_json {
-        update_packages_json().unwrap();
-        println!("download_all finished update_packages_json");
-    }
-    
+pub fn download_all(app_id: String) -> io::Result<String> {
     let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
+
+    let mut engine_choice = String::new();
         
     if !game_info["choices"].is_null() {
         println!("showing engine choices");
         
-        let engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
+        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
             Ok(s) => s,
             Err(err) => {
                 return Err(err);
             }
         };
 
-        match convert_game_info_with_choice(engine_choice, &mut game_info) {
+        match convert_game_info_with_choice(engine_choice.clone(), &mut game_info) {
             Ok(()) => {
                 println!("engine choice complete");
             },
@@ -366,13 +346,13 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
 
     if game_info["download"].is_null() {
         println!("skipping downloads (no urls defined for this package)");
-        return Ok(());
+        return Ok(engine_choice);
     }
 
     let downloads = json_to_downloads(app_id.as_str(), &game_info)?;
 
     if downloads.is_empty() {
-        return Ok(());
+        return Ok(engine_choice);
     }
     
     let mut dialog_message = String::new();
@@ -385,60 +365,86 @@ pub fn download_all(app_id: String, should_update_package_json: bool) -> io::Res
     }
     
     if !dialog_message.is_empty() {
-        let canceled_license_choice_path = place_config_file(&app_id, "canceled_license_choice.txt")?;
-        if canceled_license_choice_path.exists() {
-            fs::remove_file(canceled_license_choice_path)?;
-            return Err(Error::new(ErrorKind::Other, "license request previously canceled."));
-        }
         match show_question("License Warning", &dialog_message.to_string()) {
             Some(_) => {
                 println!("show license warning. dialog was accepted");
             },
             None => {
                 println!("show license warning. dialog was rejected");
-                let canceled_license_choice_path = place_config_file(&app_id, "canceled_license_choice.txt")?;
-                File::create(canceled_license_choice_path)?;
                 return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         };
     }
 
-    let (tx, rx): (Sender<ipc::StatusMsg>, Receiver<ipc::StatusMsg>) = mpsc::channel();
-
-    let app = app_id.clone();
-    let status_relay = thread::spawn(move || {
-        ipc::status_relay(rx, app);
-    });
-
-    let mut err = Ok(());
-    let n = downloads.len() as i32;
-    for (i, info) in downloads.iter().enumerate() {
-        // update status
-        //
-        match tx.send(ipc::StatusMsg::Status(i as i32, n, info.name.clone())) {
-            Ok(()) => {}
-            Err(e) => {
-                print!("err: {}", e);
-            }
-        }
-        err = download(app_id.as_str(), info);
-    }
-
-    // stop relay thread
-    //
-    match tx.send(ipc::StatusMsg::Done) {
-        Ok(()) => {}
-        Err(e) => {
-            print!("err: {}", e);
+    let mut progress_ref = match start_progress("Download Progress", "Downloading...", 100) {
+        Ok(s) => s,
+        Err(_) => {
+            println!("download_all. warning: progress not started");
+            ProgressCreateOutput::KDialog("".to_string())
         }
     };
 
-    status_relay.join().expect("status relay thread panicked");
+    let client = reqwest::Client::new();
 
-    err
+    for (i, info) in downloads.iter().enumerate() {
+        println!("starting download on: {} {}", i, info.name.clone());
+
+        match progress_text_change(&std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone()), &mut progress_ref) {
+            Ok(()) => {},
+            Err(_) => {
+                println!("download_all. warning: progress not updated");
+            }
+        };
+
+        match progress_change(0, &mut progress_ref) {
+            Ok(()) => {},
+            Err(_) => {
+                println!("download_all. warning: progress not updated");
+            }
+        };
+
+        match Runtime::new().unwrap().block_on(download(app_id.as_str(), info, &mut progress_ref, &client)) {
+            Ok(_) => {},
+            Err(ref err) => {
+                println!("download of {} error: {}",info.name.clone(), err);
+
+                if err.to_string() != "progress update failed" {
+                    match progress_close(&mut progress_ref) {
+                        Ok(()) => {},
+                        Err(_) => {
+                            println!("download. warning: progress not closed");
+                        }
+                    };
+
+                    show_error(&"Download Error".to_string(), &std::format!("Download of {} Error: {}",info.name.clone(), err))?;
+                }
+
+                let mut cache_dir = app_id;
+                if info.cache_by_name == true {
+                    cache_dir = info.name.clone();
+                }
+                let dest_file = place_cached_file(&cache_dir, &info.file)?;
+                if dest_file.exists() {
+                    fs::remove_file(dest_file)?;
+                }
+
+                return Err(Error::new(ErrorKind::Other, "Download failed"));
+            }
+        };
+        println!("completed download on: {} {}", i, info.name.clone());
+    }
+
+    match progress_close(&mut progress_ref) {
+        Ok(()) => {},
+        Err(_) => {
+            println!("download_all. warning: progress not closed");
+        }
+    };
+
+    return Ok(engine_choice);
 }
 
-fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
+async fn download(app_id: &str, info: &PackageInfo, progress_ref: &mut ProgressCreateOutput, client: &Client) -> io::Result<()> {
     let target = info.url.clone() + &info.file;
     
     let mut cache_dir = app_id;
@@ -447,30 +453,40 @@ fn download(app_id: &str, info: &PackageInfo) -> io::Result<()> {
     }
 
     println!("download target: {:?}", target);
-    
-    match reqwest::blocking::get(target.as_str()) {
-        Ok(mut response) => {
-            if response.status().is_success() {
-                println!("download target: {:?} success!", target);
-                let dest_file = place_cached_file(&cache_dir, &info.file)?;
-                let mut dest = fs::File::create(dest_file)?;
-                io::copy(&mut response, &mut dest)?;
-                Ok(())
-            } else if response.status().is_server_error() {
-                let error_message = "Request failed due to server error".to_string();
-                show_error(&"Download Error".to_string(), &error_message)?;
-                Err(Error::new(ErrorKind::Other, "Request failed due to server error"))
-            } else {
-                let error_message = std::format!("Request failed. Status code: {:?}", response.status());
-                show_error(&"Download Error".to_string(), &error_message)?;
-                Err(Error::new(ErrorKind::Other, error_message.as_str()))
-            }
-        }
-        Err(err) => {
-            println!("download err: {:?}", err);
-            Err(Error::new(ErrorKind::Other, "download error"))
+
+    let res = client
+        .get(&target)
+        .send()
+        .await
+        .or(Err(Error::new(ErrorKind::Other, format!("Failed to GET from '{}'", &target))))?;
+
+    let total_size = res
+        .content_length()
+        .ok_or(Error::new(ErrorKind::Other, format!("Failed to get content length from '{}'", &target)))?;
+
+    let dest_file = place_cached_file(&cache_dir, &info.file)?;
+    let mut dest = fs::File::create(dest_file)?;
+    let mut downloaded: u64 = 0;
+    let mut stream = res.bytes_stream();
+    let mut total_percentage: i64 = 0;
+
+    while let Some(item) = stream.next().await {
+        let chunk = item.or(Err(Error::new(ErrorKind::Other, format!("Error while downloading file"))))?;
+        dest.write(&chunk)
+            .or(Err(Error::new(ErrorKind::Other, format!("Error while writing to file"))))?;
+
+        let new = min(downloaded + (chunk.len() as u64), total_size);
+        downloaded = new;
+        let percentage = ((downloaded as f64 / total_size as f64) * 100 as f64) as i64;
+
+        if percentage != total_percentage {
+            println!("download {}%: {} out of {}", percentage, downloaded, total_size);
+            progress_change(percentage, progress_ref)?;
+            total_percentage = percentage;
         }
     }
+    
+    Ok(())
 }
 
 fn unpack_tarball(tarball: &PathBuf, game_info: &json::JsonValue, name: &str) -> io::Result<()> {
@@ -637,10 +653,17 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
                     copy_only(&path)?;
                 }
                 else {
-                    unpack_tarball(&path, &game_info, &name)?;
+                    match unpack_tarball(&path, &game_info, &name) {
+                        Ok(()) => {},
+                        Err(err) => {
+                            show_error(&"Unpack Error".to_string(), &std::format!("Error unpacking {}: {}", &file, &err).to_string())?;
+                            return Err(err);
+                        }
+                    };
                 }
             }
             None => {
+                show_error(&"Run Error".to_string(), &"Package file not found".to_string())?;
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
             }
         }
