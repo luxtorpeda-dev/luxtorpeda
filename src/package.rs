@@ -32,6 +32,7 @@ use crate::dialog::start_progress;
 use crate::dialog::progress_change;
 use crate::dialog::progress_text_change;
 use crate::dialog::progress_close;
+use crate::dialog::ProgressCreateOutput;
 
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
@@ -375,11 +376,11 @@ pub fn download_all(app_id: String) -> io::Result<String> {
         };
     }
 
-    let progress_id = match start_progress("Download Progress", "Downloading...", 100) {
+    let mut progress_ref = match start_progress("Download Progress", "Downloading...", 100) {
         Ok(s) => s,
         Err(_) => {
             println!("download_all. warning: progress not started");
-            "".to_string()
+            ProgressCreateOutput::KDialog("".to_string())
         }
     };
 
@@ -388,27 +389,27 @@ pub fn download_all(app_id: String) -> io::Result<String> {
     for (i, info) in downloads.iter().enumerate() {
         println!("starting download on: {} {}", i, info.name.clone());
 
-        match progress_text_change(&std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone()), &progress_id) {
+        match progress_text_change(&std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone()), &mut progress_ref) {
             Ok(()) => {},
             Err(_) => {
                 println!("download_all. warning: progress not updated");
             }
         };
 
-        match progress_change(0, &progress_id) {
+        match progress_change(0, &mut progress_ref) {
             Ok(()) => {},
             Err(_) => {
                 println!("download_all. warning: progress not updated");
             }
         };
 
-        match Runtime::new().unwrap().block_on(download(app_id.as_str(), info, &progress_id, &client)) {
+        match Runtime::new().unwrap().block_on(download(app_id.as_str(), info, &mut progress_ref, &client)) {
             Ok(_) => {},
             Err(ref err) => {
                 println!("download of {} error: {}",info.name.clone(), err);
 
                 if err.to_string() != "progress update failed" {
-                    match progress_close(&progress_id) {
+                    match progress_close(&mut progress_ref) {
                         Ok(()) => {},
                         Err(_) => {
                             println!("download. warning: progress not closed");
@@ -433,7 +434,7 @@ pub fn download_all(app_id: String) -> io::Result<String> {
         println!("completed download on: {} {}", i, info.name.clone());
     }
 
-    match progress_close(&progress_id) {
+    match progress_close(&mut progress_ref) {
         Ok(()) => {},
         Err(_) => {
             println!("download_all. warning: progress not closed");
@@ -443,7 +444,7 @@ pub fn download_all(app_id: String) -> io::Result<String> {
     return Ok(engine_choice);
 }
 
-async fn download(app_id: &str, info: &PackageInfo, progress_id: &str, client: &Client) -> io::Result<()> {
+async fn download(app_id: &str, info: &PackageInfo, progress_ref: &mut ProgressCreateOutput, client: &Client) -> io::Result<()> {
     let target = info.url.clone() + &info.file;
     
     let mut cache_dir = app_id;
@@ -480,7 +481,7 @@ async fn download(app_id: &str, info: &PackageInfo, progress_id: &str, client: &
 
         if percentage != total_percentage {
             println!("download {}%: {} out of {}", percentage, downloaded, total_size);
-            progress_change(percentage, &progress_id)?;
+            progress_change(percentage, progress_ref)?;
             total_percentage = percentage;
         }
     }
@@ -652,7 +653,13 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
                     copy_only(&path)?;
                 }
                 else {
-                    unpack_tarball(&path, &game_info, &name)?;
+                    match unpack_tarball(&path, &game_info, &name) {
+                        Ok(()) => {},
+                        Err(err) => {
+                            show_error(&"Unpack Error".to_string(), &std::format!("Error unpacking {}: {}", &file, &err).to_string())?;
+                            return Err(err);
+                        }
+                    };
                 }
             }
             None => {

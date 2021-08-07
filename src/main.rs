@@ -93,6 +93,7 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
                         println!("uninstall run: \"{}\"", command_str);
 
                         Command::new(command_str)
+                            .env("LD_PRELOAD", "")
                             .status()
                             .expect("failed to execute process");
                     }
@@ -104,6 +105,7 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
         let command_str = setup_info["command"].to_string();
         println!("setup run: \"{}\"", command_str);
         let setup_cmd = Command::new(command_str)
+            .env("LD_PRELOAD", "")
             .status()
             .expect("failed to execute process");
             
