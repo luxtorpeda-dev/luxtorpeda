@@ -71,7 +71,20 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
                                 if !silent {
                                     println!("active_dialog_command. current desktop of kde found, kdialog found at {:?}", path);
                                 }
-                                Ok("kdialog".to_string())
+                                match which("qdbus") {
+                                    Ok(qpath) => {
+                                        if !silent {
+                                            println!("active_dialog_command. current desktop of kde found, qdbus found at {:?}", qpath);
+                                        }
+                                        Ok("kdialog".to_string())
+                                    }
+                                    Err(err) => {
+                                        if !silent {
+                                            println!("active_dialog_command. current desktop of kde found, qdbus find err so assuming zenity: {}", err);
+                                        }
+                                        Ok("zenity".to_string())
+                                    }
+                                }
                             },
                             Err(err) => {
                                 if !silent {

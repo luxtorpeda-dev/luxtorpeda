@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 31.0 (2021-08-21)
+
+* Fix issue in dialog detection for case of KDE Plasma and kdialog installed but qdbus not installed. In that case, it will fall back to zenity. If both are installed, it will use kdialog.
+
 ### 30.0 (2021-08-07)
 
 * Fix issue in dialog detection for case of KDE Plasma with kdialog not installed. Now it will fall back to zenity. If kdialog is found, it will use that.
