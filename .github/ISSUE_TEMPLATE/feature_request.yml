@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest an idea for this project
+labels: enhancement
+
+body:
+    - type: markdown
+      attributes:
+        value: |
+          ## Please fill out the form below with as much information as possible.
+    - type: textarea
+      id: request
+      attributes:
+        label: Feature Request
+        description: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+      validations:
+        required: true
+    - type: input
+      id: solution
+      attributes:
+        label: Solution
+        description: Describe the solution you'd like
+      validations:
+        required: true
+    - type: textarea
+      id: additional
+      attributes:
+        label: Additional Context
+        description: Provide any additional details that do not fit in the other questions.
