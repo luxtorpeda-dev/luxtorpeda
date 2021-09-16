@@ -247,6 +247,10 @@ fn main() -> io::Result<()> {
             pid_file::wait_while_exists();
             run(cmd_args)
         },
+        "waitforexitandrun" => {
+            pid_file::wait_while_exists();
+            run(cmd_args)
+        },
         "manual-download" => manual_download(cmd_args),
         _ => {
             usage();
