@@ -249,7 +249,7 @@ fn main() -> io::Result<()> {
         println!("run with runtime cmd: \"{}\"", cmd_str);
 
         let v: Vec<&str> = cmd_str.split("runtime_").collect();
-        cmd = v[0];
+        cmd = v[1];
     }
 
     match cmd {

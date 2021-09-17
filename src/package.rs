@@ -146,9 +146,9 @@ pub fn update_packages_json(is_runtime: bool) -> io::Result<()> {
 
     let remote_path;
     if is_runtime {
-        remote_path = "packagesruntime.";
+        remote_path = "packagesruntime";
     } else {
-        remote_path = "packages.";
+        remote_path = "packages";
     }
     
     let remote_hash_url = std::format!("{0}/{1}.hash", &config_parsed["host_url"], remote_path);
