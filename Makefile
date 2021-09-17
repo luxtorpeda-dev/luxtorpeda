@@ -13,9 +13,9 @@ tool_dir     = luxtorpeda
 tool_dir_dev = luxtorpeda-dev
 
 files = compatibilitytool.vdf \
-	toolmanifest.vdf \
+	luxtorpeda-original \
+	luxtorpeda-runtime \
 	luxtorpeda \
-	config.json \
 	LICENSE \
 	README.md
 
@@ -60,20 +60,20 @@ target/release/compatibilitytool.vdf: compatibilitytool.template
 	sed 's/%name%/$(tool_name)/; s/%display_name%/$(tool_name_display)/' $< > $@
 
 target/debug/%: %
-	cp --reflink=auto $< $@
+	cp -r --reflink=auto $< $@
 
 target/release/%: %
-	cp --reflink=auto $< $@
+	cp -r --reflink=auto $< $@
 
 $(tool_dir): \
 		release \
 		target/release/compatibilitytool.vdf \
-		target/release/toolmanifest.vdf \
-		target/release/config.json \
+		target/release/luxtorpeda-original \
+		target/release/luxtorpeda-runtime \
 		target/release/LICENSE \
 		target/release/README.md
 	mkdir -p $(tool_dir)
-	cd target/release && cp --reflink=auto -t ../../$(tool_dir) $(files)
+	cd target/release && cp -r --reflink=auto -t ../../$(tool_dir) $(files)
 	$(STRIP) luxtorpeda/luxtorpeda
 
 $(tool_dir).tar.xz: $(tool_dir)
@@ -86,12 +86,12 @@ install: $(tool_dir)
 user-install: \
 		build \
 		target/debug/compatibilitytool.vdf \
-		target/debug/toolmanifest.vdf \
-		target/debug/config.json \
+		target/debug/luxtorpeda-original \
+		target/debug/luxtorpeda-runtime \
 		target/debug/LICENSE \
 		target/debug/README.md
 	mkdir -p $(dev_install_dir)
-	cd target/debug && cp --reflink=auto -t $(dev_install_dir) $(files)
+	cd target/debug && cp -r --reflink=auto -t $(dev_install_dir) $(files)
 
 user-uninstall:
 	rm -rf $(dev_install_dir)
