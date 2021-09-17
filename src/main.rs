@@ -248,9 +248,7 @@ fn main() -> io::Result<()> {
         is_runtime = true;
         println!("run with runtime cmd: \"{}\"", cmd_str);
 
-        let v: Vec<&str> = "Mary had a little lamb."
-            .split("runtime_")
-            .collect();
+        let v: Vec<&str> = cmd_str.split("runtime_").collect();
         cmd = v[0];
     }
 
