@@ -1,7 +1,0 @@
-"manifest"
-{
-  "commandline" "/luxtorpeda run"
-  "commandline_waitforexitandrun" "/luxtorpeda wait-before-run"
-  "commandline_getnativepath" "/luxtorpeda get-native-path"
-  "commandline_getcompatpath" "/luxtorpeda get-compat-path"
-}
