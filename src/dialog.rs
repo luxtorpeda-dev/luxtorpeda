@@ -37,7 +37,9 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
         }
         Ok("zenity".to_string())
     } else {
-        println!("active_dialog_command. using gtk.");
+        if !silent {
+            println!("active_dialog_command. using gtk.");
+        }
         Ok("gtk".to_string())
     }
 }
