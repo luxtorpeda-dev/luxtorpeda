@@ -13,7 +13,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Install Pango
-      run: apt update && apt install libpango-1.0-0
+      run: apt update && apt-get install libgtk-3-dev
     - name: Build
       run: make release
     - name: Package
