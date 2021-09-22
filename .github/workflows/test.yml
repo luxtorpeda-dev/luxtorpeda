@@ -1,0 +1,27 @@
+name: Build Luxtorpeda
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    needs: setup
+    container:
+      image: rust:1.55-buster
+    env:
+      CARGO_HOME: ./cargo
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Install Pango
+      run: apt update && apt install libpango-1.0-0
+    - name: Build
+      run: make release
+    - name: Package
+      run: make luxtorpeda.tar.xz
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: luxtorpeda.tar.xz
+        path: ./luxtorpeda.tar.xz
