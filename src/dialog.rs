@@ -6,15 +6,17 @@ use std::process::Child;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
-use std::fs;
 use std::process::Stdio;
-use which::which;
+use std::cell::RefCell;
 
-use crate::user_env;
+extern crate gtk;
+use std::rc::Rc;
+use gtk::prelude::*;
+use gtk::{Window, WindowType, TreeStore};
 
 pub enum ProgressCreateOutput {
-    KDialog(String),
     Zenity(Child),
+    Unused(String)
 }
 
 fn get_zenity_path() -> Result<String, Error>  {
@@ -28,103 +30,49 @@ fn get_zenity_path() -> Result<String, Error>  {
     return Ok(zenity_path);
 }
 
-fn get_current_desktop() -> Option<String> {
-    let current_desktop = match env::var("XDG_CURRENT_DESKTOP") {
-        Ok(s) => s,
-        Err(_) => {
-            return None
-        }
-    };
-
-    return Some(current_desktop);
-}
-
 fn active_dialog_command(silent: bool) -> io::Result<String> {
-    let config_json_file = user_env::tool_dir().join("config.json");
-    let config_json_str = fs::read_to_string(config_json_file)?;
-    let config_parsed = json::parse(&config_json_str).unwrap();
-
-    if config_parsed["active_dialog_command"].is_null() {
+    if gtk::init().is_err() {
         if !silent {
-            println!("active_dialog_command. config not found, assuming zenity");
+            println!("active_dialog_command. Failed to initialize GTK, using zenity.");
         }
         Ok("zenity".to_string())
     } else {
-        let active_dialog_command = &config_parsed["active_dialog_command"];
-        let active_dialog_command_str = active_dialog_command.to_string();
-        if !silent {
-            println!("active_dialog_command. active_dialog_command_str: {:?}", active_dialog_command_str);
-        }
-
-        if active_dialog_command_str != "default" {
-            Ok(active_dialog_command_str)
-        }
-        else {
-            match get_current_desktop() {
-                Some(current_desktop) => {
-                    if !silent {
-                        println!("active_dialog_command. current_desktop: {:?}", current_desktop);
-                    }
-                    if current_desktop == "KDE" {
-                        match which("kdialog") {
-                            Ok(path) => {
-                                if !silent {
-                                    println!("active_dialog_command. current desktop of kde found, kdialog found at {:?}", path);
-                                }
-                                match which("qdbus") {
-                                    Ok(qpath) => {
-                                        if !silent {
-                                            println!("active_dialog_command. current desktop of kde found, qdbus found at {:?}", qpath);
-                                        }
-                                        Ok("kdialog".to_string())
-                                    }
-                                    Err(err) => {
-                                        if !silent {
-                                            println!("active_dialog_command. current desktop of kde found, qdbus find err so assuming zenity: {}", err);
-                                        }
-                                        Ok("zenity".to_string())
-                                    }
-                                }
-                            },
-                            Err(err) => {
-                                if !silent {
-                                    println!("active_dialog_command. current desktop of kde found, kdialog find err so assuming zenity: {}", err);
-                                }
-                                Ok("zenity".to_string())
-                            }
-                        }
-                    } else {
-                        if !silent {
-                            println!("active_dialog_command. current desktop unknown, assuming zenity");
-                        }
-                        Ok("zenity".to_string())
-                    }
-                },
-                None => {
-                    if !silent {
-                        println!("active_dialog_command. no current desktop found, assuming zenity");
-                    }
-                    Ok("zenity".to_string())
-                }
-            }
-        }
+        println!("active_dialog_command. using gtk.");
+        Ok("gtk".to_string())
     }
 }
 
 pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    if active_dialog_command(false)? == "kdialog" {
-        let command: Vec<String> = vec![
-            "--error".to_string(),
-            error_message.to_string(),
-            "--title".to_string(),
-            title.to_string()
-        ];
+    if active_dialog_command(false)? == "gtk" {
+        let window = Window::new(WindowType::Toplevel);
+        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
 
-        Command::new("kdialog")
-            .args(&command)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show kdialog error");
+        window.set_title(title);
+        window.set_border_width(10);
+        window.set_position(gtk::WindowPosition::Center);
+        window.set_default_size(300, 100);
+
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        vbox.set_homogeneous(false);
+        window.add(&vbox);
+
+        let label = gtk::Label::new(Some(error_message));
+        vbox.add(&label);
+
+        let ok_button = gtk::Button::with_label("Ok");
+        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
+        button_box.set_layout(gtk::ButtonBoxStyle::Center);
+        button_box.pack_start(&ok_button, false, false, 0);
+
+        let window_clone_ok = window.clone();
+        ok_button.connect_clicked(move |_| {
+            window_clone_ok.close();
+        });
+
+        vbox.pack_end(&button_box, false, false, 0);
+
+        window.show_all();
+        gtk::main();
     } else {
         let zenity_path = match get_zenity_path() {
             Ok(s) => s,
@@ -150,40 +98,109 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
 }
 
 pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<String> {
-    if active_dialog_command(false)? == "kdialog" {
-        let mut list_command: Vec<String> = vec![
-            "--geometry".to_string(),
-            "350x300".to_string(),
-            "--title".to_string(),
-            column.to_string(),
-            "--radiolist".to_string(),
-            title.to_string()
-        ];
+    if active_dialog_command(false)? == "gtk" {
+        let window = Window::new(WindowType::Toplevel);
+        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
 
-        for entry in choices {
-            list_command.push(entry.to_string());
-            list_command.push(entry.to_string());
-            list_command.push("off".to_string());
+        window.set_title(title);
+        window.set_border_width(10);
+        window.set_position(gtk::WindowPosition::Center);
+        window.set_default_size(300, 400);
+
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        vbox.set_homogeneous(false);
+        window.add(&vbox);
+
+        let sw = gtk::ScrolledWindow::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>);
+        sw.set_shadow_type(gtk::ShadowType::EtchedIn);
+        sw.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+        sw.set_vexpand(true);
+        vbox.add(&sw);
+
+        let store = TreeStore::new(&[String::static_type()]);
+        let treeview = gtk::TreeView::with_model(&store);
+        treeview.set_vexpand(true);
+
+        for (_d_idx, d) in choices.iter().enumerate() {
+            store.insert_with_values(None, None, &[(0, &d)]);
         }
 
-        let choice = Command::new("kdialog")
-            .args(&list_command)
-            .env("LD_PRELOAD", "")
-            .output()
-            .expect("failed to show choices");
+        sw.add(&treeview);
 
-        if !choice.status.success() {
-            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+        {
+            let renderer = gtk::CellRendererText::new();
+            let tree_column = gtk::TreeViewColumn::new();
+            tree_column.pack_start(&renderer, true);
+            tree_column.set_title(column);
+            tree_column.set_sizing(gtk::TreeViewColumnSizing::Fixed);
+            tree_column.add_attribute(&renderer, "text", 0);
+            tree_column.set_fixed_width(50);
+            treeview.append_column(&tree_column);
         }
 
-        let choice_name = match String::from_utf8(choice.stdout) {
-            Ok(s) => String::from(s.trim()),
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
+        let window_clone_cancel = window.clone();
+        let window_clone_ok = window.clone();
+
+        let cancel_button = gtk::Button::with_label("Cancel");
+        cancel_button.set_margin_end(5);
+        let ok_button = gtk::Button::with_label("Ok");
+        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
+        button_box.set_layout(gtk::ButtonBoxStyle::End);
+        button_box.pack_start(&cancel_button, false, false, 0);
+        button_box.pack_start(&ok_button, false, false, 0);
+
+        let choice: Rc<RefCell<Option<String>>> = Rc::new(RefCell::new(None));
+        let captured_choice = choice.clone();
+        let captured_choice_cancel = choice.clone();
+
+        treeview.selection().connect_changed(move |tree_selection| {
+            let (model, iter) = tree_selection.selected().expect("Couldn't get selected");
+            let choice_value = model
+                    .value(&iter, 0)
+                    .get::<String>()
+                    .expect("Treeview selection, column 0");
+            *captured_choice.borrow_mut() = Some(choice_value.to_string());
+        });
+
+        let ok_choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
+        let captured_ok_choice = ok_choice.clone();
+
+        cancel_button.connect_clicked(move |_| {
+            *captured_choice_cancel.borrow_mut() = None;
+            window_clone_cancel.close();
+        });
+
+        ok_button.connect_clicked(move |_| {
+            *captured_ok_choice.borrow_mut() = Some(());
+            window_clone_ok.close();
+        });
+
+        vbox.pack_end(&button_box, false, false, 0);
+
+        window.show_all();
+        gtk::main();
+
+        let ok_choice_borrow = ok_choice.borrow();
+        let ok_choice_match = ok_choice_borrow.as_ref();
+
+        match ok_choice_match {
+            Some(_) => {
+                let choice_borrow = choice.borrow();
+                let choice_match = choice_borrow.as_ref();
+                match choice_match {
+                    Some(s) => {
+                        let choice_str = s.to_string();
+                        Ok(choice_str)
+                    },
+                    None => {
+                        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+                    }
+                }
+            },
+            None => {
+                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
-        };
-
-        Ok(choice_name)
+        }
     } else {
         let mut zenity_list_command: Vec<String> = vec![
             "--list".to_string(),
@@ -230,34 +247,77 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     file.read_to_end(&mut file_buf)?;
     let file_str = String::from_utf8_lossy(&file_buf);
 
-    let mut converted_file = File::create("converted.txt")?;
-    converted_file.write_all(file_str.as_bytes())?;
+    if active_dialog_command(false)? == "gtk" {
+        let window = Window::new(WindowType::Toplevel);
+        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
 
-    if active_dialog_command(false)? == "kdialog" {
-        let command: Vec<String> = vec![
-            "--geometry".to_string(),
-            "400x600".to_string(),
-            "--textbox".to_string(),
-            "converted.txt".to_string(),
-            "--title".to_string(),
-            title.to_string()
-        ];
+        window.set_title(title);
+        window.set_border_width(10);
+        window.set_position(gtk::WindowPosition::Center);
+        window.set_default_size(600, 400);
 
-        Command::new("kdialog")
-            .args(&command)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show kdialog error");
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        vbox.set_homogeneous(false);
+        window.add(&vbox);
 
-        match show_question(&std::format!("{} Confirmation", title).to_string(), "I have read and accepted the terms.") {
+        let sw = gtk::ScrolledWindow::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>);
+        sw.set_shadow_type(gtk::ShadowType::EtchedIn);
+        sw.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+        sw.set_vexpand(true);
+        vbox.add(&sw);
+
+        let text_view = gtk::TextView::new();
+        text_view.set_wrap_mode(gtk::WrapMode::Word);
+        text_view.set_cursor_visible(false);
+        text_view.buffer().unwrap().set_text(&file_str);
+        sw.add(&text_view);
+
+        let label = gtk::Label::new(Some("By clicking OK below, you are agreeing to the above."));
+        vbox.add(&label);
+
+        let cancel_button = gtk::Button::with_label("Cancel");
+        cancel_button.set_margin_end(5);
+        let ok_button = gtk::Button::with_label("Ok");
+        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
+        button_box.set_layout(gtk::ButtonBoxStyle::End);
+        button_box.pack_start(&cancel_button, false, false, 0);
+        button_box.pack_start(&ok_button, false, false, 0);
+
+        let window_clone_cancel = window.clone();
+        let window_clone_ok = window.clone();
+
+        let choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
+        let captured_choice_ok = choice.clone();
+
+        cancel_button.connect_clicked(move |_| {
+            window_clone_cancel.close();
+        });
+
+        ok_button.connect_clicked(move |_| {
+            *captured_choice_ok.borrow_mut() = Some(());
+            window_clone_ok.close();
+        });
+
+        vbox.pack_end(&button_box, false, false, 0);
+
+        window.show_all();
+        gtk::main();
+
+        let choice_borrow = choice.borrow();
+        let choice_match = choice_borrow.as_ref();
+
+        match choice_match {
             Some(_) => {
                 Ok(())
             },
             None => {
-                return Err(Error::new(ErrorKind::Other, "file confirmation denied"))
+                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         }
     } else {
+        let mut converted_file = File::create("converted.txt")?;
+        converted_file.write_all(file_str.as_bytes())?;
+
         let zenity_path = match get_zenity_path() {
             Ok(s) => s,
             Err(_) => {
@@ -284,24 +344,60 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
 }
 
 pub fn show_question(title: &str, text: &str) -> Option<()> {
-    if active_dialog_command(false).ok()? == "kdialog" {
-        let command: Vec<String> = vec![
-            "--yesno".to_string(),
-            text.to_string(),
-            "--title".to_string(),
-            title.to_string()
-        ];
+    if active_dialog_command(false).ok()? == "gtk" {
+        let window = Window::new(WindowType::Toplevel);
+        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
 
-        let question = Command::new("kdialog")
-            .args(&command)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show kdialog error");
+        window.set_title(title);
+        window.set_border_width(10);
+        window.set_position(gtk::WindowPosition::Center);
+        window.set_default_size(300, 100);
 
-        if question.success() {
-            Some(())
-        } else {
-            return None
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        vbox.set_homogeneous(false);
+        window.add(&vbox);
+
+        let label = gtk::Label::new(Some(text));
+        vbox.add(&label);
+
+        let cancel_button = gtk::Button::with_label("No");
+        cancel_button.set_margin_end(5);
+        let ok_button = gtk::Button::with_label("Yes");
+        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
+        button_box.set_layout(gtk::ButtonBoxStyle::End);
+        button_box.pack_start(&cancel_button, false, false, 0);
+        button_box.pack_start(&ok_button, false, false, 0);
+
+        let window_clone_cancel = window.clone();
+        let window_clone_ok = window.clone();
+
+        let choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
+        let captured_choice_ok = choice.clone();
+
+        cancel_button.connect_clicked(move |_| {
+            window_clone_cancel.close();
+        });
+
+        ok_button.connect_clicked(move |_| {
+            *captured_choice_ok.borrow_mut() = Some(());
+            window_clone_ok.close();
+        });
+
+        vbox.pack_end(&button_box, false, false, 0);
+
+        window.show_all();
+        gtk::main();
+
+        let choice_borrow = choice.borrow();
+        let choice_match = choice_borrow.as_ref();
+
+        match choice_match {
+            Some(_) => {
+                Some(())
+            },
+            None => {
+                return None
+            }
         }
     } else {
         let zenity_command: Vec<String> = vec![
@@ -332,111 +428,34 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
 }
 
 pub fn start_progress(title: &str, status: &str, interval: usize) -> io::Result<ProgressCreateOutput> {
-    if active_dialog_command(false)? == "kdialog" {
-        let progress_command: Vec<String> = vec![
-            "--geometry".to_string(),
-            "600x200".to_string(),
-            "--title".to_string(),
-            title.to_string(),
-            "--progressbar".to_string(),
-            status.to_string(),
-            (interval).to_string()
-        ];
+     let progress_command: Vec<String> = vec![
+        "--progress".to_string(),
+        std::format!("--title={}", title).to_string(),
+        std::format!("--percentage={}",interval).to_string(),
+        std::format!("--text={}", status).to_string()
+    ];
 
-        println!("progress_command  {:?}", progress_command);
+    println!("progress_command {:?}", progress_command);
 
-        let progress = Command::new("kdialog")
-            .args(&progress_command)
-            .env("LD_PRELOAD", "")
-            .output()
-            .expect("failed to show progress");
-
-        if !progress.status.success() {
-            return Err(Error::new(ErrorKind::Other, "progress start failed"));
+    let zenity_path = match get_zenity_path() {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
         }
+    };
 
-        let progress_id = match String::from_utf8(progress.stdout) {
-            Ok(s) => String::from(s.trim()),
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "Failed to parse progress_id"));
-            }
-        };
+    let progress = Command::new(zenity_path)
+        .args(&progress_command)
+        .env("LD_PRELOAD", "")
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
 
-        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
-        let progress_disable_cancel_command: Vec<String> = vec![
-            progress_id_array[0].to_string(),
-            progress_id_array[1].to_string(),
-            "showCancelButton".to_string(),
-            "false".to_string()
-        ];
-
-        println!("progress_disable_cancel_command {:?}", progress_disable_cancel_command);
-
-        let progress_disable_cancel = Command::new("qdbus")
-            .env("LD_PRELOAD", "")
-            .args(&progress_disable_cancel_command)
-            .output()
-            .expect("failed to update disable cancel progress");
-
-        if !progress_disable_cancel.status.success() {
-            return Err(Error::new(ErrorKind::Other, "progress update disable cancel failed"));
-        }
-
-        Ok(ProgressCreateOutput::KDialog(progress_id))
-    } else {
-         let progress_command: Vec<String> = vec![
-            "--progress".to_string(),
-            std::format!("--title={}", title).to_string(),
-            std::format!("--percentage=0").to_string(),
-            std::format!("--text={}", status).to_string()
-        ];
-
-        println!("progress_command {:?}", progress_command);
-
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-            }
-        };
-
-        let progress = Command::new(zenity_path)
-            .args(&progress_command)
-            .env("LD_PRELOAD", "")
-            .stdin(Stdio::piped())
-            .spawn()
-            .unwrap();
-
-        Ok(ProgressCreateOutput::Zenity(progress))
-    }
+    Ok(ProgressCreateOutput::Zenity(progress))
 }
 
 pub fn progress_text_change(title: &str, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::KDialog(progress_id) = progress_ref {
-        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
-        if progress_id_array.len() == 2 {
-            let progress_command_label: Vec<String> = vec![
-                progress_id_array[0].to_string(),
-                progress_id_array[1].to_string(),
-                "setLabelText".to_string(),
-                title.to_string()
-            ];
-
-            println!("progress_command_label {:?}", progress_command_label);
-
-            let progress_label = Command::new("qdbus")
-                .args(&progress_command_label)
-                .env("LD_PRELOAD", "")
-                .output()
-                .expect("failed to update progress label");
-
-            if !progress_label.status.success() {
-                return Err(Error::new(ErrorKind::Other, "progress update label failed"));
-            }
-        }
-
-        Ok(())
-    } else if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
+    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
         {
             let stdin = match progress.stdin.as_mut() {
                 Some(s) => s,
@@ -454,37 +473,12 @@ pub fn progress_text_change(title: &str, progress_ref: &mut ProgressCreateOutput
             };
             drop(stdin);
         }
-        Ok(())
-    } else {
-        return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
     }
+    Ok(())
 }
 
 pub fn progress_change(value: i64, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::KDialog(progress_id) = progress_ref {
-        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
-        if progress_id_array.len() == 2 {
-            let progress_command: Vec<String> = vec![
-                progress_id_array[0].to_string(),
-                progress_id_array[1].to_string(),
-                "Set".to_string(),
-                "".to_string(),
-                "value".to_string(),
-                value.to_string()
-            ];
-
-            let progress = Command::new("qdbus")
-                .args(&progress_command)
-                .env("LD_PRELOAD", "")
-                .output()
-                .expect("failed to update progress");
-
-            if !progress.status.success() {
-                return Err(Error::new(ErrorKind::Other, "progress update failed"));
-            }
-        }
-        Ok(())
-    } else if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
+    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
         {
             let mut final_value = value;
             if final_value == 100 {
@@ -514,28 +508,7 @@ pub fn progress_change(value: i64, progress_ref: &mut ProgressCreateOutput) -> i
 }
 
 pub fn progress_close(progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::KDialog(progress_id) = progress_ref {
-        let progress_id_array = progress_id.split(" ").collect::<Vec<_>>();
-        if progress_id_array.len() == 2 {
-            let progress_command: Vec<String> = vec![
-                progress_id_array[0].to_string(),
-                progress_id_array[1].to_string(),
-                "close".to_string()
-            ];
-
-            let progress = Command::new("qdbus")
-                .args(&progress_command)
-                .env("LD_PRELOAD", "")
-                .output()
-                .expect("failed to close progress");
-
-            if !progress.status.success() {
-                return Err(Error::new(ErrorKind::Other, "progress close failed"));
-            }
-        }
-
-        Ok(())
-    } else if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
+    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
         progress.kill().expect("command wasn't running");
         Ok(())
     } else {
