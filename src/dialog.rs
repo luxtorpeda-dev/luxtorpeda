@@ -12,11 +12,11 @@ use std::cell::RefCell;
 extern crate gtk;
 use std::rc::Rc;
 use gtk::prelude::*;
-use gtk::{ButtonsType, DialogFlags, MessageType, MessageDialog, Window, WindowType, TreeStore};
+use gtk::{Window, WindowType, TreeStore};
 
 pub enum ProgressCreateOutput {
-    Gtk(String),
     Zenity(Child),
+    Unused(String)
 }
 
 fn get_zenity_path() -> Result<String, Error>  {
@@ -162,12 +162,16 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             *captured_choice.borrow_mut() = Some(choice_value.to_string());
         });
 
+        let ok_choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
+        let captured_ok_choice = ok_choice.clone();
+
         cancel_button.connect_clicked(move |_| {
             *captured_choice_cancel.borrow_mut() = None;
             window_clone_cancel.close();
         });
 
         ok_button.connect_clicked(move |_| {
+            *captured_ok_choice.borrow_mut() = Some(());
             window_clone_ok.close();
         });
 
@@ -176,12 +180,22 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
         window.show_all();
         gtk::main();
 
-        let choice_borrow = choice.borrow();
-        let choice_match = choice_borrow.as_ref();
-        match choice_match {
-            Some(s) => {
-                let choice_str = s.to_string();
-                Ok(choice_str)
+        let ok_choice_borrow = ok_choice.borrow();
+        let ok_choice_match = ok_choice_borrow.as_ref();
+
+        match ok_choice_match {
+            Some(_) => {
+                let choice_borrow = choice.borrow();
+                let choice_match = choice_borrow.as_ref();
+                match choice_match {
+                    Some(s) => {
+                        let choice_str = s.to_string();
+                        Ok(choice_str)
+                    },
+                    None => {
+                        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+                    }
+                }
             },
             None => {
                 return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
@@ -414,61 +428,34 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
 }
 
 pub fn start_progress(title: &str, status: &str, interval: usize) -> io::Result<ProgressCreateOutput> {
-    if active_dialog_command(false)? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
+     let progress_command: Vec<String> = vec![
+        "--progress".to_string(),
+        std::format!("--title={}", title).to_string(),
+        std::format!("--percentage={}",interval).to_string(),
+        std::format!("--text={}", status).to_string()
+    ];
 
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(300, 100);
+    println!("progress_command {:?}", progress_command);
 
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
+    let zenity_path = match get_zenity_path() {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        }
+    };
 
-        let progress = gtk::ProgressBar::new();
-        progress.set_text(Some(status));
-        progress.set_show_text(true);
-        progress.set_hexpand(true);
-        vbox.add(&progress);
+    let progress = Command::new(zenity_path)
+        .args(&progress_command)
+        .env("LD_PRELOAD", "")
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
 
-        window.show_all();
-        gtk::main();
-
-        Ok(ProgressCreateOutput::Gtk("".to_string()))
-    } else {
-         let progress_command: Vec<String> = vec![
-            "--progress".to_string(),
-            std::format!("--title={}", title).to_string(),
-            std::format!("--percentage=0").to_string(),
-            std::format!("--text={}", status).to_string()
-        ];
-
-        println!("progress_command {:?}", progress_command);
-
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-            }
-        };
-
-        let progress = Command::new(zenity_path)
-            .args(&progress_command)
-            .env("LD_PRELOAD", "")
-            .stdin(Stdio::piped())
-            .spawn()
-            .unwrap();
-
-        Ok(ProgressCreateOutput::Zenity(progress))
-    }
+    Ok(ProgressCreateOutput::Zenity(progress))
 }
 
 pub fn progress_text_change(title: &str, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Gtk(progress_id) = progress_ref {
-        Ok(())
-    } else if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
+    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
         {
             let stdin = match progress.stdin.as_mut() {
                 Some(s) => s,
@@ -486,16 +473,12 @@ pub fn progress_text_change(title: &str, progress_ref: &mut ProgressCreateOutput
             };
             drop(stdin);
         }
-        Ok(())
-    } else {
-        return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
     }
+    Ok(())
 }
 
 pub fn progress_change(value: i64, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Gtk(progress_id) = progress_ref {
-        Ok(())
-    } else if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
+    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
         {
             let mut final_value = value;
             if final_value == 100 {
@@ -525,9 +508,7 @@ pub fn progress_change(value: i64, progress_ref: &mut ProgressCreateOutput) -> i
 }
 
 pub fn progress_close(progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Gtk(progress_id) = progress_ref {
-        Ok(())
-    } else if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
+    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
         progress.kill().expect("command wasn't running");
         Ok(())
     } else {

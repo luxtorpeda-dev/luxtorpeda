@@ -336,10 +336,10 @@ pub fn download_all(app_id: String, is_runtime: bool) -> io::Result<String> {
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let mut engine_choice = String::new();
-        
+
     if !game_info["choices"].is_null() {
         println!("showing engine choices");
-        
+
         engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
             Ok(s) => s,
             Err(err) => {
@@ -367,16 +367,16 @@ pub fn download_all(app_id: String, is_runtime: bool) -> io::Result<String> {
     if downloads.is_empty() {
         return Ok(engine_choice);
     }
-    
+
     let mut dialog_message = String::new();
-    
+
     if !game_info["information"].is_null() && game_info["information"]["non_free"] == true {
         dialog_message = std::format!("This engine uses a non-free engine ({0}). Are you sure you want to continue?", game_info["information"]["license"]);
     }
     else if !game_info["information"].is_null() && game_info["information"]["closed_source"] == true {
         dialog_message = "This engine uses assets from the closed source release. Are you sure you want to continue?".to_string();
     }
-    
+
     if !dialog_message.is_empty() {
         match show_question("License Warning", &dialog_message.to_string()) {
             Some(_) => {
@@ -393,7 +393,7 @@ pub fn download_all(app_id: String, is_runtime: bool) -> io::Result<String> {
         Ok(s) => s,
         Err(_) => {
             println!("download_all. warning: progress not started");
-            ProgressCreateOutput::Gtk("".to_string())
+            ProgressCreateOutput::Unused("".to_string())
         }
     };
 
@@ -459,7 +459,7 @@ pub fn download_all(app_id: String, is_runtime: bool) -> io::Result<String> {
 
 async fn download(app_id: &str, info: &PackageInfo, progress_ref: &mut ProgressCreateOutput, client: &Client) -> io::Result<()> {
     let target = info.url.clone() + &info.file;
-    
+
     let mut cache_dir = app_id;
     if info.cache_by_name == true {
         cache_dir = &info.name;
@@ -498,7 +498,7 @@ async fn download(app_id: &str, info: &PackageInfo, progress_ref: &mut ProgressC
             total_percentage = percentage;
         }
     }
-    
+
     Ok(())
 }
 
