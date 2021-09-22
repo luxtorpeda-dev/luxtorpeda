@@ -393,7 +393,7 @@ pub fn download_all(app_id: String, is_runtime: bool) -> io::Result<String> {
         Ok(s) => s,
         Err(_) => {
             println!("download_all. warning: progress not started");
-            ProgressCreateOutput::KDialog("".to_string())
+            ProgressCreateOutput::Gtk("".to_string())
         }
     };
 
