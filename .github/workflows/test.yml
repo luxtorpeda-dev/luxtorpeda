@@ -1,7 +1,6 @@
-name: Build Luxtorpeda
+name: Test Build Luxtorpeda
 
-on:
-  pull_request:
+on: pull_request
 
 jobs:
   build:
