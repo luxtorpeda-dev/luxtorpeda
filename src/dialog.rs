@@ -60,6 +60,7 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
         vbox.add(&label);
 
         let ok_button = gtk::Button::with_label("Ok");
+
         let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
         button_box.set_layout(gtk::ButtonBoxStyle::Center);
         button_box.pack_start(&ok_button, false, false, 0);
