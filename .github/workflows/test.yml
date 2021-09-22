@@ -1,0 +1,25 @@
+name: Test Build Luxtorpeda
+
+on: pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: rust:1.55-buster
+    env:
+      CARGO_HOME: ./cargo
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Install GTK 3 Dev
+      run: apt update && apt-get install -y libgtk-3-dev
+    - name: Build
+      run: make release
+    - name: Package
+      run: make luxtorpeda.tar.xz
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: luxtorpeda.tar.xz
+        path: ./luxtorpeda.tar.xz
