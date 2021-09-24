@@ -61,7 +61,7 @@ Fedora
 
 ## Known issues
 
-- No known issues at this time.
+- Flatpak steam users need to use the following steps to use the new runtime-based client. This will be improved as a newer flatpak is released. https://github.com/ValveSoftware/steam-runtime/issues/294#issuecomment-852206383
 
 ## Configuration
 
