@@ -69,12 +69,11 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
-- active_dialog_command - default (pick the best for the running desktop), zenity, or kdialog. If this parameter does not exist, luxtorpeda assumes zenity.
 
 ## Supported titles
 
 Just click "Play" and Luxtorpeda will download and install the package for you.
-You need to select Luxtorpeda as a compatibility tool first, of course.
+You need to select Luxtorpeda as a compatibility tool first, of course. You can pick Luxtorpeda (Runtime) for the new runtime-based engines.
 
 When you launch a game that supports multiple engines, a Zenity-based prompt will appear asking for the engine that should be downloaded and launched. Once the engine has been picked, a second prompt will ask if the engine should become the default. Launches after this if "Yes" is picked in this dialog will not ask for the engine again. A file can be deleted to restore the engine prompt for a particular game. The file will have the following format: `~/.config/luxtorpeda/<app_id>/default_engine_choice.txt`
 
