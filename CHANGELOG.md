@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 36.0 (2021-09-22) - Alpha Release
+### 36.0 (2021-09-24)
 
 * Adds support for running games in Steam Runtime Soldier. With this version, there will be two compatibility tools, the original one named "Luxtorpeda" and one called "Luxtorpeda (Runtime"). Engines have been re-built for the new runtime. See https://luxtorpeda-dev.github.io/packages.html for the package list between the two, and the feature tracking ticket (https://github.com/luxtorpeda-dev/packages/issues/345) for more information.
 * The original version will still work as normal and normal engine downloads will still work in non runtime mode.
