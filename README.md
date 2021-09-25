@@ -79,6 +79,8 @@ When you launch a game that supports multiple engines, a prompt will appear aski
 
 To see a list of supported titles, go to https://luxtorpeda-dev.github.io/packages.html
 
+The runtime version of the luxtorpeda client will contain the most up to date versions of engines. The "original" client will eventually be removed.
+
 Want a specific game? 
 
 Check [issues](https://github.com/luxtorpeda-dev/packages/issues) to see if we are working on it.
