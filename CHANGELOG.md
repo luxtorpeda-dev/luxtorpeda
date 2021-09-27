@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 37.0 (2021-09-27)
+
+* Support Automatic Detection of Game Folders For Dependent Games - Detect game folders based on VDF files, for things like the source sdk games, so that manual picking is not required. Will fallback to original picking if not found.
+
 ### 36.0 (2021-09-24)
 
 * Adds support for running games in Steam Runtime Soldier. With this version, there will be two compatibility tools, the original one named "Luxtorpeda" and one called "Luxtorpeda (Runtime"). Engines have been re-built for the new runtime. See https://luxtorpeda-dev.github.io/packages.html for the package list between the two, and the feature tracking ticket (https://github.com/luxtorpeda-dev/packages/issues/345) for more information.
