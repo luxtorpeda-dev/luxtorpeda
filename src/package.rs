@@ -34,6 +34,9 @@ use crate::dialog::progress_text_change;
 use crate::dialog::progress_close;
 use crate::dialog::ProgressCreateOutput;
 
+extern crate steamlocate;
+use steamlocate::SteamDir;
+
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}/{}", app_id, file);
@@ -355,6 +358,17 @@ pub fn download_all(app_id: String, is_runtime: bool) -> io::Result<String> {
                 return Err(err);
             }
         };
+    }
+
+    if !game_info["app_ids_deps"].is_null() {
+         match get_app_id_deps_paths(&game_info["app_ids_deps"]) {
+            Some(()) => {
+                println!("download_all. get_app_id_deps_paths completed");
+            },
+            None => {
+                println!("download_all. warning: get_app_id_deps_paths not completed");
+            }
+        }
     }
 
     if game_info["download"].is_null() {
@@ -758,5 +772,34 @@ pub fn get_game_info(app_id: &str, is_runtime: bool) -> Option<json::JsonValue> 
         }
     } else {
         Some(game_info)
+    }
+}
+
+pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
+    match SteamDir::locate() {
+        Some(mut steamdir) => {
+            for entry in deps.members() {
+                println!("get_app_id_deps_paths. searching for app id {}.", entry);
+                let app_id = entry.as_u32()?;
+
+                match steamdir.app(&app_id) {
+                    Some(app_location) => {
+                        let app_location_path = app_location.path.clone();
+                        let app_location_str = &app_location_path.into_os_string().into_string().unwrap();
+                        println!("get_app_id_deps_paths. app id {} found at {:#?}.", app_id, app_location_str);
+                        user_env::set_env_var(&std::format!("DEPPATH_{}", app_id).to_string(), &app_location_str);
+                    },
+                    None => {
+                        println!("get_app_id_deps_paths. app id {} not found.", app_id);
+                    }
+                }
+            }
+
+            return Some(())
+        },
+        None => {
+            println!("get_app_id_deps_paths. steamdir not found.");
+            return None
+        }
     }
 }
