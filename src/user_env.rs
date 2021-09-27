@@ -50,3 +50,7 @@ pub fn tool_dir() -> PathBuf {
         Err(_) => env::current_dir().unwrap(),
     }
 }
+
+pub fn set_env_var(key: &String, value: &String) {
+    env::set_var(&key, &value);
+}

@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "36.0.0"
+version = "37.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2018"
 
@@ -29,3 +29,4 @@ futures-util = "0.3.14"
 tokio = { version = "0.2", default-features = false, features = ["full"] }
 which = "4.2.2"
 gtk = "0.14.1"
+steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
