@@ -6,8 +6,8 @@ Thank you for considering contributing to luxtorpeda-dev. These guidelines apply
 
 luxtorpeda-dev consists of two main parts which are also respositories:
 
-* [luxtorpeda](https://github.com/luxtorpeda-dev/luxtorpeda) - The client that runs on your machine that downloads the engines, provides you with options on what engine to pick from, and launches the engine inside the steam environment.
-* [packages](https://github.com/luxtorpeda-dev/packages) - Build scripts for all the engines that luxtorpeda-dev supports and the support to trigger builds of those engines.
+* [luxtorpeda](https://github.com/luxtorpeda-dev/luxtorpeda) - The client that runs on your machine that downloads the engines, provides you with options on what engine to pick from, and launches the engine inside the steam environment. This is built using the rust language.
+* [packages](https://github.com/luxtorpeda-dev/packages) - Build scripts for all the engines that luxtorpeda-dev supports and the support to trigger builds of those engines. This is built primarily with bash scripts.
 
 If you were interested in creating or updating a package, there is documentation related to that [here](https://github.com/luxtorpeda-dev/packages/tree/master/docs).
 
