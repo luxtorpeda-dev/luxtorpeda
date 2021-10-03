@@ -39,13 +39,17 @@ additional dependencies.
 
 0. Download the latest version of Rust: https://www.rust-lang.org/ and verify that openssl is installed on your system.
 
-Debian, Ubuntu et consortes
+Debian, Ubuntu and variants
 
        $ sudo apt install libssl-dev
        
 Fedora 
 
        $ sudo dnf install openssl-devel
+
+Arch
+       
+       $ sudo pacman -S openssl rust
        
 1. Close Steam.
 2. Clone the repository, then use makefile to trigger `cargo build` and install:
