@@ -29,7 +29,7 @@ additional dependencies.
 3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ tar xJf luxtorpeda-36.tar.xz
+        $ tar xJf luxtorpeda-37.tar.xz
 
 4. Start Steam.
 5. In game properties window select "Force the use of a specific Steam Play
@@ -39,13 +39,17 @@ additional dependencies.
 
 0. Download the latest version of Rust: https://www.rust-lang.org/ and verify that openssl is installed on your system.
 
-Debian, Ubuntu et consortes
+Debian, Ubuntu and variants
 
        $ sudo apt install libssl-dev
        
 Fedora 
 
        $ sudo dnf install openssl-devel
+
+Arch
+       
+       $ sudo pacman -S openssl rust
        
 1. Close Steam.
 2. Clone the repository, then use makefile to trigger `cargo build` and install:
