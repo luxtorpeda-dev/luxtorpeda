@@ -2,6 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 39.0 (2021-10-07)
+
+* [Thanks to dfireBird] Log Client Version and Is Runtime At Launch
+* [Thanks to dfireBird] Fix for (RS-W1015) Found string literal in env functions
+
 ### 37.0 (2021-09-27)
 
 * Support Automatic Detection of Game Folders For Dependent Games - Detect game folders based on VDF files, for things like the source sdk games, so that manual picking is not required. Will fallback to original picking if not found.
