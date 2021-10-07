@@ -14,13 +14,15 @@ use std::rc::Rc;
 use gtk::prelude::*;
 use gtk::{Window, WindowType, TreeStore};
 
+static STEAM_ZENITY: &str = "STEAM_ZENITY";
+
 pub enum ProgressCreateOutput {
     Zenity(Child),
     Unused(String)
 }
 
 fn get_zenity_path() -> Result<String, Error>  {
-    let zenity_path = match env::var("STEAM_ZENITY") {
+    let zenity_path = match env::var(STEAM_ZENITY) {
         Ok(s) => s,
         Err(_) => {
             return Err(Error::new(ErrorKind::Other, "Path could not be found"));
