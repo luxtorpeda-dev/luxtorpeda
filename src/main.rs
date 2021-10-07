@@ -139,6 +139,8 @@ fn run(args: &[&str], is_runtime: bool) -> io::Result<()> {
     let _pid_file = pid_file::new()?;
     let app_id = user_env::steam_app_id();
 
+    println!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
+    println!("Is runtime: {}", is_runtime);
     println!("steam_app_id: {:?}", &app_id);
     println!("original command: {:?}", args);
     println!("working dir: {:?}", env::current_dir());
