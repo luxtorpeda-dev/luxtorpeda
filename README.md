@@ -62,11 +62,6 @@ Arch
 4. In game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda&nbsp;(dev)".
 
-
-## Known issues
-
-- Flatpak steam users need to use the following steps to use the new runtime-based client. This will be improved as a newer flatpak is released. https://github.com/ValveSoftware/steam-runtime/issues/294#issuecomment-852206383
-
 ## Configuration
 
 A configuration json file named `config.json` will be located in the luxtorpeda directory. It has the following paramters:
