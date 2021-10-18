@@ -13,7 +13,7 @@ Official mirrors:
 ## Pre-requisites
 
 Compatibility tool will work on any modern 64-bit Linux distribution.
-All packaged games are compiled for Steam Runtime environment and require no
+All packaged games are compiled for Steam Runtime Soldier environment and require no
 additional dependencies.
 
 **Using Luxtorpeda with [Steam native runtime](https://wiki.archlinux.org/index.php/Steam/Troubleshooting#Steam_native_runtime) may or may not work, but is not supported.**
@@ -77,8 +77,6 @@ You need to select Luxtorpeda as a compatibility tool first, of course.
 When you launch a game that supports multiple engines, a prompt will appear asking for the engine that should be downloaded and launched. Once the engine has been picked, a second prompt will ask if the engine should become the default. Launches after this if "Yes" is picked in this dialog will not ask for the engine again. A file can be deleted to restore the engine prompt for a particular game. The file will have the following format: `~/.config/luxtorpeda/<app_id>/default_engine_choice.txt`
 
 To see a list of supported titles, go to https://luxtorpeda-dev.github.io/packages.html
-
-The runtime version of the luxtorpeda client will contain the most up to date versions of engines. The "original" client will eventually be removed.
 
 Want a specific game? 
 
