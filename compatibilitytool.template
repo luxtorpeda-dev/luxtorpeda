@@ -4,16 +4,8 @@
   {
     "%name%" // Internal name of this tool
     {
-      "install_path" "./luxtorpeda-original"
+      "install_path" "."
       "display_name" "%display_name%"
-      "from_oslist"  "windows"
-      "to_oslist"    "linux"
-    }
-
-    "%name%_runtime" // Internal name of this tool
-    {
-      "install_path" "./luxtorpeda-runtime"
-      "display_name" "%display_name% (Runtime)"
       "from_oslist"  "windows"
       "to_oslist"    "linux"
     }

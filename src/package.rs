@@ -55,18 +55,12 @@ pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     xdg_dirs.place_config_file(path_str)
 }
 
-fn path_to_packages_file(is_runtime: bool) -> PathBuf {
+fn path_to_packages_file() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_cache_home();
     let folder_path = config_home.join("luxtorpeda");
     fs::create_dir_all(&folder_path).unwrap();
-    let path;
-    if is_runtime {
-        path = folder_path.join("packagesruntime.json");
-    }
-    else {
-        path = folder_path.join("packages.json");
-    }
+    let path = folder_path.join("packagesruntime.json");
     return path;
 }
 
@@ -95,13 +89,6 @@ struct PackageInfo {
     url: String,
     file: String,
     cache_by_name: bool
-}
-
-pub fn read_cmd_repl_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<CmdReplacement>, Error> {
-    let file = fs::File::open(path)?;
-    let reader = io::BufReader::new(file);
-    let meta: PackageMetadata = serde_json::from_reader(reader)?;
-    Ok(meta.commands)
 }
 
 pub fn get_remote_packages_hash(remote_hash_url: &String) -> Option<String> {
@@ -133,7 +120,7 @@ pub fn generate_hash_from_file_path(file_path: &std::path::PathBuf) -> io::Resul
     return Ok(hash_str);
 }
 
-pub fn update_packages_json(is_runtime: bool) -> io::Result<()> {
+pub fn update_packages_json() -> io::Result<()> {
     let config_json_file = user_env::tool_dir().join("config.json");
     let config_json_str = fs::read_to_string(config_json_file)?;
     let config_parsed = json::parse(&config_json_str).unwrap();
@@ -143,16 +130,11 @@ pub fn update_packages_json(is_runtime: bool) -> io::Result<()> {
         return Ok(());
     }
     
-    let packages_json_file = path_to_packages_file(is_runtime);
+    let packages_json_file = path_to_packages_file();
     let mut should_download = true;
     let mut remote_hash_str: String = String::new();
 
-    let remote_path;
-    if is_runtime {
-        remote_path = "packagesruntime";
-    } else {
-        remote_path = "packages";
-    }
+    let remote_path = "packagesruntime";
     
     let remote_hash_url = std::format!("{0}/{1}.hash", &config_parsed["host_url"], remote_path);
     match get_remote_packages_hash(&remote_hash_url) {
@@ -188,7 +170,7 @@ pub fn update_packages_json(is_runtime: bool) -> io::Result<()> {
         
         let remote_packages_url = std::format!("{0}/{1}.json", &config_parsed["host_url"], remote_path);
         let mut download_complete = false;
-        let local_packages_temp_path = path_to_packages_file(is_runtime).with_file_name(std::format!("{}-temp.json", remote_path));
+        let local_packages_temp_path = path_to_packages_file().with_file_name(std::format!("{}-temp.json", remote_path));
         
         match reqwest::blocking::get(&remote_packages_url) {
             Ok(mut response) => {
@@ -334,8 +316,8 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(app_id: String, is_runtime: bool) -> io::Result<String> {
-    let mut game_info = get_game_info(app_id.as_str(), is_runtime)
+pub fn download_all(app_id: String) -> io::Result<String> {
+    let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let mut engine_choice = String::new();
@@ -698,8 +680,8 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
     Ok(())
 }
 
-pub fn get_game_info(app_id: &str, is_runtime: bool) -> Option<json::JsonValue> {
-    let packages_json_file = path_to_packages_file(is_runtime);
+pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
+    let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
         Err(err) => {
