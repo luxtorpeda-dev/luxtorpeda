@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 40.0 (2021-10-17)
+
+* Remove legacy support for original packages, so that runtime is now the default.
+
 ### 39.0 (2021-10-07)
 
 * [Thanks to dfireBird] Log Client Version and Is Runtime At Launch
