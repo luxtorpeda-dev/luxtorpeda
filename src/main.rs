@@ -5,10 +5,8 @@ extern crate reqwest;
 
 use regex::Regex;
 use std::env;
-use std::fs;
 use std::io;
 use std::io::{Error, ErrorKind};
-use std::path::PathBuf;
 use std::path::Path;
 use std::process::Command;
 use std::fs::File;
@@ -30,30 +28,8 @@ fn json_to_args(args: &json::JsonValue) -> Vec<String> {
         .collect()
 }
 
-// crate glob might be useful here
-fn find_metadata_json() -> io::Result<Vec<PathBuf>> {
-    let files = fs::read_dir("manifests.lux")?
-        .filter(|e| e.is_ok())
-        .map(|e| e.unwrap().path())
-        .filter(|p| p.extension().unwrap() == "json")
-        .collect();
-    Ok(files)
-}
-
 fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, Vec<String>)> {
     let orig_cmd = args.join(" ");
-
-    // commands defined by packages
-
-    for path in find_metadata_json().unwrap_or_default() {
-        for repl in package::read_cmd_repl_from_file(path).unwrap_or_default() {
-            if repl.match_cmd.is_match(&orig_cmd) {
-                return Some((repl.cmd, repl.args));
-            }
-        }
-    }
-
-    // legacy commands from bundled packages.json file
 
     if !info["command"].is_null() {
         let new_prog = info["command"].to_string();
@@ -67,7 +43,7 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
 
     let cmds = &info["commands"];
     for (expr, new_cmd) in cmds.entries() {
-        let re = Regex::new(expr).unwrap(); // TODO get rid of .unwrap
+        let re = Regex::new(expr).unwrap();
         if re.is_match(&orig_cmd) {
             let new_prog = new_cmd["cmd"].to_string();
             let new_args = json_to_args(&new_cmd["args"]);
@@ -121,7 +97,7 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
     }
 }
 
-fn run(args: &[&str], is_runtime: bool) -> io::Result<()> {
+fn run(args: &[&str]) -> io::Result<()> {
     if args.is_empty() {
         usage();
         std::process::exit(0)
@@ -134,19 +110,18 @@ fn run(args: &[&str], is_runtime: bool) -> io::Result<()> {
         return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
     }
 
-    package::update_packages_json(is_runtime).unwrap();
+    package::update_packages_json().unwrap();
 
     let _pid_file = pid_file::new()?;
     let app_id = user_env::steam_app_id();
 
     println!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
-    println!("Is runtime: {}", is_runtime);
     println!("steam_app_id: {:?}", &app_id);
     println!("original command: {:?}", args);
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
     
-    let mut game_info = package::get_game_info(app_id.as_str(), is_runtime)
+    let mut game_info = package::get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     if game_info.is_null() {
@@ -154,7 +129,7 @@ fn run(args: &[&str], is_runtime: bool) -> io::Result<()> {
     }
     
     if !game_info["choices"].is_null() {
-        let engine_choice = match package::download_all(app_id.to_string(), is_runtime) {
+        let engine_choice = match package::download_all(app_id.to_string()) {
             Ok(s) => s,
             Err(err) => {
                 println!("download all error: {:?}", err);
@@ -170,7 +145,7 @@ fn run(args: &[&str], is_runtime: bool) -> io::Result<()> {
             }
         };
     } else {
-        package::download_all(app_id.to_string(), is_runtime)?;
+        package::download_all(app_id.to_string())?;
     }
 
     println!("json:");
@@ -222,8 +197,8 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
     }
     
     let app_id = args[0];
-    package::update_packages_json(false).unwrap();
-    package::download_all(app_id.to_string(), false)?;
+    package::update_packages_json().unwrap();
+    package::download_all(app_id.to_string())?;
     
     return Ok(());
 }
@@ -240,29 +215,18 @@ fn main() -> io::Result<()> {
     user_env::assure_xdg_runtime_dir()?;
     user_env::assure_tool_dir(args[0])?;
 
-    let mut cmd = args[1];
-    let cmd_str = String::from(cmd);
-
+    let cmd = args[1];
     let cmd_args = &args[2..];
-    let mut is_runtime = false;
-
-    if cmd_str.contains("runtime_") {
-        is_runtime = true;
-        println!("run with runtime cmd: \"{}\"", cmd_str);
-
-        let v: Vec<&str> = cmd_str.split("runtime_").collect();
-        cmd = v[1];
-    }
 
     match cmd {
-        "run" => run(cmd_args, is_runtime),
+        "run" => run(cmd_args),
         "wait-before-run" => {
             pid_file::wait_while_exists();
-            run(cmd_args, is_runtime)
+            run(cmd_args)
         },
         "waitforexitandrun" => {
             pid_file::wait_while_exists();
-            run(cmd_args, is_runtime)
+            run(cmd_args)
         },
         "manual-download" => manual_download(cmd_args),
         _ => {
