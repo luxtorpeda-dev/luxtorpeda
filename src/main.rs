@@ -110,6 +110,8 @@ fn run(args: &[&str]) -> io::Result<()> {
         return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
     }
 
+    dialog::show_error(&"Title".to_string(), &"This is a test".to_string());
+
     package::update_packages_json().unwrap();
 
     let _pid_file = pid_file::new()?;

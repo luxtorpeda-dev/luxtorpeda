@@ -16,9 +16,22 @@ use gtk::{Window, WindowType, TreeStore};
 
 static STEAM_ZENITY: &str = "STEAM_ZENITY";
 
-pub enum ProgressCreateOutput {
-    Zenity(Child),
-    Unused(String)
+use std::time::{Duration, Instant};
+use egui::Checkbox;
+use egui_backend::sdl2::video::GLProfile;
+use egui_backend::{egui, sdl2};
+use egui_backend::{sdl2::event::Event, DpiScaling};
+use egui_sdl2_gl as egui_backend;
+use sdl2::video::{SwapInterval,GLContext};
+use egui::CtxRef;
+
+pub struct ProgressState {
+    pub status: String,
+    pub interval: usize,
+    pub close: bool,
+    pub error: bool,
+    pub complete: bool,
+    pub error_str: String
 }
 
 fn get_zenity_path() -> Result<String, Error>  {
@@ -46,204 +59,207 @@ fn active_dialog_command(silent: bool) -> io::Result<String> {
     }
 }
 
+fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) -> Result<(
+        egui_sdl2_gl::sdl2::video::Window,
+        GLContext,
+        CtxRef,
+        sdl2::EventPump), Error> {
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
+    let gl_attr = video_subsystem.gl_attr();
+    gl_attr.set_context_profile(GLProfile::Core);
+
+    // Let OpenGL know we are dealing with SRGB colors so that it
+    // can do the blending correctly. Not setting the framebuffer
+    // leads to darkened, oversaturated colors.
+    gl_attr.set_framebuffer_srgb_compatible(true);
+    gl_attr.set_double_buffer(true);
+    gl_attr.set_multisample_samples(4);
+    // OpenGL 3.2 is the minimum that we will support.
+    gl_attr.set_context_version(3, 2);
+
+    let window = video_subsystem
+        .window(
+            &window_title,
+            window_width,
+            window_height,
+        )
+        .opengl()
+        .resizable()
+        .build()
+        .unwrap();
+
+    // Create a window context
+    let _ctx = window.gl_create_context().unwrap();
+    debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
+    debug_assert_eq!(gl_attr.context_version(), (3, 2));
+
+    // Init egui stuff
+    let egui_ctx = egui::CtxRef::default();
+    let event_pump = sdl_context.event_pump().unwrap();
+
+    Ok((window, _ctx, egui_ctx, event_pump))
+}
+
 pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    if active_dialog_command(false)? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
+    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(400, 120, &title)?;
+    let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
 
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(300, 100);
+    let mut ok = false;
+    let start_time = Instant::now();
 
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
+    'running: loop {
+        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
 
-        let label = gtk::Label::new(Some(error_message));
-        vbox.add(&label);
+        egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+        egui_ctx.begin_frame(egui_state.input.take());
 
-        let ok_button = gtk::Button::with_label("Ok");
+        egui::CentralPanel::default().show(&egui_ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.label(&error_message.to_string());
 
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::Center);
-        button_box.pack_start(&ok_button, false, false, 0);
+                ui.separator();
 
-        let window_clone_ok = window.clone();
-        ok_button.connect_clicked(move |_| {
-            window_clone_ok.close();
+                if ui.button("Ok").clicked() {
+                    ok = true;
+                }
+            });
         });
 
-        vbox.pack_end(&button_box, false, false, 0);
+        let (egui_output, paint_cmds) = egui_ctx.end_frame();
+        egui_state.process_output(&egui_output);
 
-        window.show_all();
-        gtk::main();
-    } else {
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        let paint_jobs = egui_ctx.tessellate(paint_cmds);
+
+        if !egui_output.needs_repaint {
+            std::thread::sleep(Duration::from_millis(10))
+        }
+
+        painter.paint_jobs(None, paint_jobs, &egui_ctx.texture());
+
+        window.gl_swap_window();
+
+        if !egui_output.needs_repaint {
+            if let Some(event) = event_pump.wait_event_timeout(5) {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    _ => {
+                        // Process input event
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
             }
-        };
+        } else {
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    _ => {
+                        // Process input event
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
+            }
+        }
 
-        let zenity_command: Vec<String> = vec![
-            "--error".to_string(),
-            std::format!("--text={}", error_message).to_string(),
-            std::format!("--title={}", title).to_string()
-        ];
-
-        Command::new(zenity_path)
-            .args(&zenity_command)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show zenity error");
+        if ok {
+            break;
+        }
     }
 
     Ok(())
 }
 
-pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<String> {
-    if active_dialog_command(false)? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
+pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<(String, bool)> {
+    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(300, 400, &title)?;
+    let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
 
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(300, 400);
+    let mut cancel = false;
+    let mut ok = false;
+    let mut choice = "";
+    let mut default = false;
 
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
+    let start_time = Instant::now();
 
-        let sw = gtk::ScrolledWindow::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>);
-        sw.set_shadow_type(gtk::ShadowType::EtchedIn);
-        sw.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
-        sw.set_vexpand(true);
-        vbox.add(&sw);
+    'running: loop {
+        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
 
-        let store = TreeStore::new(&[String::static_type()]);
-        let treeview = gtk::TreeView::with_model(&store);
-        treeview.set_vexpand(true);
+        egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+        egui_ctx.begin_frame(egui_state.input.take());
 
-        for (_d_idx, d) in choices.iter().enumerate() {
-            store.insert_with_values(None, None, &[(0, &d)]);
-        }
+        egui::CentralPanel::default().show(&egui_ctx, |ui| {
+            ui.vertical(|ui| {
+                ui.label(column);
+                for (_d_idx, d) in choices.iter().enumerate() {
+                    ui.selectable_value(&mut choice, &d, &d);
+                }
+            });
 
-        sw.add(&treeview);
+            ui.separator();
+            ui.add(Checkbox::new(&mut default, " Set as default?"));
+            ui.separator();
 
-        {
-            let renderer = gtk::CellRendererText::new();
-            let tree_column = gtk::TreeViewColumn::new();
-            tree_column.pack_start(&renderer, true);
-            tree_column.set_title(column);
-            tree_column.set_sizing(gtk::TreeViewColumnSizing::Fixed);
-            tree_column.add_attribute(&renderer, "text", 0);
-            tree_column.set_fixed_width(50);
-            treeview.append_column(&tree_column);
-        }
+            ui.horizontal(|ui| {
+                if ui.button("Cancel").clicked() {
+                    cancel = true;
+                }
 
-        let window_clone_cancel = window.clone();
-        let window_clone_ok = window.clone();
-
-        let cancel_button = gtk::Button::with_label("Cancel");
-        cancel_button.set_margin_end(5);
-        let ok_button = gtk::Button::with_label("Ok");
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::End);
-        button_box.pack_start(&cancel_button, false, false, 0);
-        button_box.pack_start(&ok_button, false, false, 0);
-
-        let choice: Rc<RefCell<Option<String>>> = Rc::new(RefCell::new(None));
-        let captured_choice = choice.clone();
-        let captured_choice_cancel = choice.clone();
-
-        treeview.selection().connect_changed(move |tree_selection| {
-            let (model, iter) = tree_selection.selected().expect("Couldn't get selected");
-            let choice_value = model
-                    .value(&iter, 0)
-                    .get::<String>()
-                    .expect("Treeview selection, column 0");
-            *captured_choice.borrow_mut() = Some(choice_value.to_string());
-        });
-
-        let ok_choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
-        let captured_ok_choice = ok_choice.clone();
-
-        cancel_button.connect_clicked(move |_| {
-            *captured_choice_cancel.borrow_mut() = None;
-            window_clone_cancel.close();
-        });
-
-        ok_button.connect_clicked(move |_| {
-            *captured_ok_choice.borrow_mut() = Some(());
-            window_clone_ok.close();
-        });
-
-        vbox.pack_end(&button_box, false, false, 0);
-
-        window.show_all();
-        gtk::main();
-
-        let ok_choice_borrow = ok_choice.borrow();
-        let ok_choice_match = ok_choice_borrow.as_ref();
-
-        match ok_choice_match {
-            Some(_) => {
-                let choice_borrow = choice.borrow();
-                let choice_match = choice_borrow.as_ref();
-                match choice_match {
-                    Some(s) => {
-                        let choice_str = s.to_string();
-                        Ok(choice_str)
-                    },
-                    None => {
-                        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+                if ui.button("Ok").clicked() {
+                    if choice != "" {
+                        ok = true;
                     }
                 }
-            },
-            None => {
-                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-            }
-        }
-    } else {
-        let mut zenity_list_command: Vec<String> = vec![
-            "--list".to_string(),
-            std::format!("--title={0}", title),
-            std::format!("--column={0}", column),
-            "--hide-header".to_string()
-        ];
+            });
+        });
 
-        for entry in choices {
-            zenity_list_command.push(entry.to_string());
+        let (egui_output, paint_cmds) = egui_ctx.end_frame();
+        egui_state.process_output(&egui_output);
+
+        let paint_jobs = egui_ctx.tessellate(paint_cmds);
+
+        if !egui_output.needs_repaint {
+            std::thread::sleep(Duration::from_millis(10))
         }
 
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
+        painter.paint_jobs(None, paint_jobs, &egui_ctx.texture());
+
+        window.gl_swap_window();
+
+        if !egui_output.needs_repaint {
+            if let Some(event) = event_pump.wait_event_timeout(5) {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    _ => {
+                        // Process input event
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
             }
-        };
-
-        let choice = Command::new(zenity_path)
-            .args(&zenity_list_command)
-            .env("LD_PRELOAD", "")
-            .output()
-            .expect("failed to show choices");
-
-        if !choice.status.success() {
-            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+        } else {
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    _ => {
+                        // Process input event
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
+            }
         }
 
-        let choice_name = match String::from_utf8(choice.stdout) {
-            Ok(s) => String::from(s.trim()),
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
-            }
-        };
-
-        Ok(choice_name)
+        if cancel || ok {
+            break;
+        }
     }
+
+    if cancel {
+        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+    }
+
+    if choice == "" {
+        return Err(Error::new(ErrorKind::Other, "no choice selected"));
+    }
+
+    Ok((choice.to_string(), default))
 }
 
 pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
@@ -432,91 +448,84 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
     }
 }
 
-pub fn start_progress(title: &str, status: &str, interval: usize) -> io::Result<ProgressCreateOutput> {
-     let progress_command: Vec<String> = vec![
-        "--progress".to_string(),
-        std::format!("--title={}", title).to_string(),
-        std::format!("--percentage={}",interval).to_string(),
-        std::format!("--text={}", status).to_string()
-    ];
+pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
+    let guard = arc.lock().unwrap();
+    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(300, 100, &guard.status).unwrap();
+    let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
+    std::mem::drop(guard);
 
-    println!("progress_command {:?}", progress_command);
+    let start_time = Instant::now();
+    'running: loop {
+        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
+        let mut guard = arc.lock().unwrap();
 
-    let zenity_path = match get_zenity_path() {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-        }
-    };
+        egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+        egui_ctx.begin_frame(egui_state.input.take());
 
-    let progress = Command::new(zenity_path)
-        .args(&progress_command)
-        .env("LD_PRELOAD", "")
-        .stdin(Stdio::piped())
-        .spawn()
-        .unwrap();
+        egui::CentralPanel::default().show(&egui_ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.label(guard.status.to_string());
+                ui.separator();
 
-    Ok(ProgressCreateOutput::Zenity(progress))
-}
-
-pub fn progress_text_change(title: &str, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
-        {
-            let stdin = match progress.stdin.as_mut() {
-                Some(s) => s,
-                None => {
-                    return Err(Error::new(ErrorKind::Other, "progress update label failed"));
+                if guard.interval == 100 {
+                    guard.interval = 99;
                 }
-            };
 
-            match stdin.write_all(std::format!("# {}\n", title).as_bytes()) {
-                Ok(()) => {},
-                Err(err) => {
-                    println!("progress update label failed: {}", err);
-                    return Err(Error::new(ErrorKind::Other, "progress update label failed"));
-                }
-            };
-            drop(stdin);
+                let progress = guard.interval as f32 / 100 as f32;
+                let progress_bar = egui::ProgressBar::new(progress)
+                    .show_percentage()
+                    .animate(true);
+                ui.add(progress_bar);
+            });
+        });
+
+        let (egui_output, paint_cmds) = egui_ctx.end_frame();
+        egui_state.process_output(&egui_output);
+
+        let paint_jobs = egui_ctx.tessellate(paint_cmds);
+
+        if !egui_output.needs_repaint {
+            std::thread::sleep(Duration::from_millis(10))
         }
-    }
-    Ok(())
-}
 
-pub fn progress_change(value: i64, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
-        {
-            let mut final_value = value;
-            if final_value == 100 {
-                final_value = 99;
+        painter.paint_jobs(None, paint_jobs, &egui_ctx.texture());
+
+        window.gl_swap_window();
+
+        if !egui_output.needs_repaint {
+            if let Some(event) = event_pump.wait_event_timeout(5) {
+                match event {
+                    Event::Quit { .. } => {
+                        std::mem::drop(guard);
+                        break 'running;
+                    }
+                    _ => {
+                        // Process input event
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
             }
-
-            let stdin = match progress.stdin.as_mut() {
-                Some(s) => s,
-                None => {
-                    return Err(Error::new(ErrorKind::Other, "progress update failed"));
+        } else {
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. } => {
+                        std::mem::drop(guard);
+                        break 'running;
+                    }
+                    _ => {
+                        // Process input event
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
                 }
-            };
-
-            match stdin.write_all(std::format!("{}\n", final_value).as_bytes()) {
-                Ok(()) => {},
-                Err(err) => {
-                    println!("progress update failed: {}", err);
-                    return Err(Error::new(ErrorKind::Other, "progress update failed"));
-                }
-            };
-            drop(stdin);
+            }
         }
-        Ok(())
-    } else {
-        return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
-    }
-}
 
-pub fn progress_close(progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
-        progress.kill().expect("command wasn't running");
-        Ok(())
-    } else {
-        return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
+        if guard.close {
+            std::mem::drop(guard);
+            break
+        }
+        std::mem::drop(guard);
     }
+
+    Ok(())
 }

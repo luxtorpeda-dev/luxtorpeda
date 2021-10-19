@@ -30,3 +30,5 @@ tokio = { version = "0.2", default-features = false, features = ["full"] }
 which = "4.2.2"
 gtk = "0.14.1"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
+egui = "0.14.2"
+egui_sdl2_gl = "0.14.1"
