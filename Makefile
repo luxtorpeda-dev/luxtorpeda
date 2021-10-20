@@ -15,6 +15,7 @@ tool_dir_dev = luxtorpeda-dev
 files = compatibilitytool.vdf \
 	toolmanifest.vdf \
 	luxtorpeda \
+	luxtorpeda.sh \
 	config.json \
 	LICENSE \
 	README.md
@@ -70,6 +71,7 @@ $(tool_dir): \
 		target/release/compatibilitytool.vdf \
 		target/release/toolmanifest.vdf \
 		target/release/config.json \
+		target/release/luxtorpeda.sh \
 		target/release/LICENSE \
 		target/release/README.md
 	mkdir -p $(tool_dir)
@@ -88,6 +90,7 @@ user-install: \
 		target/debug/compatibilitytool.vdf \
 		target/debug/toolmanifest.vdf \
 		target/debug/config.json \
+		target/debug/luxtorpeda.sh \
 		target/debug/LICENSE \
 		target/debug/README.md
 	mkdir -p $(dev_install_dir)

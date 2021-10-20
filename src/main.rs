@@ -18,6 +18,8 @@ mod dialog;
 
 static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
 static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
+static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
+static LD_PRELOAD: &str = "LD_PRELOAD";
 
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -207,6 +209,15 @@ fn run(args: &[&str]) -> io::Result<()> {
     if allow_virtual_gamepad {
         env::set_var(SDL_VIRTUAL_GAMEPAD, "1");
         env::set_var(SDL_IGNORE_DEVICES, ignore_devices);
+    }
+
+    match env::var(ORIGINAL_LD_PRELOAD) {
+        Ok(val) => {
+            env::set_var(LD_PRELOAD, val);
+        },
+        Err(err) => {
+            println!("ORIGINAL_LD_PRELOAD not found: {}", err);
+        }
     }
 
     match find_game_command(&game_info, args) {
