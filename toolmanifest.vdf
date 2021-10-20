@@ -1,7 +1,7 @@
 "manifest"
 {
   "version" "2"
-  "commandline" "/luxtorpeda %verb%"
+  "commandline" "/luxtorpeda.sh %verb%"
   "require_tool_appid" "1391110"
   "use_sessions" "1"
 }
