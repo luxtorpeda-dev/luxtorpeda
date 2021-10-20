@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "40.0.0"
+version = "41.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2018"
 
@@ -28,7 +28,9 @@ flate2 = "1.0.16"
 futures-util = "0.3.14"
 tokio = { version = "0.2", default-features = false, features = ["full"] }
 which = "4.2.2"
-gtk = "0.14.1"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
-egui = "0.14.2"
-egui_sdl2_gl = "0.14.1"
+egui = { git = "https://github.com/emilk/egui.git", ref = "8178d23" }
+egui_sdl2_gl = { git = "https://github.com/ArjunNair/egui_sdl2_gl.git", ref = "6c23f73" }
+
+[patch.crates-io]
+egui = { git = "https://github.com/emilk/egui.git", ref = "8178d23" }

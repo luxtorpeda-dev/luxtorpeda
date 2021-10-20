@@ -1,29 +1,14 @@
 use std::io;
-use std::env;
 use std::io::{Error, ErrorKind};
-use std::process::Command;
-use std::process::Child;
 use std::fs::File;
 use std::io::Read;
-use std::io::Write;
-use std::process::Stdio;
-use std::cell::RefCell;
-
-extern crate gtk;
-use std::rc::Rc;
-use gtk::prelude::*;
-use gtk::{Window, WindowType, TreeStore};
-
-static STEAM_ZENITY: &str = "STEAM_ZENITY";
 
 use std::time::{Duration, Instant};
-use egui::Checkbox;
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
 use egui_backend::{sdl2::event::Event, DpiScaling};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
-use egui::CtxRef;
 
 pub struct ProgressState {
     pub status: String,
@@ -34,35 +19,13 @@ pub struct ProgressState {
     pub error_str: String
 }
 
-fn get_zenity_path() -> Result<String, Error>  {
-    let zenity_path = match env::var(STEAM_ZENITY) {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "Path could not be found"));
-        }
-    };
-
-    return Ok(zenity_path);
-}
-
-fn active_dialog_command(silent: bool) -> io::Result<String> {
-    if gtk::init().is_err() {
-        if !silent {
-            println!("active_dialog_command. Failed to initialize GTK, using zenity.");
-        }
-        Ok("zenity".to_string())
-    } else {
-        if !silent {
-            println!("active_dialog_command. using gtk.");
-        }
-        Ok("gtk".to_string())
-    }
-}
+static DEFAULT_WINDOW_W: u32 = 600;
+static DEFAULT_WINDOW_H: u32 = 140;
 
 fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) -> Result<(
         egui_sdl2_gl::sdl2::video::Window,
         GLContext,
-        CtxRef,
+        egui::CtxRef,
         sdl2::EventPump), Error> {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -85,7 +48,6 @@ fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) 
             window_height,
         )
         .opengl()
-        .resizable()
         .build()
         .unwrap();
 
@@ -101,11 +63,25 @@ fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) 
     Ok((window, _ctx, egui_ctx, event_pump))
 }
 
-pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(400, 120, &title)?;
+fn egui_with_prompts(
+        yes_button: bool,
+        no_button: bool,
+        yes_text: &String,
+        no_text: &String,
+        title: &String,
+        message: &String,
+        scroll_max_height: f32,
+        mut window_height: u32,
+        button_text: &String,
+        button_message: bool) -> Result<bool, Error> {
+    if window_height == 0 {
+        window_height = DEFAULT_WINDOW_H;
+    }
+    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(DEFAULT_WINDOW_W, window_height, &title)?;
     let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
 
-    let mut ok = false;
+    let mut no = false;
+    let mut yes = false;
     let start_time = Instant::now();
 
     'running: loop {
@@ -115,13 +91,33 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
         egui_ctx.begin_frame(egui_state.input.take());
 
         egui::CentralPanel::default().show(&egui_ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                ui.label(&error_message.to_string());
+            egui::ScrollArea::vertical().auto_shrink([false; 2]).max_height(scroll_max_height).show(ui, |ui| {
+                ui.vertical_centered(|ui| {
+                    ui.label(&message.to_string());
+                });
+            });
 
+            let layout = egui::Layout::bottom_up(egui::Align::Center)
+                .with_main_wrap(true)
+                .with_cross_justify(true);
+            ui.with_layout(layout,|ui| {
+                if no_button {
+                    ui.separator();
+                    if ui.button(&no_text).clicked() {
+                        no = true;
+                    }
+                }
+
+                if yes_button {
+                    ui.separator();
+                    if ui.button(&yes_text).clicked() {
+                        yes = true;
+                    }
+                }
                 ui.separator();
 
-                if ui.button("Ok").clicked() {
-                    ok = true;
+                if button_message {
+                    ui.label(&button_text.to_string());
                 }
             });
         });
@@ -161,12 +157,23 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
             }
         }
 
-        if ok {
+        if no || yes {
             break;
         }
     }
 
-    Ok(())
+    Ok(yes)
+}
+
+pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
+    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 30.0, 0, &"".to_string(), false) {
+        Ok(_) => {
+            Ok(())
+        },
+        Err(err) => {
+            return Err(err);
+        }
+    }
 }
 
 pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<(String, bool)> {
@@ -189,25 +196,32 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
         egui::CentralPanel::default().show(&egui_ctx, |ui| {
             ui.vertical(|ui| {
                 ui.label(column);
+                ui.separator();
+            });
+
+            egui::ScrollArea::vertical().auto_shrink([false; 2]).max_height(160.0).show(ui, |ui| {
                 for (_d_idx, d) in choices.iter().enumerate() {
                     ui.selectable_value(&mut choice, &d, &d);
                 }
             });
 
             ui.separator();
-            ui.add(Checkbox::new(&mut default, " Set as default?"));
-            ui.separator();
+            ui.add(egui::Checkbox::new(&mut default, " Set as default?"));
 
-            ui.horizontal(|ui| {
+            let layout = egui::Layout::bottom_up(egui::Align::Center)
+                .with_main_wrap(true)
+                .with_cross_justify(true);
+            ui.with_layout(layout,|ui| {
+                ui.separator();
                 if ui.button("Cancel").clicked() {
                     cancel = true;
                 }
 
+                ui.separator();
                 if ui.button("Ok").clicked() {
-                    if choice != "" {
-                        ok = true;
-                    }
+                    ok = true;
                 }
+                ui.separator();
             });
         });
 
@@ -267,182 +281,33 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let mut file_buf = vec![];
     file.read_to_end(&mut file_buf)?;
     let file_str = String::from_utf8_lossy(&file_buf);
+    let file_str_milk = file_str.as_ref();
 
-    if active_dialog_command(false)? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
-
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(600, 400);
-
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
-
-        let sw = gtk::ScrolledWindow::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>);
-        sw.set_shadow_type(gtk::ShadowType::EtchedIn);
-        sw.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
-        sw.set_vexpand(true);
-        vbox.add(&sw);
-
-        let text_view = gtk::TextView::new();
-        text_view.set_wrap_mode(gtk::WrapMode::Word);
-        text_view.set_cursor_visible(false);
-        text_view.buffer().unwrap().set_text(&file_str);
-        sw.add(&text_view);
-
-        let label = gtk::Label::new(Some("By clicking OK below, you are agreeing to the above."));
-        vbox.add(&label);
-
-        let cancel_button = gtk::Button::with_label("Cancel");
-        cancel_button.set_margin_end(5);
-        let ok_button = gtk::Button::with_label("Ok");
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::End);
-        button_box.pack_start(&cancel_button, false, false, 0);
-        button_box.pack_start(&ok_button, false, false, 0);
-
-        let window_clone_cancel = window.clone();
-        let window_clone_ok = window.clone();
-
-        let choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
-        let captured_choice_ok = choice.clone();
-
-        cancel_button.connect_clicked(move |_| {
-            window_clone_cancel.close();
-        });
-
-        ok_button.connect_clicked(move |_| {
-            *captured_choice_ok.borrow_mut() = Some(());
-            window_clone_ok.close();
-        });
-
-        vbox.pack_end(&button_box, false, false, 0);
-
-        window.show_all();
-        gtk::main();
-
-        let choice_borrow = choice.borrow();
-        let choice_match = choice_borrow.as_ref();
-
-        match choice_match {
-            Some(_) => {
+    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 380.0, 600, &"By clicking OK below, you are agreeing to the above.".to_string(), true) {
+        Ok(yes) => {
+            if yes {
                 Ok(())
-            },
-            None => {
+            } else {
                 return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
-        }
-    } else {
-        let mut converted_file = File::create("converted.txt")?;
-        converted_file.write_all(file_str.as_bytes())?;
-
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-            }
-        };
-
-        let choice = Command::new(zenity_path)
-            .args(&[
-                "--text-info",
-                &std::format!("--title={0}", title).to_string(),
-                "--filename=converted.txt"])
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show file with confirm");
-
-        if !choice.success() {
-            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-        }
-        else {
-            Ok(())
+        },
+        Err(err) => {
+            return Err(err);
         }
     }
 }
 
 pub fn show_question(title: &str, text: &str) -> Option<()> {
-    if active_dialog_command(false).ok()? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
-
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(300, 100);
-
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
-
-        let label = gtk::Label::new(Some(text));
-        vbox.add(&label);
-
-        let cancel_button = gtk::Button::with_label("No");
-        cancel_button.set_margin_end(5);
-        let ok_button = gtk::Button::with_label("Yes");
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::End);
-        button_box.pack_start(&cancel_button, false, false, 0);
-        button_box.pack_start(&ok_button, false, false, 0);
-
-        let window_clone_cancel = window.clone();
-        let window_clone_ok = window.clone();
-
-        let choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
-        let captured_choice_ok = choice.clone();
-
-        cancel_button.connect_clicked(move |_| {
-            window_clone_cancel.close();
-        });
-
-        ok_button.connect_clicked(move |_| {
-            *captured_choice_ok.borrow_mut() = Some(());
-            window_clone_ok.close();
-        });
-
-        vbox.pack_end(&button_box, false, false, 0);
-
-        window.show_all();
-        gtk::main();
-
-        let choice_borrow = choice.borrow();
-        let choice_match = choice_borrow.as_ref();
-
-        match choice_match {
-            Some(_) => {
+    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 30.0, 0, &"".to_string(), false) {
+        Ok(yes) => {
+            if yes {
                 Some(())
-            },
-            None => {
+            } else {
                 return None
             }
-        }
-    } else {
-        let zenity_command: Vec<String> = vec![
-            "--question".to_string(),
-            std::format!("--text={}", &text),
-            std::format!("--title={}", &title)
-        ];
-
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return None
-            }
-        };
-
-        let question = Command::new(zenity_path)
-            .args(&zenity_command)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show question");
-
-        if question.success() {
-            Some(())
-        } else {
+        },
+        Err(err) => {
+            println!("show_question err: {:?}", err);
             return None
         }
     }
@@ -450,7 +315,7 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
 
 pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
     let guard = arc.lock().unwrap();
-    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(300, 100, &guard.status).unwrap();
+    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, &guard.status).unwrap();
     let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
     std::mem::drop(guard);
 
