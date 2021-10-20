@@ -16,6 +16,9 @@ mod pid_file;
 mod user_env;
 mod dialog;
 
+static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
+static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
+
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
 }
@@ -110,6 +113,31 @@ fn run(args: &[&str]) -> io::Result<()> {
         return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
     }
 
+    let mut allow_virtual_gamepad = false;
+    let mut ignore_devices = "".to_string();
+    match env::var(SDL_VIRTUAL_GAMEPAD) {
+        Ok(val) => {
+            if val == "1" {
+                 println!("turning virtual gamepad off");
+                 env::remove_var(SDL_VIRTUAL_GAMEPAD);
+                 allow_virtual_gamepad = true;
+
+                 match env::var(SDL_IGNORE_DEVICES) {
+                    Ok(val) => {
+                        ignore_devices = val.clone();
+                        env::remove_var(SDL_IGNORE_DEVICES);
+                    },
+                    Err(err) => {
+                         println!("SDL_IGNORE_DEVICES not found: {}", err);
+                    }
+                };
+            }
+        },
+        Err(err) => {
+            println!("virtual gamepad setting not found: {}", err);
+        }
+    }
+
     package::update_packages_json().unwrap();
 
     let _pid_file = pid_file::new()?;
@@ -174,6 +202,11 @@ fn run(args: &[&str]) -> io::Result<()> {
                 return Err(err);
             }
         }
+    }
+
+    if allow_virtual_gamepad {
+        env::set_var(SDL_VIRTUAL_GAMEPAD, "1");
+        env::set_var(SDL_IGNORE_DEVICES, ignore_devices);
     }
 
     match find_game_command(&game_info, args) {

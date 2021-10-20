@@ -405,13 +405,12 @@ pub fn download_all(app_id: String) -> io::Result<String> {
                     let mut guard = download_err_arc.lock().unwrap();
                     guard.close = true;
                     guard.error = true;
-                    std::mem::drop(guard);
 
                     if err.to_string() != "progress update failed" {
-                        let mut guard = download_err_arc.lock().unwrap();
                         guard.error_str = std::format!("Download of {} Error: {}",info.name.clone(), err);
-                        std::mem::drop(guard);
                     }
+
+                    std::mem::drop(guard);
 
                     let mut cache_dir = app_id;
                     if info.cache_by_name == true {

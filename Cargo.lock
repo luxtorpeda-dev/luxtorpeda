@@ -338,7 +338,7 @@ checksum = "ea57b42383d091c85abcc2706240b94ab2a8fa1fc81c10ff23c4de06e2a90b5e"
 [[package]]
 name = "egui"
 version = "0.14.2"
-source = "git+https://github.com/emilk/egui.git#8178d23d19bc698acfd941fc988b8b0796b813d2"
+source = "git+https://github.com/emilk/egui.git?rev=8178d23#8178d23d19bc698acfd941fc988b8b0796b813d2"
 dependencies = [
  "ahash",
  "epaint",
@@ -348,6 +348,7 @@ dependencies = [
 [[package]]
 name = "egui_sdl2_gl"
 version = "0.14.1"
+source = "git+https://github.com/ArjunNair/egui_sdl2_gl.git?rev=6c23f73#6c23f73713959c739706cf76f387efb14e8720d1"
 dependencies = [
  "egui",
  "gl",
@@ -363,7 +364,7 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 [[package]]
 name = "emath"
 version = "0.14.0"
-source = "git+https://github.com/emilk/egui.git#8178d23d19bc698acfd941fc988b8b0796b813d2"
+source = "git+https://github.com/emilk/egui.git?rev=8178d23#8178d23d19bc698acfd941fc988b8b0796b813d2"
 
 [[package]]
 name = "encoding_rs"
@@ -377,7 +378,7 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.14.0"
-source = "git+https://github.com/emilk/egui.git#8178d23d19bc698acfd941fc988b8b0796b813d2"
+source = "git+https://github.com/emilk/egui.git?rev=8178d23#8178d23d19bc698acfd941fc988b8b0796b813d2"
 dependencies = [
  "ab_glyph",
  "ahash",
