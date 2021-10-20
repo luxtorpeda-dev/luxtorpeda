@@ -348,7 +348,6 @@ dependencies = [
 [[package]]
 name = "egui_sdl2_gl"
 version = "0.14.1"
-source = "git+https://github.com/ArjunNair/egui_sdl2_gl.git#6c23f73713959c739706cf76f387efb14e8720d1"
 dependencies = [
  "egui",
  "gl",

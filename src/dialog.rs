@@ -26,7 +26,8 @@ fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) 
         egui_sdl2_gl::sdl2::video::Window,
         GLContext,
         egui::CtxRef,
-        sdl2::EventPump), Error> {
+        sdl2::EventPump,
+        sdl2::Sdl), Error> {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
@@ -60,7 +61,7 @@ fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) 
     let egui_ctx = egui::CtxRef::default();
     let event_pump = sdl_context.event_pump().unwrap();
 
-    Ok((window, _ctx, egui_ctx, event_pump))
+    Ok((window, _ctx, egui_ctx, event_pump, sdl_context))
 }
 
 fn egui_with_prompts(
@@ -77,7 +78,7 @@ fn egui_with_prompts(
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(DEFAULT_WINDOW_W, window_height, &title)?;
+    let (window, _ctx, mut egui_ctx, mut event_pump, sdl_context) = start_egui_window(DEFAULT_WINDOW_W, window_height, &title)?;
     let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
 
     let mut no = false;
@@ -147,6 +148,8 @@ fn egui_with_prompts(
             }
         } else {
             for event in event_pump.poll_iter() {
+                use sdl2::controller::Axis;
+                use sdl2::event::Event;
                 match event {
                     Event::Quit { .. } => break 'running,
                     _ => {
@@ -177,7 +180,7 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
 }
 
 pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<(String, bool)> {
-    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(300, 400, &title)?;
+    let (window, _ctx, mut egui_ctx, mut event_pump, sdl_context) = start_egui_window(300, 400, &title)?;
     let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
 
     let mut cancel = false;
@@ -186,6 +189,40 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
     let mut default = false;
 
     let start_time = Instant::now();
+
+    let game_controller_subsystem = sdl_context.game_controller().unwrap();
+
+    let available = game_controller_subsystem
+        .num_joysticks()
+        .map_err(|e| format!("can't enumerate joysticks: {}", e)).unwrap();
+
+    println!("{} joysticks available", available);
+
+    let mut controller = (0..available)
+        .find_map(|id| {
+            if !game_controller_subsystem.is_game_controller(id) {
+                println!("{} is not a game controller", id);
+                return None;
+            }
+
+            println!("Attempting to open controller {}", id);
+
+            match game_controller_subsystem.open(id) {
+                Ok(c) => {
+                    // We managed to find and open a game controller,
+                    // exit the loop
+                    println!("Success: opened \"{}\"", c.name());
+                    Some(c)
+                }
+                Err(e) => {
+                    println!("failed: {:?}", e);
+                    None
+                }
+            }
+        })
+        .expect("Couldn't open any controller");
+
+    println!("Controller mapping: {}", controller.mapping());
 
     'running: loop {
         window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
@@ -208,18 +245,18 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             ui.separator();
             ui.add(egui::Checkbox::new(&mut default, " Set as default?"));
 
-            let layout = egui::Layout::bottom_up(egui::Align::Center)
+            let layout = egui::Layout::top_down(egui::Align::Center)
                 .with_main_wrap(true)
                 .with_cross_justify(true);
             ui.with_layout(layout,|ui| {
                 ui.separator();
-                if ui.button("Cancel").clicked() {
-                    cancel = true;
+                if ui.button("Ok").clicked() {
+                    ok = true;
                 }
 
                 ui.separator();
-                if ui.button("Ok").clicked() {
-                    ok = true;
+                if ui.button("Cancel").clicked() {
+                    cancel = true;
                 }
                 ui.separator();
             });
@@ -242,6 +279,58 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             if let Some(event) = event_pump.wait_event_timeout(5) {
                 match event {
                     Event::Quit { .. } => break 'running,
+                    /*Event::ControllerButtonDown { button, .. } => {
+                        println!("Button {:?} down", button);
+                        if button == sdl2::controller::Button::DPadDown {
+                            println!("Button {:?} down ?????", button);
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            println!("Button {:?} down ????? 3456", button);
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },*/
+                    Event::ControllerButtonUp { button, .. } => {
+                        println!("Button {:?} up", button);
+                        if button == sdl2::controller::Button::DPadDown {
+                            println!("Button {:?} up ?????", button);
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            println!("Button {:?} up ????? 3456", button);
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
                     _ => {
                         // Process input event
                         egui_state.process_input(&window, event, &mut painter);
@@ -315,7 +404,7 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
 
 pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
     let guard = arc.lock().unwrap();
-    let (window, _ctx, mut egui_ctx, mut event_pump) = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, &guard.status).unwrap();
+    let (window, _ctx, mut egui_ctx, mut event_pump, sdl_context) = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, &guard.status).unwrap();
     let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
     std::mem::drop(guard);
 
