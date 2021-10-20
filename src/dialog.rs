@@ -1,249 +1,525 @@
 use std::io;
-use std::env;
 use std::io::{Error, ErrorKind};
-use std::process::Command;
-use std::process::Child;
 use std::fs::File;
 use std::io::Read;
-use std::io::Write;
-use std::process::Stdio;
-use std::cell::RefCell;
 
-extern crate gtk;
-use std::rc::Rc;
-use gtk::prelude::*;
-use gtk::{Window, WindowType, TreeStore};
+use std::time::{Duration, Instant};
+use egui_backend::sdl2::video::GLProfile;
+use egui_backend::{egui, sdl2};
+use egui_backend::{sdl2::event::Event, DpiScaling};
+use egui_sdl2_gl as egui_backend;
+use sdl2::video::{SwapInterval,GLContext};
 
-static STEAM_ZENITY: &str = "STEAM_ZENITY";
-
-pub enum ProgressCreateOutput {
-    Zenity(Child),
-    Unused(String)
+pub struct ProgressState {
+    pub status: String,
+    pub interval: usize,
+    pub close: bool,
+    pub error: bool,
+    pub complete: bool,
+    pub error_str: String
 }
 
-fn get_zenity_path() -> Result<String, Error>  {
-    let zenity_path = match env::var(STEAM_ZENITY) {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "Path could not be found"));
-        }
-    };
+static DEFAULT_WINDOW_W: u32 = 600;
+static DEFAULT_WINDOW_H: u32 = 140;
 
-    return Ok(zenity_path);
-}
+fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) -> Result<(
+        egui_sdl2_gl::sdl2::video::Window,
+        GLContext,
+        egui::CtxRef,
+        sdl2::EventPump,
+        std::option::Option<sdl2::controller::GameController>), Error> {
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
+    let gl_attr = video_subsystem.gl_attr();
+    gl_attr.set_context_profile(GLProfile::Core);
 
-fn active_dialog_command(silent: bool) -> io::Result<String> {
-    if gtk::init().is_err() {
-        if !silent {
-            println!("active_dialog_command. Failed to initialize GTK, using zenity.");
+    // Let OpenGL know we are dealing with SRGB colors so that it
+    // can do the blending correctly. Not setting the framebuffer
+    // leads to darkened, oversaturated colors.
+    gl_attr.set_framebuffer_srgb_compatible(true);
+    gl_attr.set_double_buffer(true);
+    gl_attr.set_multisample_samples(4);
+    // OpenGL 3.2 is the minimum that we will support.
+    gl_attr.set_context_version(3, 2);
+
+    let window = video_subsystem
+        .window(
+            &window_title,
+            window_width,
+            window_height,
+        )
+        .opengl()
+        .build()
+        .unwrap();
+
+    // Create a window context
+    let _ctx = window.gl_create_context().unwrap();
+    debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
+    debug_assert_eq!(gl_attr.context_version(), (3, 2));
+
+    // Init egui stuff
+    let egui_ctx = egui::CtxRef::default();
+    let event_pump = sdl_context.event_pump().unwrap();
+
+    let game_controller_subsystem = sdl_context.game_controller().unwrap();
+    let mut controller = None; //needed for controller connection to stay alive
+    match game_controller_subsystem.num_joysticks() {
+        Ok(available) => {
+            println!("{} joysticks available", available);
+
+            match (0..available)
+            .find_map(|id| {
+                if !game_controller_subsystem.is_game_controller(id) {
+                    println!("{} is not a game controller", id);
+                    return None;
+                }
+
+                println!("Attempting to open controller {}", id);
+
+                match game_controller_subsystem.open(id) {
+                    Ok(c) => {
+                        println!("Success: opened \"{}\"", c.name());
+                        Some(c)
+                    }
+                    Err(e) => {
+                        println!("failed: {:?}", e);
+                        None
+                    }
+                }
+            }) {
+                Some(found_controller) => {
+                    println!("Controller connected mapping: {}", found_controller.mapping());
+                    controller = Some(found_controller);
+                },
+                None => {
+                    println!("controller not found");
+                }
+            }
+        },
+        Err(err) => {
+            println!("num_joysticks error {}", err);
         }
-        Ok("zenity".to_string())
-    } else {
-        if !silent {
-            println!("active_dialog_command. using gtk.");
-        }
-        Ok("gtk".to_string())
     }
+
+    Ok((window, _ctx, egui_ctx, event_pump, controller))
+}
+
+fn egui_with_prompts(
+        yes_button: bool,
+        no_button: bool,
+        yes_text: &String,
+        no_text: &String,
+        title: &String,
+        message: &String,
+        scroll_max_height: f32,
+        mut window_height: u32,
+        button_text: &String,
+        button_message: bool) -> Result<bool, Error> {
+    if window_height == 0 {
+        window_height = DEFAULT_WINDOW_H;
+    }
+    let (window, _ctx, mut egui_ctx, mut event_pump, controller) = start_egui_window(DEFAULT_WINDOW_W, window_height, &title)?;
+    let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
+
+    let mut no = false;
+    let mut yes = false;
+    let start_time = Instant::now();
+
+    'running: loop {
+        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
+
+        egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+        egui_ctx.begin_frame(egui_state.input.take());
+
+        egui::CentralPanel::default().show(&egui_ctx, |ui| {
+            egui::ScrollArea::vertical().auto_shrink([false; 2]).max_height(scroll_max_height).show(ui, |ui| {
+                ui.vertical_centered(|ui| {
+                    ui.label(&message.to_string());
+                });
+            });
+
+            egui::TopBottomPanel::bottom("bottom_panel")
+                .resizable(false)
+                .frame(egui::Frame::none())
+                .min_height(0.0)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::top_down(egui::Align::Center)
+                    .with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        if button_message {
+                            ui.label(&button_text.to_string());
+                        }
+
+                        if yes_button {
+                            ui.separator();
+                            if ui.button(&yes_text).clicked() {
+                                yes = true;
+                            }
+                        }
+
+                        if no_button {
+                            ui.separator();
+                            if ui.button(&no_text).clicked() {
+                                no = true;
+                            }
+                        }
+
+                        ui.separator();
+                    });
+                });
+        });
+
+        let (egui_output, paint_cmds) = egui_ctx.end_frame();
+        egui_state.process_output(&egui_output);
+
+        let paint_jobs = egui_ctx.tessellate(paint_cmds);
+
+        if !egui_output.needs_repaint {
+            std::thread::sleep(Duration::from_millis(10))
+        }
+
+        painter.paint_jobs(None, paint_jobs, &egui_ctx.texture());
+
+        window.gl_swap_window();
+
+        if !egui_output.needs_repaint {
+            if let Some(event) = event_pump.wait_event_timeout(5) {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
+            }
+        } else {
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
+            }
+        }
+
+        if no || yes {
+            break;
+        }
+    }
+
+    Ok(yes)
 }
 
 pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    if active_dialog_command(false)? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
-
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(300, 100);
-
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
-
-        let label = gtk::Label::new(Some(error_message));
-        vbox.add(&label);
-
-        let ok_button = gtk::Button::with_label("Ok");
-
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::Center);
-        button_box.pack_start(&ok_button, false, false, 0);
-
-        let window_clone_ok = window.clone();
-        ok_button.connect_clicked(move |_| {
-            window_clone_ok.close();
-        });
-
-        vbox.pack_end(&button_box, false, false, 0);
-
-        window.show_all();
-        gtk::main();
-    } else {
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-            }
-        };
-
-        let zenity_command: Vec<String> = vec![
-            "--error".to_string(),
-            std::format!("--text={}", error_message).to_string(),
-            std::format!("--title={}", title).to_string()
-        ];
-
-        Command::new(zenity_path)
-            .args(&zenity_command)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show zenity error");
+    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 30.0, 0, &"".to_string(), false) {
+        Ok(_) => {
+            Ok(())
+        },
+        Err(err) => {
+            return Err(err);
+        }
     }
-
-    Ok(())
 }
 
-pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<String> {
-    if active_dialog_command(false)? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
+pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<(String, bool)> {
+    let (window, _ctx, mut egui_ctx, mut event_pump, controller) = start_egui_window(300, 400, &title)?;
+    let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
 
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(300, 400);
+    let mut cancel = false;
+    let mut ok = false;
+    let mut choice = "";
+    let mut default = false;
 
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
+    let start_time = Instant::now();
 
-        let sw = gtk::ScrolledWindow::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>);
-        sw.set_shadow_type(gtk::ShadowType::EtchedIn);
-        sw.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
-        sw.set_vexpand(true);
-        vbox.add(&sw);
+    'running: loop {
+        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
 
-        let store = TreeStore::new(&[String::static_type()]);
-        let treeview = gtk::TreeView::with_model(&store);
-        treeview.set_vexpand(true);
+        egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+        egui_ctx.begin_frame(egui_state.input.take());
 
-        for (_d_idx, d) in choices.iter().enumerate() {
-            store.insert_with_values(None, None, &[(0, &d)]);
+        egui::CentralPanel::default().show(&egui_ctx, |ui| {
+            ui.vertical(|ui| {
+                ui.label(column);
+                ui.separator();
+            });
+
+            egui::ScrollArea::vertical().auto_shrink([false; 2]).max_height(160.0).show(ui, |ui| {
+                for (_d_idx, d) in choices.iter().enumerate() {
+                    ui.selectable_value(&mut choice, &d, &d);
+                }
+            });
+
+            ui.separator();
+            ui.add(egui::Checkbox::new(&mut default, " Set as default?"));
+            ui.separator();
+
+            egui::TopBottomPanel::bottom("bottom_panel")
+                .resizable(false)
+                .frame(egui::Frame::none())
+                .min_height(0.0)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::top_down(egui::Align::Center)
+                    .with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        ui.separator();
+                        if ui.button("Ok").clicked() {
+                            ok = true;
+                        }
+                        ui.separator();
+
+                        if ui.button("Cancel").clicked() {
+                            cancel = true;
+                        }
+
+                        ui.separator();
+                    });
+                });
+        });
+
+        let (egui_output, paint_cmds) = egui_ctx.end_frame();
+        egui_state.process_output(&egui_output);
+
+        let paint_jobs = egui_ctx.tessellate(paint_cmds);
+
+        if !egui_output.needs_repaint {
+            std::thread::sleep(Duration::from_millis(10))
         }
 
-        sw.add(&treeview);
+        painter.paint_jobs(None, paint_jobs, &egui_ctx.texture());
 
-        {
-            let renderer = gtk::CellRendererText::new();
-            let tree_column = gtk::TreeViewColumn::new();
-            tree_column.pack_start(&renderer, true);
-            tree_column.set_title(column);
-            tree_column.set_sizing(gtk::TreeViewColumnSizing::Fixed);
-            tree_column.add_attribute(&renderer, "text", 0);
-            tree_column.set_fixed_width(50);
-            treeview.append_column(&tree_column);
-        }
+        window.gl_swap_window();
 
-        let window_clone_cancel = window.clone();
-        let window_clone_ok = window.clone();
-
-        let cancel_button = gtk::Button::with_label("Cancel");
-        cancel_button.set_margin_end(5);
-        let ok_button = gtk::Button::with_label("Ok");
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::End);
-        button_box.pack_start(&cancel_button, false, false, 0);
-        button_box.pack_start(&ok_button, false, false, 0);
-
-        let choice: Rc<RefCell<Option<String>>> = Rc::new(RefCell::new(None));
-        let captured_choice = choice.clone();
-        let captured_choice_cancel = choice.clone();
-
-        treeview.selection().connect_changed(move |tree_selection| {
-            let (model, iter) = tree_selection.selected().expect("Couldn't get selected");
-            let choice_value = model
-                    .value(&iter, 0)
-                    .get::<String>()
-                    .expect("Treeview selection, column 0");
-            *captured_choice.borrow_mut() = Some(choice_value.to_string());
-        });
-
-        let ok_choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
-        let captured_ok_choice = ok_choice.clone();
-
-        cancel_button.connect_clicked(move |_| {
-            *captured_choice_cancel.borrow_mut() = None;
-            window_clone_cancel.close();
-        });
-
-        ok_button.connect_clicked(move |_| {
-            *captured_ok_choice.borrow_mut() = Some(());
-            window_clone_ok.close();
-        });
-
-        vbox.pack_end(&button_box, false, false, 0);
-
-        window.show_all();
-        gtk::main();
-
-        let ok_choice_borrow = ok_choice.borrow();
-        let ok_choice_match = ok_choice_borrow.as_ref();
-
-        match ok_choice_match {
-            Some(_) => {
-                let choice_borrow = choice.borrow();
-                let choice_match = choice_borrow.as_ref();
-                match choice_match {
-                    Some(s) => {
-                        let choice_str = s.to_string();
-                        Ok(choice_str)
+        if !egui_output.needs_repaint {
+            if let Some(event) = event_pump.wait_event_timeout(5) {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
                     },
-                    None => {
-                        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter)
                     }
                 }
-            },
-            None => {
-                return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+            }
+        } else {
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
             }
         }
-    } else {
-        let mut zenity_list_command: Vec<String> = vec![
-            "--list".to_string(),
-            std::format!("--title={0}", title),
-            std::format!("--column={0}", column),
-            "--hide-header".to_string()
-        ];
 
-        for entry in choices {
-            zenity_list_command.push(entry.to_string());
+        if cancel || ok {
+            break;
         }
-
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-            }
-        };
-
-        let choice = Command::new(zenity_path)
-            .args(&zenity_list_command)
-            .env("LD_PRELOAD", "")
-            .output()
-            .expect("failed to show choices");
-
-        if !choice.status.success() {
-            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-        }
-
-        let choice_name = match String::from_utf8(choice.stdout) {
-            Ok(s) => String::from(s.trim()),
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "Failed to parse choice name"));
-            }
-        };
-
-        Ok(choice_name)
     }
+
+    if cancel {
+        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+    }
+
+    if choice == "" {
+        return Err(Error::new(ErrorKind::Other, "no choice selected"));
+    }
+
+    Ok((choice.to_string(), default))
 }
 
 pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
@@ -251,272 +527,229 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let mut file_buf = vec![];
     file.read_to_end(&mut file_buf)?;
     let file_str = String::from_utf8_lossy(&file_buf);
+    let file_str_milk = file_str.as_ref();
 
-    if active_dialog_command(false)? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
-
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(600, 400);
-
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
-
-        let sw = gtk::ScrolledWindow::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>);
-        sw.set_shadow_type(gtk::ShadowType::EtchedIn);
-        sw.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
-        sw.set_vexpand(true);
-        vbox.add(&sw);
-
-        let text_view = gtk::TextView::new();
-        text_view.set_wrap_mode(gtk::WrapMode::Word);
-        text_view.set_cursor_visible(false);
-        text_view.buffer().unwrap().set_text(&file_str);
-        sw.add(&text_view);
-
-        let label = gtk::Label::new(Some("By clicking OK below, you are agreeing to the above."));
-        vbox.add(&label);
-
-        let cancel_button = gtk::Button::with_label("Cancel");
-        cancel_button.set_margin_end(5);
-        let ok_button = gtk::Button::with_label("Ok");
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::End);
-        button_box.pack_start(&cancel_button, false, false, 0);
-        button_box.pack_start(&ok_button, false, false, 0);
-
-        let window_clone_cancel = window.clone();
-        let window_clone_ok = window.clone();
-
-        let choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
-        let captured_choice_ok = choice.clone();
-
-        cancel_button.connect_clicked(move |_| {
-            window_clone_cancel.close();
-        });
-
-        ok_button.connect_clicked(move |_| {
-            *captured_choice_ok.borrow_mut() = Some(());
-            window_clone_ok.close();
-        });
-
-        vbox.pack_end(&button_box, false, false, 0);
-
-        window.show_all();
-        gtk::main();
-
-        let choice_borrow = choice.borrow();
-        let choice_match = choice_borrow.as_ref();
-
-        match choice_match {
-            Some(_) => {
+    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 380.0, 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true) {
+        Ok(yes) => {
+            if yes {
                 Ok(())
-            },
-            None => {
+            } else {
                 return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
-        }
-    } else {
-        let mut converted_file = File::create("converted.txt")?;
-        converted_file.write_all(file_str.as_bytes())?;
-
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-            }
-        };
-
-        let choice = Command::new(zenity_path)
-            .args(&[
-                "--text-info",
-                &std::format!("--title={0}", title).to_string(),
-                "--filename=converted.txt"])
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show file with confirm");
-
-        if !choice.success() {
-            return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-        }
-        else {
-            Ok(())
+        },
+        Err(err) => {
+            return Err(err);
         }
     }
 }
 
 pub fn show_question(title: &str, text: &str) -> Option<()> {
-    if active_dialog_command(false).ok()? == "gtk" {
-        let window = Window::new(WindowType::Toplevel);
-        window.connect_delete_event(|_,_| {gtk::main_quit(); Inhibit(false) });
-
-        window.set_title(title);
-        window.set_border_width(10);
-        window.set_position(gtk::WindowPosition::Center);
-        window.set_default_size(300, 100);
-
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        vbox.set_homogeneous(false);
-        window.add(&vbox);
-
-        let label = gtk::Label::new(Some(text));
-        vbox.add(&label);
-
-        let cancel_button = gtk::Button::with_label("No");
-        cancel_button.set_margin_end(5);
-        let ok_button = gtk::Button::with_label("Yes");
-        let button_box = gtk::ButtonBox::new(gtk::Orientation::Horizontal);
-        button_box.set_layout(gtk::ButtonBoxStyle::End);
-        button_box.pack_start(&cancel_button, false, false, 0);
-        button_box.pack_start(&ok_button, false, false, 0);
-
-        let window_clone_cancel = window.clone();
-        let window_clone_ok = window.clone();
-
-        let choice: Rc<RefCell<Option<()>>> = Rc::new(RefCell::new(None));
-        let captured_choice_ok = choice.clone();
-
-        cancel_button.connect_clicked(move |_| {
-            window_clone_cancel.close();
-        });
-
-        ok_button.connect_clicked(move |_| {
-            *captured_choice_ok.borrow_mut() = Some(());
-            window_clone_ok.close();
-        });
-
-        vbox.pack_end(&button_box, false, false, 0);
-
-        window.show_all();
-        gtk::main();
-
-        let choice_borrow = choice.borrow();
-        let choice_match = choice_borrow.as_ref();
-
-        match choice_match {
-            Some(_) => {
+    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 30.0, 0, &"".to_string(), false) {
+        Ok(yes) => {
+            if yes {
                 Some(())
-            },
-            None => {
+            } else {
                 return None
             }
-        }
-    } else {
-        let zenity_command: Vec<String> = vec![
-            "--question".to_string(),
-            std::format!("--text={}", &text),
-            std::format!("--title={}", &title)
-        ];
-
-        let zenity_path = match get_zenity_path() {
-            Ok(s) => s,
-            Err(_) => {
-                return None
-            }
-        };
-
-        let question = Command::new(zenity_path)
-            .args(&zenity_command)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to show question");
-
-        if question.success() {
-            Some(())
-        } else {
+        },
+        Err(err) => {
+            println!("show_question err: {:?}", err);
             return None
         }
     }
 }
 
-pub fn start_progress(title: &str, status: &str, interval: usize) -> io::Result<ProgressCreateOutput> {
-     let progress_command: Vec<String> = vec![
-        "--progress".to_string(),
-        std::format!("--title={}", title).to_string(),
-        std::format!("--percentage={}",interval).to_string(),
-        std::format!("--text={}", status).to_string()
-    ];
+pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
+    let guard = arc.lock().unwrap();
+    let (window, _ctx, mut egui_ctx, mut event_pump, controller) = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, &guard.status).unwrap();
+    let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
+    std::mem::drop(guard);
 
-    println!("progress_command {:?}", progress_command);
+    let start_time = Instant::now();
 
-    let zenity_path = match get_zenity_path() {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(Error::new(ErrorKind::Other, "zenity path not found"))
-        }
-    };
+    'running: loop {
+        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
+        let mut guard = arc.lock().unwrap();
 
-    let progress = Command::new(zenity_path)
-        .args(&progress_command)
-        .env("LD_PRELOAD", "")
-        .stdin(Stdio::piped())
-        .spawn()
-        .unwrap();
+        egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+        egui_ctx.begin_frame(egui_state.input.take());
 
-    Ok(ProgressCreateOutput::Zenity(progress))
-}
+        egui::CentralPanel::default().show(&egui_ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.label(guard.status.to_string());
+                ui.separator();
 
-pub fn progress_text_change(title: &str, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
-        {
-            let stdin = match progress.stdin.as_mut() {
-                Some(s) => s,
-                None => {
-                    return Err(Error::new(ErrorKind::Other, "progress update label failed"));
+                if guard.interval == 100 {
+                    guard.interval = 99;
                 }
-            };
 
-            match stdin.write_all(std::format!("# {}\n", title).as_bytes()) {
-                Ok(()) => {},
-                Err(err) => {
-                    println!("progress update label failed: {}", err);
-                    return Err(Error::new(ErrorKind::Other, "progress update label failed"));
-                }
-            };
-            drop(stdin);
+                let progress = guard.interval as f32 / 100 as f32;
+                let progress_bar = egui::ProgressBar::new(progress)
+                    .show_percentage()
+                    .animate(true);
+                ui.add(progress_bar);
+            });
+
+            egui::TopBottomPanel::bottom("bottom_panel")
+                .resizable(false)
+                .frame(egui::Frame::none())
+                .min_height(0.0)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::top_down(egui::Align::Center)
+                    .with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        ui.separator();
+                        if ui.button("Cancel").clicked() {
+                            guard.close = true;
+                        }
+                        ui.separator();
+                    });
+                });
+        });
+
+        let (egui_output, paint_cmds) = egui_ctx.end_frame();
+        egui_state.process_output(&egui_output);
+
+        let paint_jobs = egui_ctx.tessellate(paint_cmds);
+
+        if !egui_output.needs_repaint {
+            std::thread::sleep(Duration::from_millis(10))
         }
-    }
-    Ok(())
-}
 
-pub fn progress_change(value: i64, progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
-        {
-            let mut final_value = value;
-            if final_value == 100 {
-                final_value = 99;
+        painter.paint_jobs(None, paint_jobs, &egui_ctx.texture());
+
+        window.gl_swap_window();
+
+        if !egui_output.needs_repaint {
+            if let Some(event) = event_pump.wait_event_timeout(5) {
+                match event {
+                    Event::Quit { .. } => {
+                        std::mem::drop(guard);
+                        break 'running;
+                    },
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
             }
-
-            let stdin = match progress.stdin.as_mut() {
-                Some(s) => s,
-                None => {
-                    return Err(Error::new(ErrorKind::Other, "progress update failed"));
+        } else {
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. } => {
+                        std::mem::drop(guard);
+                        break 'running;
+                    },
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
                 }
-            };
-
-            match stdin.write_all(std::format!("{}\n", final_value).as_bytes()) {
-                Ok(()) => {},
-                Err(err) => {
-                    println!("progress update failed: {}", err);
-                    return Err(Error::new(ErrorKind::Other, "progress update failed"));
-                }
-            };
-            drop(stdin);
+            }
         }
-        Ok(())
-    } else {
-        return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
-    }
-}
 
-pub fn progress_close(progress_ref: &mut ProgressCreateOutput) -> io::Result<()> {
-    if let ProgressCreateOutput::Zenity(ref mut progress) = progress_ref {
-        progress.kill().expect("command wasn't running");
-        Ok(())
-    } else {
-        return Err(Error::new(ErrorKind::Other, "Progress not implemented"));
+        if guard.close {
+            std::mem::drop(guard);
+            break
+        }
+        std::mem::drop(guard);
     }
+
+    Ok(())
 }

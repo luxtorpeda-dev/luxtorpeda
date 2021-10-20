@@ -29,10 +29,7 @@ use crate::dialog::show_error;
 use crate::dialog::show_choices;
 use crate::dialog::show_question;
 use crate::dialog::start_progress;
-use crate::dialog::progress_change;
-use crate::dialog::progress_text_change;
-use crate::dialog::progress_close;
-use crate::dialog::ProgressCreateOutput;
+use crate::dialog::ProgressState;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
@@ -216,8 +213,8 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         choices.push(entry["name"].to_string());
     }
     
-    let choice_name = match show_choices("Pick the engine below", "Name", &choices) {
-        Ok(s) => String::from(s.trim()),
+    let (choice_name, default) = match show_choices("Pick the engine below", "Name", &choices) {
+        Ok(s) => s,
         Err(_) => {
             println!("show choice. dialog was rejected");
             return Err(Error::new(ErrorKind::Other, "Show choices failed"));
@@ -226,17 +223,12 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
     
     println!("engine choice: {:?}", choice_name);
 
-    match show_question("Default Engine Question", "Do you want this engine choice to become the default?") {
-        Some(_) => {
-            println!("default engine choice requested");
-            let default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
-            let mut default_choice_file = File::create(default_choice_file_path)?;
-            default_choice_file.write_all(choice_name.as_bytes())?;
-        },
-        None => {
-             println!("default engine choice denied");
-        }
-    };
+    if default {
+        println!("default engine choice requested");
+        let default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
+        let mut default_choice_file = File::create(default_choice_file_path)?;
+        default_choice_file.write_all(choice_name.as_bytes())?;
+    }
     
     return Ok(choice_name);
 }
@@ -385,75 +377,104 @@ pub fn download_all(app_id: String) -> io::Result<String> {
         };
     }
 
-    let mut progress_ref = match start_progress("Download Progress", "Downloading...", 100) {
-        Ok(s) => s,
-        Err(_) => {
-            println!("download_all. warning: progress not started");
-            ProgressCreateOutput::Unused("".to_string())
+    let progress_state = ProgressState{interval: 0, status: "".to_string(), close: false, complete: false, error: false, error_str: "".to_string()};
+    let mutex = std::sync::Mutex::new(progress_state);
+    let arc = std::sync::Arc::new(mutex);
+    let progress_arc = arc.clone();
+    let loop_arc = arc.clone();
+
+    let download_thread = std::thread::spawn(move || {
+        let client = reqwest::Client::new();
+
+        for (i, info) in downloads.iter().enumerate() {
+            let app_id = app_id.to_string();
+            println!("starting download on: {} {}", i, info.name.clone());
+
+            let status_arc = loop_arc.clone();
+            let mut guard = status_arc.lock().unwrap();
+            guard.status = std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone());
+            guard.interval = 0;
+            std::mem::drop(guard);
+
+            let download_arc = loop_arc.clone();
+            let download_err_arc = loop_arc.clone();
+            match Runtime::new().unwrap().block_on(download(app_id.as_str(), info, download_arc, &client)) {
+                Ok(_) => {},
+                Err(ref err) => {
+                    println!("download of {} error: {}",info.name.clone(), err);
+                    let mut guard = download_err_arc.lock().unwrap();
+                    guard.close = true;
+                    guard.error = true;
+
+                    if err.to_string() != "progress update failed" {
+                        guard.error_str = std::format!("Download of {} Error: {}",info.name.clone(), err);
+                    }
+
+                    std::mem::drop(guard);
+
+                    let mut cache_dir = app_id;
+                    if info.cache_by_name == true {
+                        cache_dir = info.name.clone();
+                    }
+                    let dest_file = place_cached_file(&cache_dir, &info.file).unwrap();
+                    if dest_file.exists() {
+                        fs::remove_file(dest_file).unwrap();
+                    }
+                }
+            };
+
+            let error_check_arc = loop_arc.clone();
+            let guard = error_check_arc.lock().unwrap();
+            if !guard.error {
+                println!("completed download on: {} {}", i, info.name.clone());
+            } else {
+                println!("failed download on: {} {}", i, info.name.clone());
+                std::mem::drop(guard);
+                break;
+            }
+            std::mem::drop(guard);
         }
-    };
 
-    let client = reqwest::Client::new();
+        let mut guard = loop_arc.lock().unwrap();
+        guard.close = true;
+        if !guard.error {
+            guard.complete = true;
+        }
+        std::mem::drop(guard);
+    });
 
-    for (i, info) in downloads.iter().enumerate() {
-        println!("starting download on: {} {}", i, info.name.clone());
-
-        match progress_text_change(&std::format!("Downloading {}/{} - {}", i+1, downloads.len(), info.name.clone()), &mut progress_ref) {
-            Ok(()) => {},
-            Err(_) => {
-                println!("download_all. warning: progress not updated");
-            }
-        };
-
-        match progress_change(0, &mut progress_ref) {
-            Ok(()) => {},
-            Err(_) => {
-                println!("download_all. warning: progress not updated");
-            }
-        };
-
-        match Runtime::new().unwrap().block_on(download(app_id.as_str(), info, &mut progress_ref, &client)) {
-            Ok(_) => {},
-            Err(ref err) => {
-                println!("download of {} error: {}",info.name.clone(), err);
-
-                if err.to_string() != "progress update failed" {
-                    match progress_close(&mut progress_ref) {
-                        Ok(()) => {},
-                        Err(_) => {
-                            println!("download. warning: progress not closed");
-                        }
-                    };
-
-                    show_error(&"Download Error".to_string(), &std::format!("Download of {} Error: {}",info.name.clone(), err))?;
-                }
-
-                let mut cache_dir = app_id;
-                if info.cache_by_name == true {
-                    cache_dir = info.name.clone();
-                }
-                let dest_file = place_cached_file(&cache_dir, &info.file)?;
-                if dest_file.exists() {
-                    fs::remove_file(dest_file)?;
-                }
-
-                return Err(Error::new(ErrorKind::Other, "Download failed"));
-            }
-        };
-        println!("completed download on: {} {}", i, info.name.clone());
-    }
-
-    match progress_close(&mut progress_ref) {
+    match start_progress(progress_arc) {
         Ok(()) => {},
         Err(_) => {
-            println!("download_all. warning: progress not closed");
+            println!("download_all. warning: progress not started");
         }
     };
+
+    let check_arc = arc.clone();
+    let mut guard = check_arc.lock().unwrap();
+
+    if guard.error {
+        download_thread.join().expect("The download thread has panicked");
+        if guard.error_str != "" {
+            show_error(&"Download Error".to_string(), &guard.error_str).unwrap();
+        }
+        return Err(Error::new(ErrorKind::Other, "Download failed"));
+    }
+
+    if !guard.complete {
+        guard.close = true;
+        std::mem::drop(guard);
+        download_thread.join().expect("The download thread has panicked");
+        return Err(Error::new(ErrorKind::Other, "Download failed, not complete"));
+    }
+
+    std::mem::drop(guard);
+    download_thread.join().expect("The download thread has panicked");
 
     return Ok(engine_choice);
 }
 
-async fn download(app_id: &str, info: &PackageInfo, progress_ref: &mut ProgressCreateOutput, client: &Client) -> io::Result<()> {
+async fn download(app_id: &str, info: &PackageInfo, arc: std::sync::Arc<std::sync::Mutex<ProgressState>>, client: &Client) -> io::Result<()> {
     let target = info.url.clone() + &info.file;
 
     let mut cache_dir = app_id;
@@ -490,7 +511,14 @@ async fn download(app_id: &str, info: &PackageInfo, progress_ref: &mut ProgressC
 
         if percentage != total_percentage {
             println!("download {}%: {} out of {}", percentage, downloaded, total_size);
-            progress_change(percentage, progress_ref)?;
+            let mut guard = arc.lock().unwrap();
+            guard.interval = percentage as usize;
+
+            if guard.close {
+                std::mem::drop(guard);
+                return Err(Error::new(ErrorKind::Other, "progress update failed"));
+            }
+            std::mem::drop(guard);
             total_percentage = percentage;
         }
     }
