@@ -456,7 +456,9 @@ pub fn download_all(app_id: String) -> io::Result<String> {
 
     if guard.error {
         download_thread.join().expect("The download thread has panicked");
-        show_error(&"Download Error".to_string(), &guard.error_str).unwrap();
+        if guard.error_str != "" {
+            show_error(&"Download Error".to_string(), &guard.error_str).unwrap();
+        }
         return Err(Error::new(ErrorKind::Other, "Download failed"));
     }
 

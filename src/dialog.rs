@@ -320,6 +320,7 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
     std::mem::drop(guard);
 
     let start_time = Instant::now();
+
     'running: loop {
         window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
         let mut guard = arc.lock().unwrap();
@@ -341,6 +342,17 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
                     .show_percentage()
                     .animate(true);
                 ui.add(progress_bar);
+            });
+
+            let layout = egui::Layout::bottom_up(egui::Align::Center)
+                .with_main_wrap(true)
+                .with_cross_justify(true);
+            ui.with_layout(layout,|ui| {
+                ui.separator();
+                if ui.button("Cancel").clicked() {
+                    guard.close = true;
+                }
+                ui.separator();
             });
         });
 
