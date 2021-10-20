@@ -138,28 +138,34 @@ fn egui_with_prompts(
                 });
             });
 
-            let layout = egui::Layout::bottom_up(egui::Align::Center)
-                .with_main_wrap(true)
+            egui::TopBottomPanel::bottom("bottom_panel")
+            .resizable(false)
+            .frame(egui::Frame::none())
+            .min_height(0.0)
+            .show_inside(ui, |ui| {
+                let layout = egui::Layout::top_down(egui::Align::Center)
                 .with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
-                if no_button {
-                    ui.separator();
-                    if ui.button(&no_text).clicked() {
-                        no = true;
+                ui.with_layout(layout,|ui| {
+                    if button_message {
+                        ui.label(&button_text.to_string());
                     }
-                }
 
-                if yes_button {
-                    ui.separator();
-                    if ui.button(&yes_text).clicked() {
-                        yes = true;
+                    if yes_button {
+                        ui.separator();
+                        if ui.button(&yes_text).clicked() {
+                            yes = true;
+                        }
                     }
-                }
-                ui.separator();
 
-                if button_message {
-                    ui.label(&button_text.to_string());
-                }
+                    if no_button {
+                        ui.separator();
+                        if ui.button(&no_text).clicked() {
+                            no = true;
+                        }
+                    }
+
+                    ui.separator();
+                });
             });
         });
 
@@ -344,21 +350,28 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
 
             ui.separator();
             ui.add(egui::Checkbox::new(&mut default, " Set as default?"));
+            ui.separator();
 
-            let layout = egui::Layout::top_down(egui::Align::Center)
-                .with_main_wrap(true)
+            egui::TopBottomPanel::bottom("bottom_panel")
+            .resizable(false)
+            .frame(egui::Frame::none())
+            .min_height(0.0)
+            .show_inside(ui, |ui| {
+                let layout = egui::Layout::top_down(egui::Align::Center)
                 .with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
-                ui.separator();
-                if ui.button("Ok").clicked() {
-                    ok = true;
-                }
+                ui.with_layout(layout,|ui| {
+                    ui.separator();
+                    if ui.button("Ok").clicked() {
+                        ok = true;
+                    }
+                    ui.separator();
 
-                ui.separator();
-                if ui.button("Cancel").clicked() {
-                    cancel = true;
-                }
-                ui.separator();
+                    if ui.button("Cancel").clicked() {
+                        cancel = true;
+                    }
+
+                    ui.separator();
+                });
             });
         });
 
@@ -516,7 +529,7 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let file_str = String::from_utf8_lossy(&file_buf);
     let file_str_milk = file_str.as_ref();
 
-    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 380.0, 600, &"By clicking OK below, you are agreeing to the above.".to_string(), true) {
+    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 380.0, 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true) {
         Ok(yes) => {
             if yes {
                 Ok(())
@@ -577,15 +590,20 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
                 ui.add(progress_bar);
             });
 
-            let layout = egui::Layout::bottom_up(egui::Align::Center)
-                .with_main_wrap(true)
+            egui::TopBottomPanel::bottom("bottom_panel")
+            .resizable(false)
+            .frame(egui::Frame::none())
+            .min_height(0.0)
+            .show_inside(ui, |ui| {
+                let layout = egui::Layout::top_down(egui::Align::Center)
                 .with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
-                ui.separator();
-                if ui.button("Cancel").clicked() {
-                    guard.close = true;
-                }
-                ui.separator();
+                ui.with_layout(layout,|ui| {
+                    ui.separator();
+                    if ui.button("Cancel").clicked() {
+                        guard.close = true;
+                    }
+                    ui.separator();
+                });
             });
         });
 
