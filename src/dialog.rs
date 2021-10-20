@@ -139,34 +139,34 @@ fn egui_with_prompts(
             });
 
             egui::TopBottomPanel::bottom("bottom_panel")
-            .resizable(false)
-            .frame(egui::Frame::none())
-            .min_height(0.0)
-            .show_inside(ui, |ui| {
-                let layout = egui::Layout::top_down(egui::Align::Center)
-                .with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    if button_message {
-                        ui.label(&button_text.to_string());
-                    }
-
-                    if yes_button {
-                        ui.separator();
-                        if ui.button(&yes_text).clicked() {
-                            yes = true;
+                .resizable(false)
+                .frame(egui::Frame::none())
+                .min_height(0.0)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::top_down(egui::Align::Center)
+                    .with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        if button_message {
+                            ui.label(&button_text.to_string());
                         }
-                    }
 
-                    if no_button {
-                        ui.separator();
-                        if ui.button(&no_text).clicked() {
-                            no = true;
+                        if yes_button {
+                            ui.separator();
+                            if ui.button(&yes_text).clicked() {
+                                yes = true;
+                            }
                         }
-                    }
 
-                    ui.separator();
+                        if no_button {
+                            ui.separator();
+                            if ui.button(&no_text).clicked() {
+                                no = true;
+                            }
+                        }
+
+                        ui.separator();
+                    });
                 });
-            });
         });
 
         let (egui_output, paint_cmds) = egui_ctx.end_frame();
@@ -353,26 +353,26 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             ui.separator();
 
             egui::TopBottomPanel::bottom("bottom_panel")
-            .resizable(false)
-            .frame(egui::Frame::none())
-            .min_height(0.0)
-            .show_inside(ui, |ui| {
-                let layout = egui::Layout::top_down(egui::Align::Center)
-                .with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    ui.separator();
-                    if ui.button("Ok").clicked() {
-                        ok = true;
-                    }
-                    ui.separator();
+                .resizable(false)
+                .frame(egui::Frame::none())
+                .min_height(0.0)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::top_down(egui::Align::Center)
+                    .with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        ui.separator();
+                        if ui.button("Ok").clicked() {
+                            ok = true;
+                        }
+                        ui.separator();
 
-                    if ui.button("Cancel").clicked() {
-                        cancel = true;
-                    }
+                        if ui.button("Cancel").clicked() {
+                            cancel = true;
+                        }
 
-                    ui.separator();
+                        ui.separator();
+                    });
                 });
-            });
         });
 
         let (egui_output, paint_cmds) = egui_ctx.end_frame();
@@ -591,20 +591,20 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
             });
 
             egui::TopBottomPanel::bottom("bottom_panel")
-            .resizable(false)
-            .frame(egui::Frame::none())
-            .min_height(0.0)
-            .show_inside(ui, |ui| {
-                let layout = egui::Layout::top_down(egui::Align::Center)
-                .with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    ui.separator();
-                    if ui.button("Cancel").clicked() {
-                        guard.close = true;
-                    }
-                    ui.separator();
+                .resizable(false)
+                .frame(egui::Frame::none())
+                .min_height(0.0)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::top_down(egui::Align::Center)
+                    .with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        ui.separator();
+                        if ui.button("Cancel").clicked() {
+                            guard.close = true;
+                        }
+                        ui.separator();
+                    });
                 });
-            });
         });
 
         let (egui_output, paint_cmds) = egui_ctx.end_frame();
