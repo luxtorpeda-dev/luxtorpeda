@@ -2,6 +2,7 @@ use std::io;
 use std::io::{Error, ErrorKind};
 use std::fs::File;
 use std::io::Read;
+use std::fs;
 
 use std::time::{Duration, Instant};
 use egui_backend::sdl2::video::GLProfile;
@@ -10,6 +11,9 @@ use egui_backend::{sdl2::event::Event, DpiScaling};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
 
+use crate::package::path_to_cache;
+use crate::package::get_game_info;
+
 pub struct ProgressState {
     pub status: String,
     pub interval: usize,
@@ -17,6 +21,19 @@ pub struct ProgressState {
     pub error: bool,
     pub complete: bool,
     pub error_str: String
+}
+
+pub struct MgmtItem {
+    pub id: String,
+    pub friendly_name: String,
+    pub has_cache: bool,
+    pub has_default: bool
+}
+
+pub struct MgmtState {
+    pub games: Vec<MgmtItem>,
+    pub engines: Vec<MgmtItem>,
+    pub close: bool
 }
 
 static DEFAULT_WINDOW_W: u32 = 600;
@@ -600,6 +617,279 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
                     ui.with_layout(layout,|ui| {
                         ui.separator();
                         if ui.button("Cancel").clicked() {
+                            guard.close = true;
+                        }
+                        ui.separator();
+                    });
+                });
+        });
+
+        let (egui_output, paint_cmds) = egui_ctx.end_frame();
+        egui_state.process_output(&egui_output);
+
+        let paint_jobs = egui_ctx.tessellate(paint_cmds);
+
+        if !egui_output.needs_repaint {
+            std::thread::sleep(Duration::from_millis(10))
+        }
+
+        painter.paint_jobs(None, paint_jobs, &egui_ctx.texture());
+
+        window.gl_swap_window();
+
+        if !egui_output.needs_repaint {
+            if let Some(event) = event_pump.wait_event_timeout(5) {
+                match event {
+                    Event::Quit { .. } => {
+                        std::mem::drop(guard);
+                        break 'running;
+                    },
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
+            }
+        } else {
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. } => {
+                        std::mem::drop(guard);
+                        break 'running;
+                    },
+                    Event::ControllerButtonUp { button, .. } => {
+                        if button == sdl2::controller::Button::DPadDown {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::DPadUp {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Tab),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::LSHIFTMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        } else if button == sdl2::controller::Button::A {
+                            let fake_event = sdl2::event::Event::KeyDown {
+                                keycode: Some(sdl2::keyboard::Keycode::Return),
+                                repeat: false,
+                                timestamp: 0,
+                                window_id: 0,
+                                scancode: None,
+                                keymod: sdl2::keyboard::Mod::NOMOD
+                            };
+                            egui_state.process_input(&window, fake_event, &mut painter);
+                        }
+                    },
+                    Event::KeyUp {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    Event::KeyDown {..} => {
+                        match controller {
+                            Some(_) => {},
+                            None => {
+                                egui_state.process_input(&window, event, &mut painter)
+                            }
+                        }
+                    },
+                    _ => {
+                        egui_state.process_input(&window, event, &mut painter);
+                    }
+                }
+            }
+        }
+
+        if guard.close {
+            std::mem::drop(guard);
+            break
+        }
+        std::mem::drop(guard);
+    }
+
+    Ok(())
+}
+
+fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), Error> {
+    let cache_path = path_to_cache();
+    let paths = fs::read_dir(cache_path).unwrap();
+    let names =
+        paths.filter_map(|entry| {
+        entry.ok().and_then(|e|
+            e.path().file_name()
+            .and_then(|n| n.to_str().map(|s| String::from(s)))
+        )
+        }).collect::<Vec<String>>();
+
+    let mut guard = arc.lock().unwrap();
+
+    for name in names {
+        let friendly_name = name.to_string();
+        let name_clone = name.to_string();
+        if name.parse::<f64>().is_ok() {
+            let mut new_item = MgmtItem{id: name_clone, has_cache: false, has_default: false, friendly_name: friendly_name};
+            let game_info_name = name.to_string();
+            match get_game_info(&game_info_name) {
+                Some(game_info) => {
+                    new_item.friendly_name = game_info["game_name"].to_string().clone();
+                },
+                None => {
+                    println!("detect_mgmt get_game_info for {}: not found", &name);
+                }
+            };
+
+            if new_item.friendly_name != "Default" {
+                guard.games.push(new_item);
+            }
+        } else {
+            guard.engines.push(MgmtItem{id: name_clone, has_cache: false, has_default: false, friendly_name: friendly_name});
+        }
+    }
+
+    guard.games.sort_by(|d1, d2| d1.friendly_name.cmp(&d2.friendly_name));
+    guard.engines.sort_by(|d1, d2| d1.friendly_name.cmp(&d2.friendly_name));
+
+    std::mem::drop(guard);
+    Ok(())
+}
+
+pub fn run_mgmt() -> Result<(), Error> {
+    let mgmt_state = MgmtState{close: false, games: Vec::new(), engines: Vec::new()};
+    let mutex = std::sync::Mutex::new(mgmt_state);
+    let arc = std::sync::Arc::new(mutex);
+    let detect_arc = arc.clone();
+
+    match detect_mgmt(detect_arc) {
+        Ok(()) => {},
+        Err(err) => {
+            println!("run_mgmt detect_mgmt error: {}", err);
+            return Err(Error::new(ErrorKind::Other, "detect_mgmt failed"));
+        }
+    };
+
+    let (window, _ctx, mut egui_ctx, mut event_pump, controller) = start_egui_window(1024, 768, "Luxtorpeda").unwrap();
+    let (mut painter, mut egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
+
+    let start_time = Instant::now();
+
+    'running: loop {
+        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
+        let mut guard = arc.lock().unwrap();
+
+        egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+        egui_ctx.begin_frame(egui_state.input.take());
+
+        egui::CentralPanel::default().show(&egui_ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.label(std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION")));
+                ui.separator();
+            });
+
+            let layout = egui::Layout::left_to_right()
+                     .with_cross_align(egui::Align::Center);
+                    ui.with_layout(layout,|ui| {
+                egui::ScrollArea::both().max_height(500.0).id_source("root_scroll").show(ui, |ui| {
+                    egui::Grid::new("games_grid").striped(true).show(ui, |ui| {
+                        for (i, item) in guard.games.iter().enumerate() {
+                            ui.label(&item.friendly_name);
+                            ui.add_enabled_ui(item.has_cache, |ui| {
+                                if ui.button("Clear Cache").clicked() {
+                                }
+                            });
+                            ui.add_enabled_ui(item.has_default, |ui| {
+                                if ui.button("Clear Default").clicked() {
+                                }
+                            });
+                            ui.end_row();
+                        }
+
+                        for (i, item) in guard.engines.iter().enumerate() {
+                            ui.label(&item.friendly_name);
+                            ui.add_enabled_ui(item.has_cache, |ui| {
+                                if ui.button("Clear Cache").clicked() {
+                                }
+                            });
+                            ui.add_enabled_ui(item.has_default, |ui| {
+                                if ui.button("Clear Default").clicked() {
+                                }
+                            });
+                            ui.end_row();
+                        }
+                    });
+                });
+            });
+
+            egui::TopBottomPanel::bottom("bottom_panel")
+                .resizable(false)
+                .frame(egui::Frame::none())
+                .min_height(0.0)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::top_down(egui::Align::Center)
+                    .with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        ui.separator();
+                        if ui.button("Exit").clicked() {
                             guard.close = true;
                         }
                         ui.separator();

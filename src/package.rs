@@ -61,6 +61,14 @@ fn path_to_packages_file() -> PathBuf {
     return path;
 }
 
+pub fn path_to_cache() -> PathBuf {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let config_home = xdg_dirs.get_cache_home();
+    let folder_path = config_home.join("luxtorpeda");
+    fs::create_dir_all(&folder_path).unwrap();
+    return folder_path;
+}
+
 pub fn find_user_packages_file() -> Option<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/user-packages.json");

@@ -273,6 +273,10 @@ fn main() -> io::Result<()> {
             run(cmd_args)
         },
         "manual-download" => manual_download(cmd_args),
+        "mgmt" => {
+            package::update_packages_json().unwrap();
+            dialog::run_mgmt()
+        },
         _ => {
             usage();
             std::process::exit(1)
