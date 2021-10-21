@@ -45,6 +45,7 @@ fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) 
         egui::CtxRef,
         sdl2::EventPump,
         std::option::Option<sdl2::controller::GameController>), Error> {
+    sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
@@ -59,12 +60,16 @@ fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) 
     // OpenGL 3.2 is the minimum that we will support.
     gl_attr.set_context_version(3, 2);
 
+    let mut window_flags: u32 = 0;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
+
     let window = video_subsystem
         .window(
             &window_title,
             window_width,
             window_height,
         )
+        .set_window_flags(window_flags)
         .opengl()
         .build()
         .unwrap();
