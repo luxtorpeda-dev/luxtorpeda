@@ -63,7 +63,15 @@ fn path_to_packages_file() -> PathBuf {
 
 pub fn path_to_cache() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let config_home = xdg_dirs.get_cache_home();
+    let cache_home = xdg_dirs.get_config_home();
+    let folder_path = cache_home.join("luxtorpeda");
+    fs::create_dir_all(&folder_path).unwrap();
+    return folder_path;
+}
+
+pub fn path_to_config() -> PathBuf {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let config_home = xdg_dirs.get_config_home();
     let folder_path = config_home.join("luxtorpeda");
     fs::create_dir_all(&folder_path).unwrap();
     return folder_path;
