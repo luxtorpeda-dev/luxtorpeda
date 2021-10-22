@@ -77,17 +77,20 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             ui.separator();
 
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    for (_d_idx, d) in choices.iter().enumerate() {
-                        if &d.to_string() == default_choice {
-                            ui.selectable_value(&mut choice, &d, std::format!("{} (Default)", &d));
-                        } else {
-                            ui.selectable_value(&mut choice, &d, &d);
+                ui.with_layout(layout,|ui| {
+            //egui::SidePanel::left("Left Panel").resizable(false).show_inside(ui, |ui| {
+
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        for (_d_idx, d) in choices.iter().enumerate() {
+                            if &d.to_string() == default_choice {
+                                ui.selectable_value(&mut choice, &d, std::format!("{} (Default)", &d));
+                            } else {
+                                ui.selectable_value(&mut choice, &d, &d);
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            //});
         });
 
         if cancel || ok {

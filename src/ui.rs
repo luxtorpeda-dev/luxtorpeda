@@ -18,7 +18,8 @@ pub struct EguiWindowInstance {
     painter: egui_sdl2_gl::painter::Painter,
     egui_state: egui_sdl2_gl::EguiStateHandler,
     start_time: std::time::Instant,
-    should_close: bool
+    should_close: bool,
+    title: String
 }
 
 impl EguiWindowInstance {
@@ -27,6 +28,27 @@ impl EguiWindowInstance {
             self.window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
             self.egui_state.input.time = Some(self.start_time.elapsed().as_secs_f64());
             self.egui_ctx.begin_frame(self.egui_state.input.take());
+
+            let mut exit_closed = false;
+            let title = &self.title;
+
+            egui::TopBottomPanel::top("title_bar").frame(default_panel_frame()).resizable(false).show(&self.egui_ctx, |ui| {
+                let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                ui.with_layout(layout,|ui| {
+                    if ui.button("Exit").clicked() {
+                        exit_closed = true;
+                    }
+
+                    ui.vertical_centered(|ui| {
+                        ui.label(title);
+                    });
+                });
+            });
+
+            if exit_closed {
+                self.should_close = true;
+                break;
+            }
 
             f(self);
 
@@ -198,6 +220,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
         )
         .set_window_flags(window_flags)
         .opengl()
+        .borderless()
         .build()
         .unwrap();
 
@@ -252,7 +275,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, controller, painter, egui_state, start_time, should_close: false})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string()})
 }
 
 pub fn egui_with_prompts(
