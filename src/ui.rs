@@ -169,17 +169,6 @@ impl EguiWindowInstance {
     pub fn close(&mut self) {
         self.should_close = true;
     }
-
-    pub fn default_panel_frame(&mut self) -> egui::Frame {
-        let frame = egui::Frame {
-            margin: egui::Vec2::new(8.0, 2.0),
-            corner_radius: 0.0,
-            fill: egui::Color32::from_gray(24),
-            stroke: egui::Stroke::new(0.0, egui::Color32::from_gray(60)),
-            shadow: egui::epaint::Shadow::big_dark()
-        };
-        frame
-    }
 }
 
 pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) -> Result<EguiWindowInstance, Error> {
@@ -284,7 +273,7 @@ pub fn egui_with_prompts(
     let mut yes = false;
 
     window.start_egui_loop(|window_instance| {
-        egui::TopBottomPanel::bottom("bottom_panel").frame(window_instance.default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
+        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
             let layout = egui::Layout::top_down(egui::Align::Center).with_cross_justify(true);
             ui.with_layout(layout,|ui| {
                 if button_message {
@@ -323,4 +312,15 @@ pub fn egui_with_prompts(
     });
 
     Ok(yes)
+}
+
+pub fn default_panel_frame() -> egui::Frame {
+    let frame = egui::Frame {
+        margin: egui::Vec2::new(8.0, 2.0),
+        corner_radius: 0.0,
+        fill: egui::Color32::from_gray(24),
+        stroke: egui::Stroke::new(0.0, egui::Color32::from_gray(60)),
+        shadow: egui::epaint::Shadow::big_dark()
+    };
+    frame
 }

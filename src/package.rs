@@ -229,7 +229,7 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         choices.push(entry["name"].to_string());
     }
     
-    let (choice_name, default) = match show_choices("Pick the engine below", "Name", &choices) {
+    let (choice_name, default_choice) = match show_choices("Pick the engine below", "Select Engine", &choices) {
         Ok(s) => s,
         Err(_) => {
             println!("show choice. dialog was rejected");
@@ -239,11 +239,11 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
     
     println!("engine choice: {:?}", choice_name);
 
-    if default {
-        println!("default engine choice requested");
+    if default_choice != "" {
+        println!("default engine choice requested for {}", default_choice);
         let default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
         let mut default_choice_file = File::create(default_choice_file_path)?;
-        default_choice_file.write_all(choice_name.as_bytes())?;
+        default_choice_file.write_all(default_choice.as_bytes())?;
     }
     
     return Ok(choice_name);
