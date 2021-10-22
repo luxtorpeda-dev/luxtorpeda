@@ -8,6 +8,7 @@ use crate::ui::start_egui_window;
 use crate::ui::DEFAULT_WINDOW_W;
 use crate::ui::DEFAULT_WINDOW_H;
 use crate::ui::default_panel_frame;
+use crate::ui::RequestedAction;
 
 pub struct ProgressState {
     pub status: String,
@@ -60,6 +61,23 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             choice = &choices[current_choice_index_arr];
         }
 
+        match window_instance.last_requested_action {
+            Some(last_requested_action) => {
+                if last_requested_action == RequestedAction::Confirm && choice != "" {
+                    ok = true;
+                }
+                else if last_requested_action == RequestedAction::CustomAction && ((default_choice == choice && default_choice != "" && choice != "") || choice != "") {
+                    if default_choice != choice {
+                        default_choice = choice.clone();
+                    } else {
+                        default_choice = "";
+                    }
+                }
+                window_instance.last_requested_action = None;
+            }
+            None => {}
+        }
+
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
             ui.separator();
 
@@ -97,7 +115,6 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
 
         egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
             ui.label(column);
-            ui.separator();
 
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
             ui.with_layout(layout,|ui| {
@@ -115,7 +132,7 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
 
                         let response = ui.add(egui::SelectableLabel::new(is_selected, label));
                         if scroll_to_choice_index != 0 && d_idx == current_choice_index - 1 {
-                            response.scroll_to_me(egui::Align::Center);
+                            response.scroll_to_me(egui::Align::Max);
                             scroll_to_choice_index = 0;
                         }
 
@@ -133,7 +150,7 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
         }
     });
 
-    if cancel || window.from_exit {
+    if !ok {
         return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
     }
 
@@ -183,7 +200,7 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
 
 pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
     let guard = arc.lock().unwrap();
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, &guard.status, false).unwrap();
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false).unwrap();
     std::mem::drop(guard);
 
     window.start_egui_loop(|window_instance| {
