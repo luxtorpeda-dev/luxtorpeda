@@ -30,13 +30,36 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
 }
 
 pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<(String, String)> {
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, 400, &title)?;
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, 400, &title, true)?;
     let mut cancel = false;
     let mut ok = false;
     let mut choice = "";
     let mut default_choice = "";
+    let mut current_choice_index = 0;
+    let mut scroll_to_choice_index = 0;
 
     window.start_egui_loop(|window_instance| {
+        if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
+            if window_instance.nav_counter_down != 0 {
+                current_choice_index = current_choice_index + window_instance.nav_counter_down;
+                window_instance.nav_counter_down = 0;
+            } else {
+                current_choice_index = current_choice_index - window_instance.nav_counter_up;
+                if current_choice_index == 0 {
+                    current_choice_index = choices.len();
+                }
+                window_instance.nav_counter_up = 0;
+            }
+
+            let mut current_choice_index_arr = current_choice_index - 1;
+            if choices.len() <= current_choice_index_arr {
+                current_choice_index_arr = 0;
+                current_choice_index = 1;
+            }
+            scroll_to_choice_index = current_choice_index;
+            choice = &choices[current_choice_index_arr];
+        }
+
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
             ui.separator();
 
@@ -77,20 +100,32 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             ui.separator();
 
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-            //egui::SidePanel::left("Left Panel").resizable(false).show_inside(ui, |ui| {
-
-                    egui::ScrollArea::vertical().show(ui, |ui| {
-                        for (_d_idx, d) in choices.iter().enumerate() {
-                            if &d.to_string() == default_choice {
-                                ui.selectable_value(&mut choice, &d, std::format!("{} (Default)", &d));
-                            } else {
-                                ui.selectable_value(&mut choice, &d, &d);
-                            }
+            ui.with_layout(layout,|ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    for (d_idx, d) in choices.iter().enumerate() {
+                        let mut label = std::format!("{}", &d);
+                        if &d.to_string() == default_choice {
+                            label = std::format!("{} (Default)", &d);
                         }
-                    });
+
+                        let mut is_selected = false;
+                        if current_choice_index != 0 && d_idx == current_choice_index - 1 {
+                            is_selected = true;
+                        }
+
+                        let response = ui.add(egui::SelectableLabel::new(is_selected, label));
+                        if scroll_to_choice_index != 0 && d_idx == current_choice_index - 1 {
+                            response.scroll_to_me(egui::Align::Center);
+                            scroll_to_choice_index = 0;
+                        }
+
+                        if response.clicked() {
+                            current_choice_index = d_idx + 1;
+                            choice = &d;
+                        }
+                    }
                 });
-            //});
+            });
         });
 
         if cancel || ok {
@@ -148,7 +183,7 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
 
 pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
     let guard = arc.lock().unwrap();
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, &guard.status).unwrap();
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, &guard.status, false).unwrap();
     std::mem::drop(guard);
 
     window.start_egui_loop(|window_instance| {

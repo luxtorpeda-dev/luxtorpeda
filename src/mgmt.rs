@@ -101,7 +101,7 @@ pub fn run_mgmt() -> Result<(), Error> {
         }
     };
 
-    let mut window = start_egui_window(1024, 768, "Luxtorpeda").unwrap();
+    let mut window = start_egui_window(1024, 768, "Luxtorpeda", false).unwrap();
 
     window.start_egui_loop(|window_instance| {
         let mut guard = arc.lock().unwrap();

@@ -14,13 +14,17 @@ pub struct EguiWindowInstance {
     _ctx: GLContext,
     pub egui_ctx: egui::CtxRef,
     event_pump: sdl2::EventPump,
-    controller: std::option::Option<sdl2::controller::GameController>,
+    _controller: std::option::Option<sdl2::controller::GameController>,
     painter: egui_sdl2_gl::painter::Painter,
     egui_state: egui_sdl2_gl::EguiStateHandler,
     start_time: std::time::Instant,
     should_close: bool,
     pub from_exit: bool,
-    title: String
+    title: String,
+    pub enable_nav: bool,
+    pub nav_counter_up: usize,
+    pub nav_counter_down: usize,
+    pub attached_to_controller: bool
 }
 
 impl EguiWindowInstance {
@@ -34,15 +38,8 @@ impl EguiWindowInstance {
             let title = &self.title;
 
             egui::TopBottomPanel::top("title_bar").frame(default_panel_frame()).resizable(false).show(&self.egui_ctx, |ui| {
-                let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    if ui.button("Exit").clicked() {
-                        exit_closed = true;
-                    }
-
-                    ui.vertical_centered(|ui| {
-                        ui.label(title);
-                    });
+                ui.vertical_centered(|ui| {
+                    ui.label(title);
                 });
             });
 
@@ -71,52 +68,26 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if button == sdl2::controller::Button::DPadDown {
-                                let fake_event = sdl2::event::Event::KeyDown {
-                                    keycode: Some(sdl2::keyboard::Keycode::Tab),
-                                    repeat: false,
-                                    timestamp: 0,
-                                    window_id: 0,
-                                    scancode: None,
-                                    keymod: sdl2::keyboard::Mod::NOMOD
-                                };
-                                self.egui_state.process_input(&self.window, fake_event, &mut self.painter);
-                            } else if button == sdl2::controller::Button::DPadUp {
-                                let fake_event = sdl2::event::Event::KeyDown {
-                                    keycode: Some(sdl2::keyboard::Keycode::Tab),
-                                    repeat: false,
-                                    timestamp: 0,
-                                    window_id: 0,
-                                    scancode: None,
-                                    keymod: sdl2::keyboard::Mod::LSHIFTMOD
-                                };
-                                self.egui_state.process_input(&self.window, fake_event, &mut self.painter);
-                            } else if button == sdl2::controller::Button::A {
-                                let fake_event = sdl2::event::Event::KeyDown {
-                                    keycode: Some(sdl2::keyboard::Keycode::Return),
-                                    repeat: false,
-                                    timestamp: 0,
-                                    window_id: 0,
-                                    scancode: None,
-                                    keymod: sdl2::keyboard::Mod::NOMOD
-                                };
-                                self.egui_state.process_input(&self.window, fake_event, &mut self.painter);
-                            }
-                        },
-                        Event::KeyUp {..} => {
-                            match self.controller {
-                                Some(_) => {},
-                                None => {
-                                    self.egui_state.process_input(&self.window, event, &mut self.painter)
+                            if self.enable_nav {
+                                if button == sdl2::controller::Button::DPadDown {
+                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                }
+                                else if button == sdl2::controller::Button::DPadUp {
+                                    self.nav_counter_up = self.nav_counter_up + 1;
                                 }
                             }
                         },
-                        Event::KeyDown {..} => {
-                            match self.controller {
-                                Some(_) => {},
-                                None => {
-                                    self.egui_state.process_input(&self.window, event, &mut self.painter)
-                                }
+                        Event::KeyDown { keycode, .. } => {
+                            if self.enable_nav {
+                                Some(match keycode.unwrap() {
+                                    sdl2::keyboard::Keycode::Down => {
+                                        self.nav_counter_down = self.nav_counter_down + 1;
+                                    },
+                                    sdl2::keyboard::Keycode::Up => {
+                                        self.nav_counter_up = self.nav_counter_up + 1;
+                                    },
+                                    _ => {}
+                                });
                             }
                         },
                         _ => {
@@ -129,53 +100,25 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if button == sdl2::controller::Button::DPadDown {
-                                let fake_event = sdl2::event::Event::KeyDown {
-                                    keycode: Some(sdl2::keyboard::Keycode::Tab),
-                                    repeat: false,
-                                    timestamp: 0,
-                                    window_id: 0,
-                                    scancode: None,
-                                    keymod: sdl2::keyboard::Mod::NOMOD
-                                };
-                                self.egui_state.process_input(&self.window, fake_event, &mut self.painter);
-                            } else if button == sdl2::controller::Button::DPadUp {
-                                let fake_event = sdl2::event::Event::KeyDown {
-                                    keycode: Some(sdl2::keyboard::Keycode::Tab),
-                                    repeat: false,
-                                    timestamp: 0,
-                                    window_id: 0,
-                                    scancode: None,
-                                    keymod: sdl2::keyboard::Mod::LSHIFTMOD
-                                };
-                                self.egui_state.process_input(&self.window, fake_event, &mut self.painter);
-                            } else if button == sdl2::controller::Button::A {
-                                let fake_event = sdl2::event::Event::KeyDown {
-                                    keycode: Some(sdl2::keyboard::Keycode::Return),
-                                    repeat: false,
-                                    timestamp: 0,
-                                    window_id: 0,
-                                    scancode: None,
-                                    keymod: sdl2::keyboard::Mod::NOMOD
-                                };
-                                self.egui_state.process_input(&self.window, fake_event, &mut self.painter);
-                            }
-                        },
-                        Event::KeyUp {..} => {
-                            match self.controller {
-                                Some(_) => {},
-                                None => {
-                                    self.egui_state.process_input(&self.window, event, &mut self.painter)
+                            if self.enable_nav {
+                                if button == sdl2::controller::Button::DPadDown {
+                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                }
+                                else if button == sdl2::controller::Button::DPadUp {
+                                    self.nav_counter_up = self.nav_counter_up + 1;
                                 }
                             }
                         },
-                        Event::KeyDown {..} => {
-                            match self.controller {
-                                Some(_) => {},
-                                None => {
-                                    self.egui_state.process_input(&self.window, event, &mut self.painter)
-                                }
-                            }
+                        Event::KeyDown { keycode, .. } => {
+                            Some(match keycode.unwrap() {
+                                sdl2::keyboard::Keycode::Down => {
+                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                },
+                                sdl2::keyboard::Keycode::Up => {
+                                    self.nav_counter_up = self.nav_counter_up + 1;
+                                },
+                                _ => {}
+                            });
                         },
                         _ => {
                             self.egui_state.process_input(&self.window, event, &mut self.painter);
@@ -195,7 +138,7 @@ impl EguiWindowInstance {
     }
 }
 
-pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) -> Result<EguiWindowInstance, Error> {
+pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str, enable_nav: bool) -> Result<EguiWindowInstance, Error> {
     sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -237,6 +180,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let egui_ctx = egui::CtxRef::default();
     let event_pump = sdl_context.event_pump().unwrap();
 
+    let mut attached_to_controller = false;
     let game_controller_subsystem = sdl_context.game_controller().unwrap();
     let mut controller = None; //needed for controller connection to stay alive
     match game_controller_subsystem.num_joysticks() {
@@ -266,6 +210,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
                 Some(found_controller) => {
                     println!("Controller connected mapping: {}", found_controller.mapping());
                     controller = Some(found_controller);
+                    attached_to_controller = true;
                 },
                 None => {
                     println!("controller not found");
@@ -279,7 +224,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, _controller: controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller})
 }
 
 pub fn egui_with_prompts(
@@ -295,7 +240,7 @@ pub fn egui_with_prompts(
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title)?;
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, false)?;
     let mut no = false;
     let mut yes = false;
 
