@@ -29,8 +29,10 @@ futures-util = "0.3.14"
 tokio = { version = "0.2", default-features = false, features = ["full"] }
 which = "4.2.2"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
-egui = { git = "https://github.com/emilk/egui.git", rev = "8178d23" }
+egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "467bfc5" }
 egui_sdl2_gl = { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", rev = "17b784f" }
+image = "0.23.14"
+
 
 [patch.crates-io]
-egui = { git = "https://github.com/emilk/egui.git", rev = "8178d23" }
+egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "467bfc5" }

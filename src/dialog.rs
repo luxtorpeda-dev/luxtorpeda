@@ -9,6 +9,7 @@ use crate::ui::DEFAULT_WINDOW_W;
 use crate::ui::DEFAULT_WINDOW_H;
 use crate::ui::default_panel_frame;
 use crate::ui::RequestedAction;
+use crate::ui::prompt_image_for_action;
 
 pub struct ProgressState {
     pub status: String,
@@ -38,6 +39,10 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
     let mut default_choice = "";
     let mut current_choice_index = 0;
     let mut scroll_to_choice_index = 0;
+
+    let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
+    let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
+    let (texture_custom_action, ..) = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap();
 
     window.start_egui_loop(|window_instance| {
         if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
@@ -78,6 +83,7 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             None => {}
         }
 
+
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
             ui.separator();
 
@@ -87,7 +93,8 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                     if default_choice == choice && default_choice != "" {
                         button_text = "Unset as default"
                     }
-                    if ui.button(button_text).clicked() {
+
+                    if ui.add(egui::ImageButtonWithText::new(button_text, texture_custom_action, egui::vec2(32 as f32, 32 as f32))).clicked() {
                         if default_choice != choice {
                             default_choice = choice.clone();
                         } else {
@@ -101,12 +108,12 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
                     ui.add_enabled_ui(choice != "", |ui| {
-                        if ui.button("Ok").clicked() {
+                        if ui.add(egui::ImageButtonWithText::new("Ok", texture_confirm, egui::vec2(32 as f32, 32 as f32))).clicked() {
                             ok = true;
                         }
                     });
 
-                    if ui.button("Cancel").clicked() {
+                    if ui.add(egui::ImageButtonWithText::new("Cancel", texture_back, egui::vec2(32 as f32, 32 as f32))).clicked() {
                         cancel = true;
                     }
                 });

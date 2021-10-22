@@ -1,10 +1,22 @@
-use std::io::{Error};
+use std::io::{Error, ErrorKind};
 use std::time::{Duration, Instant};
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
 use egui_backend::{sdl2::event::Event, DpiScaling};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
+
+extern crate image;
+use image::GenericImageView;
+
+const PROMPT_CONTROLLER_Y: &'static [u8] = include_bytes!("../res/prompts/Steam_Y.png");
+const PROMPT_CONTROLLER_A: &'static [u8] = include_bytes!("../res/prompts/Steam_A.png");
+const PROMPT_CONTROLLER_X: &'static [u8] = include_bytes!("../res/prompts/Steam_X.png");
+const PROMPT_CONTROLLER_B: &'static [u8] = include_bytes!("../res/prompts/Steam_B.png");
+const PROMPT_KEYBOARD_SPACE: &'static [u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
+const PROMPT_KEYBOARD_ENTER: &'static [u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
+const PROMPT_KEYBOARD_ESC: &'static [u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
+const PROMPT_KEYBOARD_CTRL: &'static [u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
 
 pub static DEFAULT_WINDOW_W: u32 = 600;
 pub static DEFAULT_WINDOW_H: u32 = 180;
@@ -23,7 +35,7 @@ pub struct EguiWindowInstance {
     pub egui_ctx: egui::CtxRef,
     event_pump: sdl2::EventPump,
     _controller: std::option::Option<sdl2::controller::GameController>,
-    painter: egui_sdl2_gl::painter::Painter,
+    pub painter: egui_sdl2_gl::painter::Painter,
     egui_state: egui_sdl2_gl::EguiStateHandler,
     start_time: std::time::Instant,
     should_close: bool,
@@ -355,4 +367,57 @@ pub fn default_panel_frame() -> egui::Frame {
         shadow: egui::epaint::Shadow::big_dark()
     };
     frame
+}
+
+fn image_as_texture(image_data: &[u8], window_instance: &mut EguiWindowInstance) -> (egui::TextureId, usize, usize) {
+    let image = image::load_from_memory(&image_data).expect("Failed to load image");
+    let image_buffer = image.to_rgba8();
+
+    let pixels = image_buffer.into_vec();
+    let pixels: Vec<_> = pixels
+        .chunks_exact(4)
+        .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
+        .collect();
+    let texture_id = window_instance.painter.new_user_texture((image.width() as usize, image.height() as usize), &pixels, false);
+
+    return (texture_id, image.width() as usize, image.height() as usize);
+}
+
+pub fn prompt_image_for_action(action: RequestedAction, window_instance: &mut EguiWindowInstance) -> Result<(egui::TextureId, usize, usize), Error> {
+    let image;
+    match action {
+        RequestedAction::Confirm => {
+            if window_instance.attached_to_controller {
+                image = PROMPT_CONTROLLER_A;
+            } else {
+                image = PROMPT_KEYBOARD_ENTER;
+            }
+        },
+        RequestedAction::Back => {
+            if window_instance.attached_to_controller {
+                image = PROMPT_CONTROLLER_B;
+            } else {
+                image = PROMPT_KEYBOARD_ESC;
+            }
+        },
+        RequestedAction::CustomAction => {
+            if window_instance.attached_to_controller {
+                image = PROMPT_CONTROLLER_Y;
+            } else {
+                image = PROMPT_KEYBOARD_SPACE;
+            }
+        },
+        RequestedAction::SecondCustomAction => {
+            if window_instance.attached_to_controller {
+                image = PROMPT_CONTROLLER_X;
+            } else {
+                image = PROMPT_KEYBOARD_CTRL;
+            }
+        }
+        _ => {
+            return Err(Error::new(ErrorKind::Other, "prompt_image_for_action, no image found."));
+        }
+    };
+
+    return Ok(image_as_texture(image, window_instance));
 }

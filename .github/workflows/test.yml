@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.55-buster
+      image: rust:1.56-buster
     env:
       CARGO_HOME: ./cargo
     steps:
