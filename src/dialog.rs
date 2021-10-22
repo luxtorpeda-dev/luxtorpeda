@@ -98,7 +98,7 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
         }
     });
 
-    if cancel {
+    if cancel || window.from_exit {
         return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
     }
 

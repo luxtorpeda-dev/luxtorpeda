@@ -19,6 +19,7 @@ pub struct EguiWindowInstance {
     egui_state: egui_sdl2_gl::EguiStateHandler,
     start_time: std::time::Instant,
     should_close: bool,
+    pub from_exit: bool,
     title: String
 }
 
@@ -47,6 +48,7 @@ impl EguiWindowInstance {
 
             if exit_closed {
                 self.should_close = true;
+                self.from_exit = true;
                 break;
             }
 
@@ -212,7 +214,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let mut window_flags: u32 = 0;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
 
-    let window = video_subsystem
+    let mut window = video_subsystem
         .window(
             &window_title,
             window_width,
@@ -223,6 +225,8 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
         .borderless()
         .build()
         .unwrap();
+
+    window.raise();
 
     // Create a window context
     let _ctx = window.gl_create_context().unwrap();
@@ -275,7 +279,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string()})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false})
 }
 
 pub fn egui_with_prompts(
