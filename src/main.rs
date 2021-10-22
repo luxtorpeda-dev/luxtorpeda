@@ -15,6 +15,8 @@ mod package;
 mod pid_file;
 mod user_env;
 mod dialog;
+mod mgmt;
+mod ui;
 
 static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
 static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
@@ -275,7 +277,7 @@ fn main() -> io::Result<()> {
         "manual-download" => manual_download(cmd_args),
         "mgmt" => {
             package::update_packages_json().unwrap();
-            dialog::run_mgmt()
+            mgmt::run_mgmt()
         },
         _ => {
             usage();
