@@ -128,6 +128,17 @@ fn start_egui_window(window_width: u32, window_height: u32, window_title: &str) 
     Ok((window, _ctx, egui_ctx, event_pump, controller))
 }
 
+fn default_panel_frame() -> egui::Frame {
+    let frame = egui::Frame {
+        margin: egui::Vec2::new(8.0, 2.0),
+        corner_radius: 0.0,
+        fill: egui::Color32::from_gray(24),
+        stroke: egui::Stroke::new(0.0, egui::Color32::from_gray(60)),
+        shadow: egui::epaint::Shadow::big_dark()
+    };
+    frame
+}
+
 fn egui_with_prompts(
         yes_button: bool,
         no_button: bool,
@@ -135,7 +146,6 @@ fn egui_with_prompts(
         no_text: &String,
         title: &String,
         message: &String,
-        scroll_max_height: f32,
         mut window_height: u32,
         button_text: &String,
         button_message: bool) -> Result<bool, Error> {
@@ -155,42 +165,37 @@ fn egui_with_prompts(
         egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
         egui_ctx.begin_frame(egui_state.input.take());
 
+        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&egui_ctx, |ui| {
+            let layout = egui::Layout::top_down(egui::Align::Center).with_cross_justify(true);
+            ui.with_layout(layout,|ui| {
+                if button_message {
+                    ui.label(&button_text.to_string());
+                }
+
+                if yes_button {
+                    ui.separator();
+                    if ui.button(&yes_text).clicked() {
+                        yes = true;
+                    }
+                }
+
+                if no_button {
+                    ui.separator();
+                    if ui.button(&no_text).clicked() {
+                        no = true;
+                    }
+                }
+
+                ui.separator();
+            });
+        });
+
         egui::CentralPanel::default().show(&egui_ctx, |ui| {
-            egui::ScrollArea::vertical().auto_shrink([false; 2]).max_height(scroll_max_height).show(ui, |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.vertical_centered(|ui| {
                     ui.label(&message.to_string());
                 });
             });
-
-            egui::TopBottomPanel::bottom("bottom_panel")
-                .resizable(false)
-                .frame(egui::Frame::none())
-                .min_height(0.0)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::top_down(egui::Align::Center)
-                    .with_cross_justify(true);
-                    ui.with_layout(layout,|ui| {
-                        if button_message {
-                            ui.label(&button_text.to_string());
-                        }
-
-                        if yes_button {
-                            ui.separator();
-                            if ui.button(&yes_text).clicked() {
-                                yes = true;
-                            }
-                        }
-
-                        if no_button {
-                            ui.separator();
-                            if ui.button(&no_text).clicked() {
-                                no = true;
-                            }
-                        }
-
-                        ui.separator();
-                    });
-                });
         });
 
         let (egui_output, paint_cmds) = egui_ctx.end_frame();
@@ -333,7 +338,7 @@ fn egui_with_prompts(
 }
 
 pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 30.0, 0, &"".to_string(), false) {
+    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 0, &"".to_string(), false) {
         Ok(_) => {
             Ok(())
         },
@@ -551,7 +556,7 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let file_str = String::from_utf8_lossy(&file_buf);
     let file_str_milk = file_str.as_ref();
 
-    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 380.0, 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true) {
+    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true) {
         Ok(yes) => {
             if yes {
                 Ok(())
@@ -566,7 +571,7 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
 }
 
 pub fn show_question(title: &str, text: &str) -> Option<()> {
-    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 30.0, 0, &"".to_string(), false) {
+    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false) {
         Ok(yes) => {
             if yes {
                 Some(())
@@ -596,6 +601,17 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
         egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
         egui_ctx.begin_frame(egui_state.input.take());
 
+        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&egui_ctx, |ui| {
+            let layout = egui::Layout::top_down(egui::Align::Center).with_cross_justify(true);
+            ui.with_layout(layout,|ui| {
+                ui.separator();
+                if ui.button("Cancel").clicked() {
+                    guard.close = true;
+                }
+                ui.separator();
+            });
+        });
+
         egui::CentralPanel::default().show(&egui_ctx, |ui| {
             ui.vertical_centered(|ui| {
                 ui.label(guard.status.to_string());
@@ -611,22 +627,6 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
                     .animate(true);
                 ui.add(progress_bar);
             });
-
-            egui::TopBottomPanel::bottom("bottom_panel")
-                .resizable(false)
-                .frame(egui::Frame::none())
-                .min_height(0.0)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::top_down(egui::Align::Center)
-                    .with_cross_justify(true);
-                    ui.with_layout(layout,|ui| {
-                        ui.separator();
-                        if ui.button("Cancel").clicked() {
-                            guard.close = true;
-                        }
-                        ui.separator();
-                    });
-                });
         });
 
         let (egui_output, paint_cmds) = egui_ctx.end_frame();
