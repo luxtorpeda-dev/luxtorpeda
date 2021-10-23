@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "41.0.0"
+version = "42.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2018"
 
@@ -30,7 +30,7 @@ tokio = { version = "0.2", default-features = false, features = ["full"] }
 which = "4.2.2"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
 egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "467bfc5" }
-egui_sdl2_gl = { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", rev = "17b784f" }
+egui_sdl2_gl = { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", rev = "41f694d" }
 image = "0.23.14"
 
 

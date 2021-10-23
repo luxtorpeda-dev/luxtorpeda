@@ -52,10 +52,17 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                 current_choice_index = current_choice_index + window_instance.nav_counter_down;
                 window_instance.nav_counter_down = 0;
             } else {
-                current_choice_index = current_choice_index - window_instance.nav_counter_up;
                 if current_choice_index == 0 {
                     current_choice_index = choices.len();
                 }
+                else {
+                    current_choice_index = current_choice_index - window_instance.nav_counter_up;
+                }
+
+                if current_choice_index == 0 {
+                    current_choice_index = choices.len();
+                }
+
                 window_instance.nav_counter_up = 0;
             }
 

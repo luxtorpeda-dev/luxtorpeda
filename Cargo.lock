@@ -420,7 +420,7 @@ dependencies = [
 [[package]]
 name = "egui_sdl2_gl"
 version = "0.14.1"
-source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=17b784f#17b784f706c5f8738f212d24955092a726715714"
+source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=41f694d#41f694dcf98bc55636d15d70ddba8b2e701621dc"
 dependencies = [
  "egui",
  "gl",
@@ -924,7 +924,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "41.0.0"
+version = "42.0.0"
 dependencies = [
  "bzip2 0.4.1",
  "egui",

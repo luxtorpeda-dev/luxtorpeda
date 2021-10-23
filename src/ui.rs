@@ -122,31 +122,33 @@ impl EguiWindowInstance {
                         },
                         Event::KeyDown { keycode, .. } => {
                             if self.enable_nav {
-                                Some(match keycode.unwrap() {
-                                    sdl2::keyboard::Keycode::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down = self.nav_counter_down + 1;
-                                        }
-                                    },
-                                    sdl2::keyboard::Keycode::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up = self.nav_counter_up + 1;
-                                        }
-                                    },
-                                    sdl2::keyboard::Keycode::Return => {
-                                        self.last_requested_action = Some(RequestedAction::Confirm);
-                                    },
-                                    sdl2::keyboard::Keycode::Escape => {
-                                        self.last_requested_action = Some(RequestedAction::Back);
-                                    },
-                                    sdl2::keyboard::Keycode::Space => {
-                                        self.last_requested_action = Some(RequestedAction::CustomAction);
-                                    },
-                                    sdl2::keyboard::Keycode::LCtrl => {
-                                        self.last_requested_action = Some(RequestedAction::SecondCustomAction);
-                                    },
-                                    _ => {}
-                                });
+                                if !keycode.is_none() {
+                                    Some(match keycode.unwrap() {
+                                        sdl2::keyboard::Keycode::Down => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down = self.nav_counter_down + 1;
+                                            }
+                                        },
+                                        sdl2::keyboard::Keycode::Up => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up = self.nav_counter_up + 1;
+                                            }
+                                        },
+                                        sdl2::keyboard::Keycode::Return => {
+                                            self.last_requested_action = Some(RequestedAction::Confirm);
+                                        },
+                                        sdl2::keyboard::Keycode::Escape => {
+                                            self.last_requested_action = Some(RequestedAction::Back);
+                                        },
+                                        sdl2::keyboard::Keycode::Space => {
+                                            self.last_requested_action = Some(RequestedAction::CustomAction);
+                                        },
+                                        sdl2::keyboard::Keycode::LCtrl => {
+                                            self.last_requested_action = Some(RequestedAction::SecondCustomAction);
+                                        },
+                                        _ => {}
+                                    });
+                                }
                             }
                         },
                         _ => {
