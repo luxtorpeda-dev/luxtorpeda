@@ -212,15 +212,6 @@ fn run(args: &[&str]) -> io::Result<()> {
         env::set_var(SDL_IGNORE_DEVICES, ignore_devices);
     }
 
-    match env::var(ORIGINAL_LD_PRELOAD) {
-        Ok(val) => {
-            env::set_var(LD_PRELOAD, val);
-        },
-        Err(err) => {
-            println!("ORIGINAL_LD_PRELOAD not found: {}", err);
-        }
-    }
-
     match find_game_command(&game_info, args) {
         None => Err(Error::new(ErrorKind::Other, "No command line defined")),
         Some((cmd, cmd_args)) => {
