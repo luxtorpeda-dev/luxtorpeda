@@ -42,10 +42,11 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
     let mut default_choice = "";
     let mut current_choice_index = 0;
     let mut scroll_to_choice_index = 0;
+    let mut last_attached_state = window.attached_to_controller;
 
-    let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
-    let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
-    let (texture_custom_action, ..) = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap();
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap().0;
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
+    let mut texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap().0;
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(|window_instance| {
@@ -92,6 +93,14 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                 window_instance.last_requested_action = None;
             }
             None => {}
+        }
+
+        if !window_instance.attached_to_controller && last_attached_state {
+            println!("Detected controller loss, reloading prompts");
+            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
+            texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, window_instance).unwrap().0;
+            last_attached_state = false;
         }
 
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
@@ -216,14 +225,19 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
 }
 
 pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
-    let guard = arc.lock().unwrap();
     let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false).unwrap();
-    std::mem::drop(guard);
+    let mut last_attached_state = window.attached_to_controller;
 
-    let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(|window_instance| {
+        if !window_instance.attached_to_controller && last_attached_state {
+            println!("Detected controller loss, reloading prompts");
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
+            last_attached_state = false;
+        }
+
         let mut guard = arc.lock().unwrap();
 
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
