@@ -22,11 +22,13 @@ pub struct ProgressState {
 }
 
 pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 0, &"".to_string(), false) {
-        Ok(_) => {
+    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 0, &"".to_string(), false, 0) {
+        Ok((yes, no)) => {
+            println!("{} {}", yes, no);
             Ok(())
         },
         Err(err) => {
+            println!("{:?}", err);
             return Err(err);
         }
     }
@@ -183,8 +185,8 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let file_str = String::from_utf8_lossy(&file_buf);
     let file_str_milk = file_str.as_ref();
 
-    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true) {
-        Ok(yes) => {
+    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true, 0) {
+        Ok((yes, ..)) => {
             if yes {
                 Ok(())
             } else {
@@ -198,8 +200,8 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
 }
 
 pub fn show_question(title: &str, text: &str) -> Option<()> {
-    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false) {
-        Ok(yes) => {
+    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 0) {
+        Ok((yes, ..)) => {
             if yes {
                 Some(())
             } else {
@@ -264,4 +266,20 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
     });
 
     Ok(())
+}
+
+pub fn default_choice_confirmation_prompt(title: &str, text: &str) -> Option<()> {
+    match egui_with_prompts(false, true, &"".to_string(), &"Clear Default".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 4) {
+        Ok((_yes, no)) => {
+            if no {
+                Some(())
+            } else {
+                return None
+            }
+        },
+        Err(err) => {
+            println!("default_choice_confirmation_prompt err: {:?}", err);
+            return None
+        }
+    }
 }

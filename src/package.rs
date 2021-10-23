@@ -30,6 +30,7 @@ use crate::dialog::show_choices;
 use crate::dialog::show_question;
 use crate::dialog::start_progress;
 use crate::dialog::ProgressState;
+use crate::dialog::default_choice_confirmation_prompt;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
@@ -218,7 +219,29 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
         println!("show choice. found default choice. choice is {:?}", default_engine_choice_str);
 
-        return Ok(default_engine_choice_str)
+        let mut use_default = true;
+        match default_choice_confirmation_prompt("Default Choice Confirmation", &std::format!("{0}", default_engine_choice_str)) {
+            Some(()) => {
+                use_default = false;
+
+                let config_path = path_to_config();
+                let folder_path = config_path.join(&app_id);
+                match fs::remove_dir_all(folder_path) {
+                    Ok(()) => {
+                        println!("clear config done");
+                    },
+                    Err(err) => {
+                        println!("clear config. err: {:?}", err);
+                    }
+                }
+            },
+            None => {
+            }
+        };
+
+        if use_default {
+            return Ok(default_engine_choice_str)
+        }
     }
         
     let mut choices: Vec<String> = vec![];

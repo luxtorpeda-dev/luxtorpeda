@@ -62,6 +62,7 @@ impl EguiWindowInstance {
                 Some(last_requested_action) => {
                     if last_requested_action == RequestedAction::Back {
                         exit = true;
+                        self.from_exit = true;
                         self.last_requested_action = None;
                     }
                 }
@@ -238,6 +239,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let mut window_flags: u32 = 0;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
 
     let mut window = video_subsystem
         .window(
@@ -304,7 +306,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
         }
     }
 
-    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.0));
+    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
     let start_time = Instant::now();
     Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, _controller: controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None})
 }
@@ -318,7 +320,8 @@ pub fn egui_with_prompts(
         message: &String,
         mut window_height: u32,
         button_text: &String,
-        button_message: bool) -> Result<bool, Error> {
+        button_message: bool,
+        timeout_in_seconds: i8) -> Result<(bool, bool), Error> {
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
@@ -368,20 +371,39 @@ pub fn egui_with_prompts(
             });
         });
 
+
+        let mut seconds_left = 0 as f64;
+        if timeout_in_seconds != 0 {
+            let seconds = window_instance.start_time.elapsed().as_secs_f64();
+            seconds_left = timeout_in_seconds as f64 - seconds;
+        }
+
         egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.vertical_centered(|ui| {
-                    ui.label(&message.to_string());
+                    if timeout_in_seconds == 0 {
+                        ui.label(&message.to_string());
+                    } else {
+                        ui.label(std::format!("Launching\n{}\nin {:.0} seconds", message, seconds_left));
+                    }
                 });
             });
         });
+
+        if timeout_in_seconds != 0 && seconds_left <= 0.0 {
+            window_instance.close();
+        }
 
         if yes || no {
             window_instance.close();
         }
     });
 
-    Ok(yes)
+    if window.from_exit {
+        no = true;
+    }
+
+    Ok((yes, no))
 }
 
 pub fn default_panel_frame() -> egui::Frame {
