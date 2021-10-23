@@ -1,4 +1,3 @@
-extern crate lazy_static;
 extern crate json;
 extern crate hex;
 extern crate reqwest;
@@ -15,6 +14,8 @@ mod package;
 mod pid_file;
 mod user_env;
 mod dialog;
+mod mgmt;
+mod ui;
 
 static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
 static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
@@ -273,6 +274,10 @@ fn main() -> io::Result<()> {
             run(cmd_args)
         },
         "manual-download" => manual_download(cmd_args),
+        "mgmt" => {
+            package::update_packages_json().unwrap();
+            mgmt::run_mgmt()
+        },
         _ => {
             usage();
             std::process::exit(1)

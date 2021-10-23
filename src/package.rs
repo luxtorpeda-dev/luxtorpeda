@@ -30,6 +30,7 @@ use crate::dialog::show_choices;
 use crate::dialog::show_question;
 use crate::dialog::start_progress;
 use crate::dialog::ProgressState;
+use crate::dialog::default_choice_confirmation_prompt;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
@@ -52,13 +53,29 @@ pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     xdg_dirs.place_config_file(path_str)
 }
 
-fn path_to_packages_file() -> PathBuf {
+pub fn path_to_packages_file() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_cache_home();
     let folder_path = config_home.join("luxtorpeda");
     fs::create_dir_all(&folder_path).unwrap();
     let path = folder_path.join("packagesruntime.json");
     return path;
+}
+
+pub fn path_to_cache() -> PathBuf {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let cache_home = xdg_dirs.get_cache_home();
+    let folder_path = cache_home.join("luxtorpeda");
+    fs::create_dir_all(&folder_path).unwrap();
+    return folder_path;
+}
+
+pub fn path_to_config() -> PathBuf {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let config_home = xdg_dirs.get_config_home();
+    let folder_path = config_home.join("luxtorpeda");
+    fs::create_dir_all(&folder_path).unwrap();
+    return folder_path;
 }
 
 pub fn find_user_packages_file() -> Option<PathBuf> {
@@ -202,7 +219,29 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
         println!("show choice. found default choice. choice is {:?}", default_engine_choice_str);
 
-        return Ok(default_engine_choice_str)
+        let mut use_default = true;
+        match default_choice_confirmation_prompt("Default Choice Confirmation", &std::format!("{0}", default_engine_choice_str)) {
+            Some(()) => {
+                use_default = false;
+
+                let config_path = path_to_config();
+                let folder_path = config_path.join(&app_id);
+                match fs::remove_dir_all(folder_path) {
+                    Ok(()) => {
+                        println!("clear config done");
+                    },
+                    Err(err) => {
+                        println!("clear config. err: {:?}", err);
+                    }
+                }
+            },
+            None => {
+            }
+        };
+
+        if use_default {
+            return Ok(default_engine_choice_str)
+        }
     }
         
     let mut choices: Vec<String> = vec![];
@@ -213,7 +252,7 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         choices.push(entry["name"].to_string());
     }
     
-    let (choice_name, default) = match show_choices("Pick the engine below", "Name", &choices) {
+    let (choice_name, default_choice) = match show_choices("Pick the engine below", "Select Engine", &choices) {
         Ok(s) => s,
         Err(_) => {
             println!("show choice. dialog was rejected");
@@ -223,11 +262,11 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
     
     println!("engine choice: {:?}", choice_name);
 
-    if default {
-        println!("default engine choice requested");
+    if default_choice != "" {
+        println!("default engine choice requested for {}", default_choice);
         let default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
         let mut default_choice_file = File::create(default_choice_file_path)?;
-        default_choice_file.write_all(choice_name.as_bytes())?;
+        default_choice_file.write_all(default_choice.as_bytes())?;
     }
     
     return Ok(choice_name);
@@ -780,6 +819,48 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
         else {
             None
         }
+    } else {
+        Some(game_info)
+    }
+}
+
+pub fn get_game_info_with_json(app_id: &str, parsed: &json::JsonValue) -> Option<json::JsonValue> {
+    let game_info = parsed[app_id].clone();
+
+    match find_user_packages_file() {
+        Some(user_packages_file) => {
+            let user_json_str = match fs::read_to_string(user_packages_file) {
+                Ok(s) => s,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json read err: {:?}", err);
+                    println!("{:?}", error_message);
+                    return None;
+                }
+            };
+
+            let user_parsed = match json::parse(&user_json_str) {
+                Ok(j) => j,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json parsing err: {:?}", err);
+                    println!("{:?}", error_message);
+                    return None;
+                }
+            };
+
+            let game_info = user_parsed[app_id].clone();
+            if game_info.is_null() {
+                if !user_parsed["default"].is_null() {
+                    return Some(user_parsed["default"].clone());
+                }
+            } else {
+                return Some(game_info)
+            }
+        },
+        None => {}
+    };
+
+    if game_info.is_null() {
+        None
     } else {
         Some(game_info)
     }
