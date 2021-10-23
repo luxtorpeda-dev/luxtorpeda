@@ -257,7 +257,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let mut window_flags: u32 = 0;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
-    //window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
 
     let mut window = video_subsystem
         .window(
