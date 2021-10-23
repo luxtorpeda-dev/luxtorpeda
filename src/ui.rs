@@ -12,6 +12,12 @@ const PROMPT_CONTROLLER_Y: &'static [u8] = include_bytes!("../res/prompts/Steam_
 const PROMPT_CONTROLLER_A: &'static [u8] = include_bytes!("../res/prompts/Steam_A.png");
 const PROMPT_CONTROLLER_X: &'static [u8] = include_bytes!("../res/prompts/Steam_X.png");
 const PROMPT_CONTROLLER_B: &'static [u8] = include_bytes!("../res/prompts/Steam_B.png");
+
+const PROMPT_CONTROLLER_DUALSHOCK_Y: &'static [u8] = include_bytes!("../res/prompts/PS4_Y.png");
+const PROMPT_CONTROLLER_DUALSHOCK_A: &'static [u8] = include_bytes!("../res/prompts/PS4_A.png");
+const PROMPT_CONTROLLER_DUALSHOCK_X: &'static [u8] = include_bytes!("../res/prompts/PS4_X.png");
+const PROMPT_CONTROLLER_DUALSHOCK_B: &'static [u8] = include_bytes!("../res/prompts/PS4_B.png");
+
 const PROMPT_KEYBOARD_SPACE: &'static [u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
 const PROMPT_KEYBOARD_ENTER: &'static [u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
 const PROMPT_KEYBOARD_ESC: &'static [u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
@@ -27,6 +33,12 @@ pub enum RequestedAction {
     Back,
     CustomAction,
     SecondCustomAction
+}
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum ControllerType {
+    Xbox,
+    DualShock
 }
 
 pub struct EguiWindowInstance {
@@ -45,7 +57,8 @@ pub struct EguiWindowInstance {
     pub nav_counter_up: usize,
     pub nav_counter_down: usize,
     pub attached_to_controller: bool,
-    pub last_requested_action: Option<RequestedAction>
+    pub last_requested_action: Option<RequestedAction>,
+    pub controller_type: ControllerType
 }
 
 impl EguiWindowInstance {
@@ -102,6 +115,7 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
+                            println!("{:?}", button);
                             if button == sdl2::controller::Button::DPadUp {
                                 if self.enable_nav {
                                     self.nav_counter_up = self.nav_counter_up + 1;
@@ -151,6 +165,9 @@ impl EguiWindowInstance {
                                 }
                             }
                         },
+                        Event::ControllerDeviceRemoved { .. } => {
+                            println!("ControllerDeviceRemoved");
+                        }
                         _ => {
                             self.egui_state.process_input(&self.window, event, &mut self.painter);
                         }
@@ -161,6 +178,7 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
+                            println!("{:?} button", button);
                             if button == sdl2::controller::Button::DPadUp {
                                 if self.enable_nav {
                                     self.nav_counter_up = self.nav_counter_up + 1;
@@ -239,7 +257,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let mut window_flags: u32 = 0;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
-    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
+    //window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
 
     let mut window = video_subsystem
         .window(
@@ -265,6 +283,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let event_pump = sdl_context.event_pump().unwrap();
 
     let mut attached_to_controller = false;
+    let mut controller_type = ControllerType::Xbox;
     let game_controller_subsystem = sdl_context.game_controller().unwrap();
     let mut controller = None; //needed for controller connection to stay alive
     match game_controller_subsystem.num_joysticks() {
@@ -293,6 +312,14 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
             }) {
                 Some(found_controller) => {
                     println!("Controller connected mapping: {}", found_controller.mapping());
+
+                    if found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
+                        println!("controller assumed to be dualshock");
+                        controller_type = ControllerType::DualShock;
+                    } else {
+                        println!("controller assumed to be xbox");
+                    }
+
                     controller = Some(found_controller);
                     attached_to_controller = true;
                 },
@@ -308,7 +335,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, _controller: controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, _controller: controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type})
 }
 
 pub fn egui_with_prompts(
@@ -436,28 +463,44 @@ pub fn prompt_image_for_action(action: RequestedAction, window_instance: &mut Eg
     match action {
         RequestedAction::Confirm => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_A;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_A;
+                } else {
+                    image = PROMPT_CONTROLLER_A;
+                }
             } else {
                 image = PROMPT_KEYBOARD_ENTER;
             }
         },
         RequestedAction::Back => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_B;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_B;
+                } else {
+                    image = PROMPT_CONTROLLER_B;
+                }
             } else {
                 image = PROMPT_KEYBOARD_ESC;
             }
         },
         RequestedAction::CustomAction => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_Y;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_Y;
+                } else {
+                    image = PROMPT_CONTROLLER_Y;
+                }
             } else {
                 image = PROMPT_KEYBOARD_SPACE;
             }
         },
         RequestedAction::SecondCustomAction => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_X;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_X;
+                } else {
+                    image = PROMPT_CONTROLLER_X;
+                }
             } else {
                 image = PROMPT_KEYBOARD_CTRL;
             }

@@ -184,6 +184,7 @@ pub fn run_mgmt() -> Result<(), Error> {
 
     window.start_egui_loop(|window_instance| {
         if reload_needed {
+            println!("run_mgmt detect_mgmt reload");
             let detect_loop_arc = arc.clone();
             match detect_mgmt(detect_loop_arc) {
                 Ok(()) => {
