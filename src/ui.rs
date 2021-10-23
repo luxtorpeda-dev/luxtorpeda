@@ -20,6 +20,7 @@ const PROMPT_KEYBOARD_CTRL: &'static [u8] = include_bytes!("../res/prompts/Ctrl_
 
 pub static DEFAULT_WINDOW_W: u32 = 600;
 pub static DEFAULT_WINDOW_H: u32 = 180;
+pub static DEFAULT_PROMPT_SIZE: f32 = 32 as f32;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RequestedAction {
@@ -101,30 +102,36 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if self.enable_nav {
-                                if button == sdl2::controller::Button::DPadUp {
+                            if button == sdl2::controller::Button::DPadUp {
+                                if self.enable_nav {
                                     self.nav_counter_up = self.nav_counter_up + 1;
-                                } else if button == sdl2::controller::Button::DPadDown {
-                                    self.nav_counter_down = self.nav_counter_down + 1;
-                                } else if button == sdl2::controller::Button::A {
-                                    self.last_requested_action = Some(RequestedAction::Confirm);
-                                } else if button == sdl2::controller::Button::B {
-                                    self.last_requested_action = Some(RequestedAction::Back);
-                                } else if button == sdl2::controller::Button::Y {
-                                    self.last_requested_action = Some(RequestedAction::CustomAction);
-                                } else if button == sdl2::controller::Button::X {
-                                    self.last_requested_action = Some(RequestedAction::SecondCustomAction);
                                 }
+                            } else if button == sdl2::controller::Button::DPadDown {
+                                if self.enable_nav {
+                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                }
+                            } else if button == sdl2::controller::Button::A {
+                                self.last_requested_action = Some(RequestedAction::Confirm);
+                            } else if button == sdl2::controller::Button::B {
+                                self.last_requested_action = Some(RequestedAction::Back);
+                            } else if button == sdl2::controller::Button::Y {
+                                self.last_requested_action = Some(RequestedAction::CustomAction);
+                            } else if button == sdl2::controller::Button::X {
+                                self.last_requested_action = Some(RequestedAction::SecondCustomAction);
                             }
                         },
                         Event::KeyDown { keycode, .. } => {
                             if self.enable_nav {
                                 Some(match keycode.unwrap() {
                                     sdl2::keyboard::Keycode::Down => {
-                                        self.nav_counter_down = self.nav_counter_down + 1;
+                                        if self.enable_nav {
+                                            self.nav_counter_down = self.nav_counter_down + 1;
+                                        }
                                     },
                                     sdl2::keyboard::Keycode::Up => {
-                                        self.nav_counter_up = self.nav_counter_up + 1;
+                                        if self.enable_nav {
+                                            self.nav_counter_up = self.nav_counter_up + 1;
+                                        }
                                     },
                                     sdl2::keyboard::Keycode::Return => {
                                         self.last_requested_action = Some(RequestedAction::Confirm);
@@ -152,20 +159,22 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if self.enable_nav {
-                                if button == sdl2::controller::Button::DPadUp {
+                            if button == sdl2::controller::Button::DPadUp {
+                                if self.enable_nav {
                                     self.nav_counter_up = self.nav_counter_up + 1;
-                                } else if button == sdl2::controller::Button::DPadDown {
-                                    self.nav_counter_down = self.nav_counter_down + 1;
-                                } else if button == sdl2::controller::Button::A {
-                                    self.last_requested_action = Some(RequestedAction::Confirm);
-                                } else if button == sdl2::controller::Button::B {
-                                    self.last_requested_action = Some(RequestedAction::Back);
-                                } else if button == sdl2::controller::Button::Y {
-                                    self.last_requested_action = Some(RequestedAction::CustomAction);
-                                } else if button == sdl2::controller::Button::X {
-                                    self.last_requested_action = Some(RequestedAction::SecondCustomAction);
                                 }
+                            } else if button == sdl2::controller::Button::DPadDown {
+                                if self.enable_nav {
+                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                }
+                            } else if button == sdl2::controller::Button::A {
+                                self.last_requested_action = Some(RequestedAction::Confirm);
+                            } else if button == sdl2::controller::Button::B {
+                                self.last_requested_action = Some(RequestedAction::Back);
+                            } else if button == sdl2::controller::Button::Y {
+                                self.last_requested_action = Some(RequestedAction::CustomAction);
+                            } else if button == sdl2::controller::Button::X {
+                                self.last_requested_action = Some(RequestedAction::SecondCustomAction);
                             }
                         },
                         Event::KeyDown { keycode, .. } => {
@@ -316,29 +325,45 @@ pub fn egui_with_prompts(
     let mut no = false;
     let mut yes = false;
 
+    let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
+    let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
+    let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
+
     window.start_egui_loop(|window_instance| {
+        match window_instance.last_requested_action {
+            Some(last_requested_action) => {
+                if last_requested_action == RequestedAction::Confirm {
+                    yes = true;
+                }
+                window_instance.last_requested_action = None;
+            }
+            None => {}
+        }
+
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
             let layout = egui::Layout::top_down(egui::Align::Center).with_cross_justify(true);
             ui.with_layout(layout,|ui| {
                 if button_message {
                     ui.label(&button_text.to_string());
                 }
-
-                if yes_button {
-                    ui.separator();
-                    if ui.button(&yes_text).clicked() {
-                        yes = true;
-                    }
-                }
-
-                if no_button {
-                    ui.separator();
-                    if ui.button(&no_text).clicked() {
-                        no = true;
-                    }
-                }
-
                 ui.separator();
+            });
+
+            egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
+                let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                ui.with_layout(layout,|ui| {
+                    if yes_button {
+                        if ui.add(egui::ImageButtonWithText::new(&yes_text, texture_confirm, prompt_vec)).clicked() {
+                            yes = true;
+                        }
+                    }
+
+                    if no_button {
+                        if ui.add(egui::ImageButtonWithText::new(&no_text, texture_back, prompt_vec)).clicked() {
+                            no = true;
+                        }
+                    }
+                });
             });
         });
 

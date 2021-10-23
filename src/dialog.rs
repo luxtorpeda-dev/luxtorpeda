@@ -7,6 +7,7 @@ use crate::ui::egui_with_prompts;
 use crate::ui::start_egui_window;
 use crate::ui::DEFAULT_WINDOW_W;
 use crate::ui::DEFAULT_WINDOW_H;
+use crate::ui::DEFAULT_PROMPT_SIZE;
 use crate::ui::default_panel_frame;
 use crate::ui::RequestedAction;
 use crate::ui::prompt_image_for_action;
@@ -43,6 +44,7 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
     let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
     let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
     let (texture_custom_action, ..) = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap();
+    let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(|window_instance| {
         if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
@@ -83,7 +85,6 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             None => {}
         }
 
-
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
             ui.separator();
 
@@ -94,7 +95,7 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                         button_text = "Unset as default"
                     }
 
-                    if ui.add(egui::ImageButtonWithText::new(button_text, texture_custom_action, egui::vec2(32 as f32, 32 as f32))).clicked() {
+                    if ui.add(egui::ImageButtonWithText::new(button_text, texture_custom_action, prompt_vec)).clicked() {
                         if default_choice != choice {
                             default_choice = choice.clone();
                         } else {
@@ -108,12 +109,12 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
                     ui.add_enabled_ui(choice != "", |ui| {
-                        if ui.add(egui::ImageButtonWithText::new("Ok", texture_confirm, egui::vec2(32 as f32, 32 as f32))).clicked() {
+                        if ui.add(egui::ImageButtonWithText::new("Ok", texture_confirm, prompt_vec)).clicked() {
                             ok = true;
                         }
                     });
 
-                    if ui.add(egui::ImageButtonWithText::new("Cancel", texture_back, egui::vec2(32 as f32, 32 as f32))).clicked() {
+                    if ui.add(egui::ImageButtonWithText::new("Cancel", texture_back, prompt_vec)).clicked() {
                         cancel = true;
                     }
                 });
@@ -210,6 +211,9 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
     let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false).unwrap();
     std::mem::drop(guard);
 
+    let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
+    let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
+
     window.start_egui_loop(|window_instance| {
         let mut guard = arc.lock().unwrap();
 
@@ -217,10 +221,15 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
             let layout = egui::Layout::top_down(egui::Align::Center).with_cross_justify(true);
             ui.with_layout(layout,|ui| {
                 ui.separator();
-                if ui.button("Cancel").clicked() {
-                    guard.close = true;
-                }
-                ui.separator();
+            });
+
+            egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
+                let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                ui.with_layout(layout,|ui| {
+                    if ui.add(egui::ImageButtonWithText::new("Cancel", texture_back, prompt_vec)).clicked() {
+                        guard.close = true;
+                    }
+                });
             });
         });
 
