@@ -2,13 +2,18 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### Pre-release 41.0 (2021-10-20)
+### Pre-release 42.0 (2021-10-23)
 
 * Moved GUI from gtk to egui with sdl2 backing
-* Moved progress bar implementation from zenity to egui
-* Added basic controller support, currently down arrow to change selected item and A to select. If no controller detected, keyboard navigation is supported.
+* Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for futher information.
 * For the controller support, steam virtual gamepad is disabled, then re-enabled before launching the game.
 * For the new GUI, steam overlay is disabled, then re-enabled before launching the game.
+* Improved choices list to support controller friendly UI, using dpad to select items and buttons with controller icons. Keyboard navigation is also supported and will show icons for keyboard if no controller found. Arrow keys can be used to select items or can always use the mouse.
+* Improved other UIs like progress, error & question prompts, and license agreements to have controller support
+* Client-side decoration for title bar and SDL2 flags to make it more seamless
+* Added default engine confirmation, where a window will appear for a few seconds to give the user a chance to clear the default and select a different engine.
+* Added basic management tool for clearing config and cache directories for particular games or engines. Can be accessed by going to the installation directory and executing ```./luxtorpeda.sh mgmt``` in a Terminal window.  
+
 
 ### 40.0 (2021-10-17)
 
