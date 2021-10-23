@@ -1,4 +1,3 @@
-extern crate lazy_static;
 extern crate json;
 extern crate hex;
 extern crate reqwest;

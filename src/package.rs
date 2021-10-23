@@ -52,7 +52,7 @@ pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     xdg_dirs.place_config_file(path_str)
 }
 
-fn path_to_packages_file() -> PathBuf {
+pub fn path_to_packages_file() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_cache_home();
     let folder_path = config_home.join("luxtorpeda");
@@ -63,7 +63,7 @@ fn path_to_packages_file() -> PathBuf {
 
 pub fn path_to_cache() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let cache_home = xdg_dirs.get_config_home();
+    let cache_home = xdg_dirs.get_cache_home();
     let folder_path = cache_home.join("luxtorpeda");
     fs::create_dir_all(&folder_path).unwrap();
     return folder_path;
@@ -796,6 +796,48 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
         else {
             None
         }
+    } else {
+        Some(game_info)
+    }
+}
+
+pub fn get_game_info_with_json(app_id: &str, parsed: &json::JsonValue) -> Option<json::JsonValue> {
+    let game_info = parsed[app_id].clone();
+
+    match find_user_packages_file() {
+        Some(user_packages_file) => {
+            let user_json_str = match fs::read_to_string(user_packages_file) {
+                Ok(s) => s,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json read err: {:?}", err);
+                    println!("{:?}", error_message);
+                    return None;
+                }
+            };
+
+            let user_parsed = match json::parse(&user_json_str) {
+                Ok(j) => j,
+                Err(err) => {
+                    let error_message = std::format!("user-packages.json parsing err: {:?}", err);
+                    println!("{:?}", error_message);
+                    return None;
+                }
+            };
+
+            let game_info = user_parsed[app_id].clone();
+            if game_info.is_null() {
+                if !user_parsed["default"].is_null() {
+                    return Some(user_parsed["default"].clone());
+                }
+            } else {
+                return Some(game_info)
+            }
+        },
+        None => {}
+    };
+
+    if game_info.is_null() {
+        None
     } else {
         Some(game_info)
     }

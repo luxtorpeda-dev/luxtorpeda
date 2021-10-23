@@ -1,11 +1,10 @@
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 use std::time::{Duration, Instant};
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
 use egui_backend::{sdl2::event::Event, DpiScaling};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
-
 extern crate image;
 use image::GenericImageView;
 
@@ -18,9 +17,9 @@ const PROMPT_KEYBOARD_ENTER: &'static [u8] = include_bytes!("../res/prompts/Ente
 const PROMPT_KEYBOARD_ESC: &'static [u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
 const PROMPT_KEYBOARD_CTRL: &'static [u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
 
-pub static DEFAULT_WINDOW_W: u32 = 600;
-pub static DEFAULT_WINDOW_H: u32 = 180;
-pub static DEFAULT_PROMPT_SIZE: f32 = 32 as f32;
+pub const DEFAULT_WINDOW_W: u32 = 600;
+pub const DEFAULT_WINDOW_H: u32 = 180;
+pub const DEFAULT_PROMPT_SIZE: f32 = 32 as f32;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RequestedAction {
@@ -440,9 +439,6 @@ pub fn prompt_image_for_action(action: RequestedAction, window_instance: &mut Eg
             } else {
                 image = PROMPT_KEYBOARD_CTRL;
             }
-        }
-        _ => {
-            return Err(Error::new(ErrorKind::Other, "prompt_image_for_action, no image found."));
         }
     };
 
