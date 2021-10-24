@@ -2,7 +2,7 @@ use std::io::Error;
 use std::time::{Duration, Instant};
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
-use egui_backend::{sdl2::event::Event, DpiScaling};
+use egui_backend::{sdl2::event::Event, sdl2::event::EventType, DpiScaling};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
 extern crate image;
@@ -281,7 +281,10 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     // Init egui stuff
     let egui_ctx = egui::CtxRef::default();
-    let event_pump = sdl_context.event_pump().unwrap();
+
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    event_pump.disable_event(EventType::JoyAxisMotion);
+    event_pump.disable_event(EventType::ControllerAxisMotion);
 
     let mut attached_to_controller = false;
     let mut controller_type = ControllerType::Xbox;
