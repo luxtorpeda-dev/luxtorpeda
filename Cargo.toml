@@ -31,6 +31,7 @@ steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = 
 egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "467bfc5" }
 egui_sdl2_gl = { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", rev = "41f694d" }
 image = "0.23.14"
+steamy-controller = { path = "../steamy/controller" }
 
 [patch.crates-io]
 egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "467bfc5" }
