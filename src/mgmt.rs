@@ -249,13 +249,13 @@ pub fn run_mgmt() -> Result<(), Error> {
                 let layout = egui::Layout::left_to_right().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
                     ui.add_enabled_ui(current_choice_index != 0 && guard.items[current_choice_index - 1].has_config, |ui| {
-                        if ui.add(egui::ImageButtonWithText::new("Clear Config", texture_custom_action, prompt_vec)).clicked() {
+                        if ui.button_with_image(texture_custom_action, prompt_vec, "Clear Config").clicked() {
                             clear_config(&mut guard.items[current_choice_index - 1]);
                         }
                     });
 
                     ui.add_enabled_ui(current_choice_index != 0 && guard.items[current_choice_index - 1].has_cache, |ui| {
-                        if ui.add(egui::ImageButtonWithText::new("Clear Cache", texture_second_custom_action, prompt_vec)).clicked() {
+                        if ui.button_with_image(texture_second_custom_action, prompt_vec, "Clear Cache").clicked() {
                             clear_cache(&mut guard.items[current_choice_index - 1]);
                         }
                     });
@@ -265,11 +265,11 @@ pub fn run_mgmt() -> Result<(), Error> {
             egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
-                    if ui.add(egui::ImageButtonWithText::new("Refresh", texture_confirm, prompt_vec)).clicked() {
+                    if ui.button_with_image(texture_confirm, prompt_vec, "Refresh").clicked() {
                         reload_needed = true;
                     }
 
-                    if ui.add(egui::ImageButtonWithText::new("Exit", texture_back, prompt_vec)).clicked() {
+                    if ui.button_with_image(texture_back, prompt_vec, "Exit").clicked() {
                         guard.close = true;
                     }
                 });

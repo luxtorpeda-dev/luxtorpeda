@@ -113,7 +113,7 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                         button_text = "Unset as default"
                     }
 
-                    if ui.add(egui::ImageButtonWithText::new(button_text, texture_custom_action, prompt_vec)).clicked() {
+                    if ui.button_with_image(texture_custom_action, prompt_vec, button_text).clicked() {
                         if default_choice != choice {
                             default_choice = choice.clone();
                         } else {
@@ -127,12 +127,12 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
                     ui.add_enabled_ui(choice != "", |ui| {
-                        if ui.add(egui::ImageButtonWithText::new("Ok", texture_confirm, prompt_vec)).clicked() {
+                        if ui.button_with_image(texture_confirm, prompt_vec, "Ok").clicked() {
                             ok = true;
                         }
                     });
 
-                    if ui.add(egui::ImageButtonWithText::new("Cancel", texture_back, prompt_vec)).clicked() {
+                    if ui.button_with_image(texture_back, prompt_vec, "Cancel").clicked() {
                         cancel = true;
                     }
                 });
@@ -249,7 +249,7 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
             egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
-                    if ui.add(egui::ImageButtonWithText::new("Cancel", texture_back, prompt_vec)).clicked() {
+                    if ui.button_with_image(texture_back, prompt_vec, "Cancel").clicked() {
                         guard.close = true;
                     }
                 });

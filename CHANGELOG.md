@@ -2,17 +2,20 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### Pre-release 42.0 (2021-10-23)
+### Pre-release 43.0 (2021-10-26)
 
 * Moved GUI from gtk to egui with sdl2 backing
 * Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for futher information.
 * For the controller support, steam virtual gamepad is disabled, then re-enabled before launching the game.
 * For the new GUI, steam overlay is disabled, then re-enabled before launching the game.
-* Improved choices list to support controller friendly UI, using dpad to select items and buttons with controller icons. Keyboard navigation is also supported and will show icons for keyboard if no controller found. Arrow keys can be used to select items or can always use the mouse.
+* Improved choices list to support controller friendly UI, using dpad to select items and buttons with controller icons. Keyboard navigation is also supported and will show icons for keyboard if no controller found. Arrow keys or w & s can be used to select items or can always use the mouse.
 * Improved other UIs like progress, error & question prompts, and license agreements to have controller support
 * Client-side decoration for title bar and SDL2 flags to make it more seamless
 * Added default engine confirmation, where a window will appear for a few seconds to give the user a chance to clear the default and select a different engine.
-* Added basic management tool for clearing config and cache directories for particular games or engines. Can be accessed by going to the installation directory and executing ```./luxtorpeda.sh mgmt``` in a Terminal window.  
+* Added basic management tool for clearing config and cache directories for particular games or engines. Can be accessed by going to the installation directory and executing ```./luxtorpeda.sh mgmt``` in a Terminal window.
+* Added icons for Playstation controllers (will use the PS4 icons).
+* Fix issue where using the joysticks on a connected controller while the client was running caused a freeze.
+* When controller is lost, icons will fallback to keyboard icons. Hot-plugging is not supported.
 
 
 ### 40.0 (2021-10-17)
