@@ -150,6 +150,16 @@ impl EguiWindowInstance {
                                                 self.nav_counter_up = self.nav_counter_up + 1;
                                             }
                                         },
+                                        sdl2::keyboard::Keycode::S => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down = self.nav_counter_down + 1;
+                                            }
+                                        },
+                                        sdl2::keyboard::Keycode::W => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up = self.nav_counter_up + 1;
+                                            }
+                                        },
                                         sdl2::keyboard::Keycode::Return => {
                                             self.last_requested_action = Some(RequestedAction::Confirm);
                                         },
@@ -205,6 +215,16 @@ impl EguiWindowInstance {
                                 },
                                 sdl2::keyboard::Keycode::Up => {
                                     self.nav_counter_up = self.nav_counter_up + 1;
+                                },
+                                sdl2::keyboard::Keycode::S => {
+                                    if self.enable_nav {
+                                        self.nav_counter_down = self.nav_counter_down + 1;
+                                    }
+                                },
+                                sdl2::keyboard::Keycode::W => {
+                                    if self.enable_nav {
+                                        self.nav_counter_up = self.nav_counter_up + 1;
+                                    }
                                 },
                                 sdl2::keyboard::Keycode::Return => {
                                     self.last_requested_action = Some(RequestedAction::Confirm);
@@ -266,6 +286,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let mut window_flags: u32 = 0;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
 
     let mut window = video_subsystem
         .window(
