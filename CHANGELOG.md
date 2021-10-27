@@ -18,7 +18,7 @@
 * When controller is lost, icons will fallback to keyboard icons. Hot-plugging is not supported.
 * Added steam controller support, using direct USB access.
 * Added scrolling with controller or keyboard to the scrollable prompts, such as the license agreement review.
-
+* Add configuration parameters for disabling controller support or steam controller USB support.
 
 ### 40.0 (2021-10-17)
 
