@@ -31,6 +31,7 @@ const PROMPT_KEYBOARD_CTRL: &'static [u8] = include_bytes!("../res/prompts/Ctrl_
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32 as f32;
+pub const SCROLL_TIMES: usize = 40 as usize;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RequestedAction {
@@ -459,10 +460,13 @@ pub fn egui_with_prompts(
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, false, context)?;
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, true, context)?;
     let mut no = false;
     let mut yes = false;
     let mut last_attached_state = window.attached_to_controller;
+
+    let mut last_current_scroll = 0 as f32;
+    let mut last_max_scroll = 0 as f32;
 
     let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap().0;
     let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
@@ -484,6 +488,18 @@ pub fn egui_with_prompts(
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
             last_attached_state = window_instance.attached_to_controller;
+        }
+
+        let mut requested_scroll_up = 0;
+        let mut requested_scroll_down = 0;
+        if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
+            if window_instance.nav_counter_down != 0 {
+                requested_scroll_down = window_instance.nav_counter_down;
+                window_instance.nav_counter_down = 0;
+            } else {
+                requested_scroll_up = window_instance.nav_counter_up;
+                window_instance.nav_counter_up = 0;
+            }
         }
 
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
@@ -521,7 +537,20 @@ pub fn egui_with_prompts(
         }
 
         egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            let mut scroll_area = egui::ScrollArea::vertical();
+            if requested_scroll_down != 0 {
+                let calculated_scroll = last_current_scroll + (requested_scroll_down * SCROLL_TIMES) as f32;
+                if calculated_scroll <= last_max_scroll {
+                    scroll_area = scroll_area.scroll_offset(calculated_scroll);
+                }
+            } else if requested_scroll_up != 0 {
+                let calculated_scroll = last_current_scroll - (requested_scroll_up * SCROLL_TIMES) as f32;
+                if calculated_scroll >= 0.0 {
+                    scroll_area = scroll_area.scroll_offset(calculated_scroll);
+                }
+            }
+
+            let (current_scroll, max_scroll) = scroll_area.show(ui, |ui| {
                 ui.vertical_centered(|ui| {
                     if timeout_in_seconds == 0 {
                         ui.label(&message.to_string());
@@ -529,7 +558,15 @@ pub fn egui_with_prompts(
                         ui.label(std::format!("Launching\n{}\nin {:.0} seconds", message, seconds_left));
                     }
                 });
+
+                let margin = ui.visuals().clip_rect_margin;
+                let current_scroll = ui.clip_rect().top() - ui.min_rect().top() + margin;
+                let max_scroll = ui.min_rect().height() - ui.clip_rect().height() + 2.0 * margin;
+                (current_scroll, max_scroll)
             });
+
+            last_current_scroll = current_scroll;
+            last_max_scroll = max_scroll;
         });
 
         if timeout_in_seconds != 0 && seconds_left <= 0.0 {
