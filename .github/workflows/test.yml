@@ -12,12 +12,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Install GTK 3 Dev
-      run: apt update && apt-get install -y libgtk-3-dev
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev
-    - name: Install libusb
-      run: apt update && apt-get install -y libusb-1.0-0-dev
+    - name: Install Clippy
+      run: rustup component add clippy
     - name: Build
       run: make release
     - name: Package
