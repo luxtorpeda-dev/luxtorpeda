@@ -68,6 +68,8 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
+- use_controller - If this parameter is set to true, then attempts to access controllers through SDL2. Defaults to true.
+- use_steam_controller - If this parameter is set to true, then attempts to connect to steam controller through USB interface. Defaults to true. If false, can interact with UI through normal steam controller desktop emulation.
 
 ## User Interface
 

@@ -1,17 +1,20 @@
 use std::io::Error;
 use std::time::{Duration, Instant};
+use crate::user_env;
+use std::fs;
+
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
 use egui_backend::{sdl2::event::Event, sdl2::event::EventType, DpiScaling};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
+
 extern crate image;
 use image::GenericImageView;
 
 use crate::run_context::RunContext;
 use crate::run_context::ThreadCommand;
 use crate::run_context::SteamControllerEvent;
-
 
 const PROMPT_CONTROLLER_Y: &'static [u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &'static [u8] = include_bytes!("../res/prompts/Steam_A.png");
@@ -351,91 +354,111 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let game_controller_subsystem = sdl_context.game_controller().unwrap();
     let mut sdl2_controller = None; //needed for controller connection to stay alive
 
-    match game_controller_subsystem.num_joysticks() {
-        Ok(available) => {
-            println!("{} joysticks available", available);
+    let config_json_file = user_env::tool_dir().join("config.json");
+    let config_json_str = fs::read_to_string(config_json_file)?;
+    let config_parsed = json::parse(&config_json_str).unwrap();
 
-            if available == 0 {
-                let controller_context = context.clone();
-                if let Some(controller_context) = controller_context {
-                    let guard = controller_context.lock().unwrap();
-                    if let Some(last_connected_event) = guard.last_connected_event {
-                        match last_connected_event {
-                            SteamControllerEvent::Connected => {
-                                attached_to_controller = true;
-                            },
-                            _ => {}
+    let mut use_controller = true;
+    let mut use_steam_controller = true;
+    if !config_parsed["use_controller"].is_null() {
+        use_controller = config_parsed["use_controller"] == true;
+    }
+    if !config_parsed["use_steam_controller"].is_null() {
+        use_steam_controller = config_parsed["use_steam_controller"] == true;
+    }
+
+    if use_controller {
+        match game_controller_subsystem.num_joysticks() {
+            Ok(available) => {
+                println!("{} joysticks available", available);
+
+                if available == 0 {
+                    let controller_context = context.clone();
+                    if let Some(controller_context) = controller_context {
+                        let guard = controller_context.lock().unwrap();
+                        if let Some(last_connected_event) = guard.last_connected_event {
+                            match last_connected_event {
+                                SteamControllerEvent::Connected => {
+                                    attached_to_controller = true;
+                                },
+                                _ => {}
+                            }
+                        }
+                        std::mem::drop(guard);
+                    }
+                }
+
+                match (0..available)
+                .find_map(|id| {
+                    if !game_controller_subsystem.is_game_controller(id) {
+                        println!("{} is not a game controller", id);
+                        return None;
+                    }
+
+                    println!("Attempting to open controller {}", id);
+
+                    match game_controller_subsystem.name_for_index(id) {
+                        Ok(name) => {
+                            println!("controller name is {}", name);
+                            if name == "Steam Virtual Gamepad" {
+                                try_steam_controller = true;
+                            }
+                        },
+                        Err(err) => {
+                            println!("controller name request failed: {:?}", err);
+                        }
+                    };
+
+                    if try_steam_controller {
+                        return None;
+                    }
+
+                    match game_controller_subsystem.open(id) {
+                        Ok(c) => {
+                            println!("Success: opened \"{}\"", c.name());
+                            Some(c)
+                        }
+                        Err(e) => {
+                            println!("failed: {:?}", e);
+                            None
                         }
                     }
-                    std::mem::drop(guard);
-                }
-            }
+                }) {
+                    Some(found_controller) => {
+                        println!("Controller connected mapping: {}", found_controller.mapping());
 
-            match (0..available)
-            .find_map(|id| {
-                if !game_controller_subsystem.is_game_controller(id) {
-                    println!("{} is not a game controller", id);
-                    return None;
-                }
-
-                println!("Attempting to open controller {}", id);
-
-                match game_controller_subsystem.name_for_index(id) {
-                    Ok(name) => {
-                        println!("controller name is {}", name);
-                        if name == "Steam Virtual Gamepad" {
-                            try_steam_controller = true;
+                        if found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
+                            println!("controller assumed to be dualshock");
+                            controller_type = ControllerType::DualShock;
+                        } else {
+                            println!("controller assumed to be xbox");
                         }
+
+                        sdl2_controller = Some(found_controller);
+                        attached_to_controller = true;
                     },
-                    Err(err) => {
-                        println!("controller name request failed: {:?}", err);
-                    }
-                };
-
-                if try_steam_controller {
-                    return None;
+                    None => {}
                 }
-
-                match game_controller_subsystem.open(id) {
-                    Ok(c) => {
-                        println!("Success: opened \"{}\"", c.name());
-                        Some(c)
-                    }
-                    Err(e) => {
-                        println!("failed: {:?}", e);
-                        None
-                    }
-                }
-            }) {
-                Some(found_controller) => {
-                    println!("Controller connected mapping: {}", found_controller.mapping());
-
-                    if found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
-                        println!("controller assumed to be dualshock");
-                        controller_type = ControllerType::DualShock;
-                    } else {
-                        println!("controller assumed to be xbox");
-                    }
-
-                    sdl2_controller = Some(found_controller);
-                    attached_to_controller = true;
-                },
-                None => {}
+            },
+            Err(err) => {
+                println!("num_joysticks error {}", err);
             }
-        },
-        Err(err) => {
-            println!("num_joysticks error {}", err);
         }
+    } else {
+        println!("controller support disabled");
     }
 
     let controller_context = context.clone();
     if let Some(controller_context) = controller_context {
         let mut guard = controller_context.lock().unwrap();
-        if try_steam_controller && !attached_to_controller {
+        if try_steam_controller && !attached_to_controller && use_steam_controller {
             guard.thread_command = Some(ThreadCommand::Connect);
         }
-        else if !sdl2_controller.is_none() {
+        else if !sdl2_controller.is_none() || !use_controller || !use_steam_controller {
             guard.thread_command = Some(ThreadCommand::Stop);
+            if !use_steam_controller {
+                println!("steam controller support disabled");
+            }
         }
         std::mem::drop(guard);
     }
