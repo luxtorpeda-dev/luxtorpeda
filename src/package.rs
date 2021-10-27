@@ -31,6 +31,7 @@ use crate::dialog::show_question;
 use crate::dialog::start_progress;
 use crate::dialog::ProgressState;
 use crate::dialog::default_choice_confirmation_prompt;
+use crate::run_context::RunContext;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
@@ -212,7 +213,7 @@ pub fn update_packages_json() -> io::Result<()> {
     Ok(())
 }
 
-fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<String> {
+fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<String> {
     let check_default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
     if check_default_choice_file_path.exists() {
         println!("show choice. found default choice.");
@@ -220,7 +221,8 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         println!("show choice. found default choice. choice is {:?}", default_engine_choice_str);
 
         let mut use_default = true;
-        match default_choice_confirmation_prompt("Default Choice Confirmation", &std::format!("{0}", default_engine_choice_str)) {
+        let default_confirmation_context = context.clone();
+        match default_choice_confirmation_prompt("Default Choice Confirmation", &std::format!("{0}", default_engine_choice_str), default_confirmation_context) {
             Some(()) => {
                 use_default = false;
 
@@ -252,7 +254,7 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<S
         choices.push(entry["name"].to_string());
     }
     
-    let (choice_name, default_choice) = match show_choices("Pick the engine below", "Select Engine", &choices) {
+    let (choice_name, default_choice) = match show_choices("Pick the engine below", "Select Engine", &choices, context) {
         Ok(s) => s,
         Err(_) => {
             println!("show choice. dialog was rejected");
@@ -347,8 +349,9 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(app_id: String) -> io::Result<String> {
-    let mut game_info = get_game_info(app_id.as_str())
+pub fn download_all(app_id: String, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<String> {
+    let game_info_context = context.clone();
+    let mut game_info = get_game_info(app_id.as_str(), game_info_context)
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let mut engine_choice = String::new();
@@ -356,7 +359,8 @@ pub fn download_all(app_id: String) -> io::Result<String> {
     if !game_info["choices"].is_null() {
         println!("showing engine choices");
 
-        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
+        let engine_choice_context = context.clone();
+        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info, engine_choice_context) {
             Ok(s) => s,
             Err(err) => {
                 return Err(err);
@@ -405,7 +409,8 @@ pub fn download_all(app_id: String) -> io::Result<String> {
     }
 
     if !dialog_message.is_empty() {
-        match show_question("License Warning", &dialog_message.to_string()) {
+        let question_context = context.clone();
+        match show_question("License Warning", &dialog_message.to_string(), question_context) {
             Some(_) => {
                 println!("show license warning. dialog was accepted");
             },
@@ -482,7 +487,8 @@ pub fn download_all(app_id: String) -> io::Result<String> {
         std::mem::drop(guard);
     });
 
-    match start_progress(progress_arc) {
+    let start_progress_context = context.clone();
+    match start_progress(progress_arc, start_progress_context) {
         Ok(()) => {},
         Err(_) => {
             println!("download_all. warning: progress not started");
@@ -495,7 +501,7 @@ pub fn download_all(app_id: String) -> io::Result<String> {
     if guard.error {
         download_thread.join().expect("The download thread has panicked");
         if guard.error_str != "" {
-            show_error(&"Download Error".to_string(), &guard.error_str).unwrap();
+            show_error(&"Download Error".to_string(), &guard.error_str, context).unwrap();
         }
         return Err(Error::new(ErrorKind::Other, "Download failed"));
     }
@@ -691,7 +697,7 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     return setup_complete;
 }
 
-pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
+pub fn install(game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"]
@@ -732,14 +738,14 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
                     match unpack_tarball(&path, &game_info, &name) {
                         Ok(()) => {},
                         Err(err) => {
-                            show_error(&"Unpack Error".to_string(), &std::format!("Error unpacking {}: {}", &file, &err).to_string())?;
+                            show_error(&"Unpack Error".to_string(), &std::format!("Error unpacking {}: {}", &file, &err).to_string(), context)?;
                             return Err(err);
                         }
                     };
                 }
             }
             None => {
-                show_error(&"Run Error".to_string(), &"Package file not found".to_string())?;
+                show_error(&"Run Error".to_string(), &"Package file not found".to_string(), context)?;
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
             }
         }
@@ -747,7 +753,7 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
     Ok(())
 }
 
-pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
+pub fn get_game_info(app_id: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Option<json::JsonValue> {
     let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
@@ -774,7 +780,7 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json read err: {:?}", err);
                     println!("{:?}", error_message);
-                    match show_error(&"User Packages Error".to_string(), &error_message) {
+                    match show_error(&"User Packages Error".to_string(), &error_message, context) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }
@@ -787,7 +793,7 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json parsing err: {:?}", err);
                     println!("{:?}", error_message);
-                    match show_error(&"User Packages Error".to_string(), &error_message) {
+                    match show_error(&"User Packages Error".to_string(), &error_message, context) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }

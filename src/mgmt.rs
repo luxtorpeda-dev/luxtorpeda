@@ -175,7 +175,8 @@ pub fn run_mgmt() -> Result<(), Error> {
         }
     };
 
-    let mut window = start_egui_window(1024, 768, &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION")).to_string(), true).unwrap();
+    let title = &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION")).to_string();
+    let mut window = start_egui_window(1024, 768, title, true, None)?;
     let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
     let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
     let (texture_custom_action, ..) = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap();
@@ -184,6 +185,7 @@ pub fn run_mgmt() -> Result<(), Error> {
 
     window.start_egui_loop(|window_instance| {
         if reload_needed {
+            println!("run_mgmt detect_mgmt reload");
             let detect_loop_arc = arc.clone();
             match detect_mgmt(detect_loop_arc) {
                 Ok(()) => {
@@ -247,13 +249,13 @@ pub fn run_mgmt() -> Result<(), Error> {
                 let layout = egui::Layout::left_to_right().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
                     ui.add_enabled_ui(current_choice_index != 0 && guard.items[current_choice_index - 1].has_config, |ui| {
-                        if ui.add(egui::ImageButtonWithText::new("Clear Config", texture_custom_action, prompt_vec)).clicked() {
+                        if ui.button_with_image(texture_custom_action, prompt_vec, "Clear Config").clicked() {
                             clear_config(&mut guard.items[current_choice_index - 1]);
                         }
                     });
 
                     ui.add_enabled_ui(current_choice_index != 0 && guard.items[current_choice_index - 1].has_cache, |ui| {
-                        if ui.add(egui::ImageButtonWithText::new("Clear Cache", texture_second_custom_action, prompt_vec)).clicked() {
+                        if ui.button_with_image(texture_second_custom_action, prompt_vec, "Clear Cache").clicked() {
                             clear_cache(&mut guard.items[current_choice_index - 1]);
                         }
                     });
@@ -263,11 +265,11 @@ pub fn run_mgmt() -> Result<(), Error> {
             egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
-                    if ui.add(egui::ImageButtonWithText::new("Refresh", texture_confirm, prompt_vec)).clicked() {
+                    if ui.button_with_image(texture_confirm, prompt_vec, "Refresh").clicked() {
                         reload_needed = true;
                     }
 
-                    if ui.add(egui::ImageButtonWithText::new("Exit", texture_back, prompt_vec)).clicked() {
+                    if ui.button_with_image(texture_back, prompt_vec, "Exit").clicked() {
                         guard.close = true;
                     }
                 });

@@ -1,4 +1,6 @@
 {
     "host_url": "https://luxtorpeda-dev.github.io",
-    "should_do_update": true
+    "should_do_update": true,
+    "use_controller": true,
+    "use_steam_controller": true
 }

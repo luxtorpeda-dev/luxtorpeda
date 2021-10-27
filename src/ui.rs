@@ -1,17 +1,31 @@
 use std::io::Error;
 use std::time::{Duration, Instant};
+use crate::user_env;
+use std::fs;
+
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
-use egui_backend::{sdl2::event::Event, DpiScaling};
+use egui_backend::{sdl2::event::Event, sdl2::event::EventType, DpiScaling};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
+
 extern crate image;
 use image::GenericImageView;
+
+use crate::run_context::RunContext;
+use crate::run_context::ThreadCommand;
+use crate::run_context::SteamControllerEvent;
 
 const PROMPT_CONTROLLER_Y: &'static [u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &'static [u8] = include_bytes!("../res/prompts/Steam_A.png");
 const PROMPT_CONTROLLER_X: &'static [u8] = include_bytes!("../res/prompts/Steam_X.png");
 const PROMPT_CONTROLLER_B: &'static [u8] = include_bytes!("../res/prompts/Steam_B.png");
+
+const PROMPT_CONTROLLER_DUALSHOCK_Y: &'static [u8] = include_bytes!("../res/prompts/PS4_Y.png");
+const PROMPT_CONTROLLER_DUALSHOCK_A: &'static [u8] = include_bytes!("../res/prompts/PS4_A.png");
+const PROMPT_CONTROLLER_DUALSHOCK_X: &'static [u8] = include_bytes!("../res/prompts/PS4_X.png");
+const PROMPT_CONTROLLER_DUALSHOCK_B: &'static [u8] = include_bytes!("../res/prompts/PS4_B.png");
+
 const PROMPT_KEYBOARD_SPACE: &'static [u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
 const PROMPT_KEYBOARD_ENTER: &'static [u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
 const PROMPT_KEYBOARD_ESC: &'static [u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
@@ -20,8 +34,9 @@ const PROMPT_KEYBOARD_CTRL: &'static [u8] = include_bytes!("../res/prompts/Ctrl_
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32 as f32;
+pub const SCROLL_TIMES: usize = 40 as usize;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RequestedAction {
     Confirm,
     Back,
@@ -29,12 +44,18 @@ pub enum RequestedAction {
     SecondCustomAction
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum ControllerType {
+    Xbox,
+    DualShock
+}
+
 pub struct EguiWindowInstance {
     window: egui_sdl2_gl::sdl2::video::Window,
     _ctx: GLContext,
     pub egui_ctx: egui::CtxRef,
     event_pump: sdl2::EventPump,
-    _controller: std::option::Option<sdl2::controller::GameController>,
+    sdl2_controller: std::option::Option<sdl2::controller::GameController>,
     pub painter: egui_sdl2_gl::painter::Painter,
     egui_state: egui_sdl2_gl::EguiStateHandler,
     start_time: std::time::Instant,
@@ -45,7 +66,9 @@ pub struct EguiWindowInstance {
     pub nav_counter_up: usize,
     pub nav_counter_down: usize,
     pub attached_to_controller: bool,
-    pub last_requested_action: Option<RequestedAction>
+    pub last_requested_action: Option<RequestedAction>,
+    pub controller_type: ControllerType,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>
 }
 
 impl EguiWindowInstance {
@@ -57,6 +80,38 @@ impl EguiWindowInstance {
 
             let title = &self.title;
             let mut exit = false;
+
+            if self.sdl2_controller.is_none() {
+                let context_check = self.context.clone();
+                if let Some(context) = context_check {
+                    let mut guard = context.lock().unwrap();
+                    if let Some(event) = guard.event {
+                        match event {
+                            SteamControllerEvent::Connected => {
+                                self.attached_to_controller = true;
+                            },
+                            SteamControllerEvent::Disconnected => {
+                                self.attached_to_controller = false;
+                            },
+                            SteamControllerEvent::RequestedAction(action) => {
+                                self.last_requested_action = Some(action);
+                            },
+                            SteamControllerEvent::Up => {
+                                if self.enable_nav {
+                                    self.nav_counter_up = self.nav_counter_up + 1;
+                                }
+                            },
+                            SteamControllerEvent::Down => {
+                                if self.enable_nav {
+                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                }
+                            }
+                        }
+                        guard.event = None;
+                    }
+                    std::mem::drop(guard);
+                }
+            }
 
             match self.last_requested_action {
                 Some(last_requested_action) => {
@@ -134,6 +189,16 @@ impl EguiWindowInstance {
                                                 self.nav_counter_up = self.nav_counter_up + 1;
                                             }
                                         },
+                                        sdl2::keyboard::Keycode::S => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down = self.nav_counter_down + 1;
+                                            }
+                                        },
+                                        sdl2::keyboard::Keycode::W => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up = self.nav_counter_up + 1;
+                                            }
+                                        },
                                         sdl2::keyboard::Keycode::Return => {
                                             self.last_requested_action = Some(RequestedAction::Confirm);
                                         },
@@ -150,6 +215,9 @@ impl EguiWindowInstance {
                                     });
                                 }
                             }
+                        },
+                        Event::ControllerDeviceRemoved { .. } => {
+                            self.attached_to_controller = false;
                         },
                         _ => {
                             self.egui_state.process_input(&self.window, event, &mut self.painter);
@@ -187,6 +255,16 @@ impl EguiWindowInstance {
                                 sdl2::keyboard::Keycode::Up => {
                                     self.nav_counter_up = self.nav_counter_up + 1;
                                 },
+                                sdl2::keyboard::Keycode::S => {
+                                    if self.enable_nav {
+                                        self.nav_counter_down = self.nav_counter_down + 1;
+                                    }
+                                },
+                                sdl2::keyboard::Keycode::W => {
+                                    if self.enable_nav {
+                                        self.nav_counter_up = self.nav_counter_up + 1;
+                                    }
+                                },
                                 sdl2::keyboard::Keycode::Return => {
                                     self.last_requested_action = Some(RequestedAction::Confirm);
                                 },
@@ -201,6 +279,9 @@ impl EguiWindowInstance {
                                 },
                                 _ => {}
                             });
+                        },
+                        Event::ControllerDeviceRemoved { .. } => {
+                            self.attached_to_controller = false;
                         },
                         _ => {
                             self.egui_state.process_input(&self.window, event, &mut self.painter);
@@ -220,7 +301,8 @@ impl EguiWindowInstance {
     }
 }
 
-pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str, enable_nav: bool) -> Result<EguiWindowInstance, Error> {
+pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str, enable_nav: bool,
+        context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Result<EguiWindowInstance, Error> {
     sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
 
     let sdl_context = sdl2::init().unwrap();
@@ -240,6 +322,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let mut window_flags: u32 = 0;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
 
     let mut window = video_subsystem
         .window(
@@ -255,60 +338,134 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     window.raise();
 
-    // Create a window context
     let _ctx = window.gl_create_context().unwrap();
     debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
     debug_assert_eq!(gl_attr.context_version(), (3, 2));
 
-    // Init egui stuff
     let egui_ctx = egui::CtxRef::default();
-    let event_pump = sdl_context.event_pump().unwrap();
+
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    event_pump.disable_event(EventType::JoyAxisMotion);
+    event_pump.disable_event(EventType::ControllerAxisMotion);
 
     let mut attached_to_controller = false;
+    let mut try_steam_controller = false;
+    let mut controller_type = ControllerType::Xbox;
     let game_controller_subsystem = sdl_context.game_controller().unwrap();
-    let mut controller = None; //needed for controller connection to stay alive
-    match game_controller_subsystem.num_joysticks() {
-        Ok(available) => {
-            println!("{} joysticks available", available);
+    let mut sdl2_controller = None; //needed for controller connection to stay alive
 
-            match (0..available)
-            .find_map(|id| {
-                if !game_controller_subsystem.is_game_controller(id) {
-                    println!("{} is not a game controller", id);
-                    return None;
-                }
+    let config_json_file = user_env::tool_dir().join("config.json");
+    let config_json_str = fs::read_to_string(config_json_file)?;
+    let config_parsed = json::parse(&config_json_str).unwrap();
 
-                println!("Attempting to open controller {}", id);
+    let mut use_controller = true;
+    let mut use_steam_controller = true;
+    if !config_parsed["use_controller"].is_null() {
+        use_controller = config_parsed["use_controller"] == true;
+    }
+    if !config_parsed["use_steam_controller"].is_null() {
+        use_steam_controller = config_parsed["use_steam_controller"] == true;
+    }
 
-                match game_controller_subsystem.open(id) {
-                    Ok(c) => {
-                        println!("Success: opened \"{}\"", c.name());
-                        Some(c)
+    if use_controller {
+        match game_controller_subsystem.num_joysticks() {
+            Ok(available) => {
+                println!("{} joysticks available", available);
+
+                if available == 0 {
+                    let controller_context = context.clone();
+                    if let Some(controller_context) = controller_context {
+                        let guard = controller_context.lock().unwrap();
+                        if let Some(last_connected_event) = guard.last_connected_event {
+                            match last_connected_event {
+                                SteamControllerEvent::Connected => {
+                                    attached_to_controller = true;
+                                },
+                                _ => {}
+                            }
+                        }
+                        std::mem::drop(guard);
                     }
-                    Err(e) => {
-                        println!("failed: {:?}", e);
-                        None
+                }
+
+                match (0..available)
+                .find_map(|id| {
+                    if !game_controller_subsystem.is_game_controller(id) {
+                        println!("{} is not a game controller", id);
+                        return None;
                     }
+
+                    println!("Attempting to open controller {}", id);
+
+                    match game_controller_subsystem.name_for_index(id) {
+                        Ok(name) => {
+                            println!("controller name is {}", name);
+                            if name == "Steam Virtual Gamepad" {
+                                try_steam_controller = true;
+                            }
+                        },
+                        Err(err) => {
+                            println!("controller name request failed: {:?}", err);
+                        }
+                    };
+
+                    if try_steam_controller {
+                        return None;
+                    }
+
+                    match game_controller_subsystem.open(id) {
+                        Ok(c) => {
+                            println!("Success: opened \"{}\"", c.name());
+                            Some(c)
+                        }
+                        Err(e) => {
+                            println!("failed: {:?}", e);
+                            None
+                        }
+                    }
+                }) {
+                    Some(found_controller) => {
+                        println!("Controller connected mapping: {}", found_controller.mapping());
+
+                        if found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
+                            println!("controller assumed to be dualshock");
+                            controller_type = ControllerType::DualShock;
+                        } else {
+                            println!("controller assumed to be xbox");
+                        }
+
+                        sdl2_controller = Some(found_controller);
+                        attached_to_controller = true;
+                    },
+                    None => {}
                 }
-            }) {
-                Some(found_controller) => {
-                    println!("Controller connected mapping: {}", found_controller.mapping());
-                    controller = Some(found_controller);
-                    attached_to_controller = true;
-                },
-                None => {
-                    println!("controller not found");
-                }
+            },
+            Err(err) => {
+                println!("num_joysticks error {}", err);
             }
-        },
-        Err(err) => {
-            println!("num_joysticks error {}", err);
         }
+    } else {
+        println!("controller support disabled");
+    }
+
+    let controller_context = context.clone();
+    if let Some(controller_context) = controller_context {
+        let mut guard = controller_context.lock().unwrap();
+        if try_steam_controller && !attached_to_controller && use_steam_controller {
+            guard.thread_command = Some(ThreadCommand::Connect);
+        }
+        else if !sdl2_controller.is_none() || !use_controller || !use_steam_controller {
+            guard.thread_command = Some(ThreadCommand::Stop);
+            if !use_steam_controller {
+                println!("steam controller support disabled");
+            }
+        }
+        std::mem::drop(guard);
     }
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, _controller: controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, sdl2_controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type, context})
 }
 
 pub fn egui_with_prompts(
@@ -321,16 +478,21 @@ pub fn egui_with_prompts(
         mut window_height: u32,
         button_text: &String,
         button_message: bool,
-        timeout_in_seconds: i8) -> Result<(bool, bool), Error> {
+        timeout_in_seconds: i8,
+        context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Result<(bool, bool), Error> {
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, false)?;
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, true, context)?;
     let mut no = false;
     let mut yes = false;
+    let mut last_attached_state = window.attached_to_controller;
 
-    let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
-    let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
+    let mut last_current_scroll = 0 as f32;
+    let mut last_max_scroll = 0 as f32;
+
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap().0;
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(|window_instance| {
@@ -342,6 +504,25 @@ pub fn egui_with_prompts(
                 window_instance.last_requested_action = None;
             }
             None => {}
+        }
+
+        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+            println!("Detected controller change, reloading prompts");
+            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
+            last_attached_state = window_instance.attached_to_controller;
+        }
+
+        let mut requested_scroll_up = 0;
+        let mut requested_scroll_down = 0;
+        if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
+            if window_instance.nav_counter_down != 0 {
+                requested_scroll_down = window_instance.nav_counter_down;
+                window_instance.nav_counter_down = 0;
+            } else {
+                requested_scroll_up = window_instance.nav_counter_up;
+                window_instance.nav_counter_up = 0;
+            }
         }
 
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
@@ -357,13 +538,13 @@ pub fn egui_with_prompts(
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
                     if yes_button {
-                        if ui.add(egui::ImageButtonWithText::new(&yes_text, texture_confirm, prompt_vec)).clicked() {
+                        if ui.button_with_image(texture_confirm, prompt_vec, &yes_text).clicked() {
                             yes = true;
                         }
                     }
 
                     if no_button {
-                        if ui.add(egui::ImageButtonWithText::new(&no_text, texture_back, prompt_vec)).clicked() {
+                        if ui.button_with_image(texture_back, prompt_vec, &no_text).clicked() {
                             no = true;
                         }
                     }
@@ -379,7 +560,20 @@ pub fn egui_with_prompts(
         }
 
         egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            let mut scroll_area = egui::ScrollArea::vertical();
+            if requested_scroll_down != 0 {
+                let calculated_scroll = last_current_scroll + (requested_scroll_down * SCROLL_TIMES) as f32;
+                if calculated_scroll <= last_max_scroll {
+                    scroll_area = scroll_area.scroll_offset(calculated_scroll);
+                }
+            } else if requested_scroll_up != 0 {
+                let calculated_scroll = last_current_scroll - (requested_scroll_up * SCROLL_TIMES) as f32;
+                if calculated_scroll >= 0.0 {
+                    scroll_area = scroll_area.scroll_offset(calculated_scroll);
+                }
+            }
+
+            let (current_scroll, max_scroll) = scroll_area.show(ui, |ui| {
                 ui.vertical_centered(|ui| {
                     if timeout_in_seconds == 0 {
                         ui.label(&message.to_string());
@@ -387,7 +581,15 @@ pub fn egui_with_prompts(
                         ui.label(std::format!("Launching\n{}\nin {:.0} seconds", message, seconds_left));
                     }
                 });
+
+                let margin = ui.visuals().clip_rect_margin;
+                let current_scroll = ui.clip_rect().top() - ui.min_rect().top() + margin;
+                let max_scroll = ui.min_rect().height() - ui.clip_rect().height() + 2.0 * margin;
+                (current_scroll, max_scroll)
             });
+
+            last_current_scroll = current_scroll;
+            last_max_scroll = max_scroll;
         });
 
         if timeout_in_seconds != 0 && seconds_left <= 0.0 {
@@ -436,28 +638,44 @@ pub fn prompt_image_for_action(action: RequestedAction, window_instance: &mut Eg
     match action {
         RequestedAction::Confirm => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_A;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_A;
+                } else {
+                    image = PROMPT_CONTROLLER_A;
+                }
             } else {
                 image = PROMPT_KEYBOARD_ENTER;
             }
         },
         RequestedAction::Back => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_B;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_B;
+                } else {
+                    image = PROMPT_CONTROLLER_B;
+                }
             } else {
                 image = PROMPT_KEYBOARD_ESC;
             }
         },
         RequestedAction::CustomAction => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_Y;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_Y;
+                } else {
+                    image = PROMPT_CONTROLLER_Y;
+                }
             } else {
                 image = PROMPT_KEYBOARD_SPACE;
             }
         },
         RequestedAction::SecondCustomAction => {
             if window_instance.attached_to_controller {
-                image = PROMPT_CONTROLLER_X;
+                if window_instance.controller_type == ControllerType::DualShock {
+                    image = PROMPT_CONTROLLER_DUALSHOCK_X;
+                } else {
+                    image = PROMPT_CONTROLLER_X;
+                }
             } else {
                 image = PROMPT_KEYBOARD_CTRL;
             }

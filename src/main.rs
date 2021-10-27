@@ -16,6 +16,7 @@ mod user_env;
 mod dialog;
 mod mgmt;
 mod ui;
+mod run_context;
 
 static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
 static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
@@ -60,11 +61,12 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
-fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
+fn run_setup(game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>) -> io::Result<()> {
     let setup_info = &game_info["setup"];
     if !package::is_setup_complete(&game_info["setup"]) {
         if !&setup_info["license_path"].is_null() && Path::new(&setup_info["license_path"].to_string()).exists() {
-            match dialog::show_file_with_confirm("Closed Source Engine EULA", &setup_info["license_path"].to_string()) {
+            let license_context = context.clone();
+            match dialog::show_file_with_confirm("Closed Source Engine EULA", &setup_info["license_path"].to_string(), license_context) {
                 Ok(()) => {
                     println!("show eula. dialog was accepted");
                 }
@@ -92,7 +94,8 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
             .expect("failed to execute process");
             
         if !setup_cmd.success() {
-            dialog::show_error(&"Setup Error".to_string(), &"Setup failed to complete".to_string())?;
+            let setup_error_context = context.clone();
+            dialog::show_error(&"Setup Error".to_string(), &"Setup failed to complete".to_string(), setup_error_context)?;
             return Err(Error::new(ErrorKind::Other, "setup failed"));
         }
                         
@@ -103,19 +106,7 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
     }
 }
 
-fn run(args: &[&str]) -> io::Result<()> {
-    if args.is_empty() {
-        usage();
-        std::process::exit(0)
-    }
-
-    let exe = args[0].to_lowercase();
-    let exe_args = &args[1..];
-
-    if exe.ends_with("iscriptevaluator.exe") {
-        return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
-    }
-
+fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>) -> io::Result<json::JsonValue> {
     let mut allow_virtual_gamepad = false;
     let mut ignore_devices = "".to_string();
     match env::var(SDL_VIRTUAL_GAMEPAD) {
@@ -152,15 +143,17 @@ fn run(args: &[&str]) -> io::Result<()> {
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
     
-    let mut game_info = package::get_game_info(app_id.as_str())
+    let mut game_info = package::get_game_info(app_id.as_str(), context.clone())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     if game_info.is_null() {
         return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
     }
+
+    let download_context = context.clone();
     
     if !game_info["choices"].is_null() {
-        let engine_choice = match package::download_all(app_id.to_string()) {
+        let engine_choice = match package::download_all(app_id.to_string(), download_context) {
             Ok(s) => s,
             Err(err) => {
                 println!("download all error: {:?}", err);
@@ -176,7 +169,7 @@ fn run(args: &[&str]) -> io::Result<()> {
             }
         };
     } else {
-        package::download_all(app_id.to_string())?;
+        package::download_all(app_id.to_string(), download_context)?;
     }
 
     println!("json:");
@@ -193,11 +186,11 @@ fn run(args: &[&str]) -> io::Result<()> {
     }
 
     if !game_info["download"].is_null() {
-        package::install(&game_info)?;
+        package::install(&game_info, context.clone())?;
     }
     
     if !game_info["setup"].is_null() {
-        match run_setup(&game_info) {
+        match run_setup(&game_info, context.clone()) {
             Ok(()) => {
                 println!("setup complete");
             },
@@ -221,18 +214,69 @@ fn run(args: &[&str]) -> io::Result<()> {
         }
     }
 
-    match find_game_command(&game_info, args) {
-        None => Err(Error::new(ErrorKind::Other, "No command line defined")),
-        Some((cmd, cmd_args)) => {
-            println!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
-            Command::new(cmd)
-                .args(cmd_args)
-                .args(exe_args)
-                .status()
-                .expect("failed to execute process");
-            Ok(())
+    Ok(game_info)
+}
+
+fn run_wrapper(args: &[&str]) -> io::Result<()> {
+    if args.is_empty() {
+        usage();
+        std::process::exit(0)
+    }
+
+    let exe = args[0].to_lowercase();
+    let exe_args = &args[1..];
+
+    if exe.ends_with("iscriptevaluator.exe") {
+        return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
+    }
+
+    let mut ret: Result<(), Error> = Ok(());
+    let mut game_info = None;
+    let (context, context_thread) = run_context::setup_run_context();
+    let run_context = context.clone();
+
+    match run(args, run_context) {
+        Ok(g) => {
+            game_info = Some(g);
+        },
+        Err(err) => {
+            ret = Err(err);
         }
     }
+
+    let close_context = context.clone();
+    if let Some(close_context) = close_context {
+        println!("sending close to run context thread");
+        let mut guard = close_context.lock().unwrap();
+        guard.thread_command = Some(run_context::ThreadCommand::Stop);
+        std::mem::drop(guard);
+    }
+
+    context_thread.join().unwrap();
+
+    if let Some(game_info) = game_info {
+        match find_game_command(&game_info, args) {
+            None => ret = Err(Error::new(ErrorKind::Other, "No command line defined")),
+            Some((cmd, cmd_args)) => {
+                println!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
+                match Command::new(cmd)
+                    .args(cmd_args)
+                    .args(exe_args)
+                    .status() {
+                        Ok(exit_status) => {
+                            println!("run returned with {}", exit_status);
+                            return Ok(());
+                        },
+                        Err(err) => {
+                            return Err(err);
+                        }
+                    }
+
+            }
+        };
+    }
+
+    return ret;
 }
 
 fn manual_download(args: &[&str]) -> io::Result<()> {
@@ -243,7 +287,7 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
     
     let app_id = args[0];
     package::update_packages_json().unwrap();
-    package::download_all(app_id.to_string())?;
+    package::download_all(app_id.to_string(), None)?;
     
     return Ok(());
 }
@@ -264,14 +308,14 @@ fn main() -> io::Result<()> {
     let cmd_args = &args[2..];
 
     match cmd {
-        "run" => run(cmd_args),
+        "run" => run_wrapper(cmd_args),
         "wait-before-run" => {
             pid_file::wait_while_exists();
-            run(cmd_args)
+            run_wrapper(cmd_args)
         },
         "waitforexitandrun" => {
             pid_file::wait_while_exists();
-            run(cmd_args)
+            run_wrapper(cmd_args)
         },
         "manual-download" => manual_download(cmd_args),
         "mgmt" => {
