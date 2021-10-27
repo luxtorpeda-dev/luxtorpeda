@@ -27,3 +27,20 @@ jobs:
       with:
         name: luxtorpeda.tar.xz
         path: ./luxtorpeda.tar.xz
+  clippy:
+    runs-on: ubuntu-latest
+    container:
+      image: rust:1.56-buster
+    env:
+      CARGO_HOME: ./cargo
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Install GTK 3 Dev
+      run: apt update && apt-get install -y libgtk-3-dev
+    - name: Install SDL 2 Dev
+      run: apt update && apt-get install -y libsdl2-dev
+    - name: Install libusb
+      run: apt update && apt-get install -y libusb-1.0-0-dev
+    - name: Clippy Run
+      run: cargo clippy

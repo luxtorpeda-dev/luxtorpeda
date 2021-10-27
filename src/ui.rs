@@ -539,16 +539,12 @@ pub fn egui_with_prompts(
             egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
-                    if yes_button {
-                        if ui.button_with_image(texture_confirm, prompt_vec, &yes_text).clicked() {
-                            yes = true;
-                        }
+                    if yes_button && ui.button_with_image(texture_confirm, prompt_vec, &yes_text).clicked() {
+                        yes = true;
                     }
 
-                    if no_button {
-                        if ui.button_with_image(texture_back, prompt_vec, &no_text).clicked() {
-                            no = true;
-                        }
+                    if no_button && ui.button_with_image(texture_back, prompt_vec, &no_text).clicked() {
+                        no = true;
                     }
                 });
             });
