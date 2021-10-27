@@ -16,6 +16,7 @@
 * Added icons for Playstation controllers (will use the PS4 icons).
 * Fix issue where using the joysticks on a connected controller while the client was running caused a freeze.
 * When controller is lost, icons will fallback to keyboard icons. Hot-plugging is not supported.
+* Added steam controller support, using direct USB access.
 
 
 ### 40.0 (2021-10-17)

@@ -264,7 +264,7 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
                     .args(exe_args)
                     .status() {
                         Ok(exit_status) => {
-                            println!("run returned with exit status of {}", exit_status);
+                            println!("run returned with {}", exit_status);
                             return Ok(());
                         },
                         Err(err) => {
