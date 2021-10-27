@@ -1,3 +1,5 @@
+#![allow(clippy::or_fun_call)]
+
 extern crate reqwest;
 extern crate tar;
 extern crate xz2;
@@ -211,7 +213,7 @@ pub fn update_packages_json() -> io::Result<()> {
 }
 
 fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<String> {
-    let check_default_choice_file_path = place_config_file(&app_id, "default_engine_choice.txt")?;
+    let check_default_choice_file_path = place_config_file(app_id, "default_engine_choice.txt")?;
     if check_default_choice_file_path.exists() {
         println!("show choice. found default choice.");
         let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
@@ -539,7 +541,7 @@ async fn download(app_id: &str, info: &PackageInfo, arc: std::sync::Arc<std::syn
 
     while let Some(item) = stream.next().await {
         let chunk = item.or(Err(Error::new(ErrorKind::Other, "Error while downloading file")))?;
-        dest.write(&chunk)
+        dest.write_all(&chunk)
             .or(Err(Error::new(ErrorKind::Other, "Error while writing to file")))?;
 
         let new = min(downloaded + (chunk.len() as u64), total_size);
@@ -716,14 +718,11 @@ pub fn install(game_info: &json::JsonValue, context: Option<std::sync::Arc<std::
         
         match find_cached_file(cache_dir, file) {
             Some(path) => {
-                if file_info["copy_only"] == true {
-                    copy_only(&path)?;
-                }
-                else if
-                    !&game_info["download_config"].is_null() &&
+                if file_info["copy_only"] == true ||
+                    (!&game_info["download_config"].is_null() &&
                     !&game_info["download_config"][&name.to_string()].is_null() &&
                     !&game_info["download_config"][&name.to_string()]["copy_only"].is_null() &&
-                    game_info["download_config"][&name.to_string()]["copy_only"] == true {
+                    game_info["download_config"][&name.to_string()]["copy_only"] == true) {
                     copy_only(&path)?;
                 }
                 else {
@@ -873,7 +872,7 @@ pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
                         let app_location_path = app_location.path.clone();
                         let app_location_str = &app_location_path.into_os_string().into_string().unwrap();
                         println!("get_app_id_deps_paths. app id {} found at {:#?}.", app_id, app_location_str);
-                        user_env::set_env_var(&std::format!("DEPPATH_{}", app_id).to_string(), &app_location_str);
+                        user_env::set_env_var(&std::format!("DEPPATH_{}", app_id).to_string(), app_location_str);
                     },
                     None => {
                         println!("get_app_id_deps_paths. app id {} not found.", app_id);
@@ -881,11 +880,11 @@ pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
                 }
             }
 
-            return Some(())
+            Some(())
         },
         None => {
             println!("get_app_id_deps_paths. steamdir not found.");
-            return None
+            None
         }
     }
 }

@@ -94,16 +94,14 @@ fn run_setup(game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sy
             .expect("failed to execute process");
             
         if !setup_cmd.success() {
-            let setup_error_context = context.clone();
-            dialog::show_error(&"Setup Error".to_string(), &"Setup failed to complete".to_string(), setup_error_context)?;
+            dialog::show_error(&"Setup Error".to_string(), &"Setup failed to complete".to_string(), context)?;
             return Err(Error::new(ErrorKind::Other, "setup failed"));
         }
                         
         File::create(&setup_info["complete_path"].to_string())?;
-        return Ok(());
-    } else {
-        return Ok(());
     }
+
+    Ok(())
 }
 
 fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>) -> io::Result<json::JsonValue> {
@@ -118,7 +116,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
 
                  match env::var(SDL_IGNORE_DEVICES) {
                     Ok(val) => {
-                        ignore_devices = val.clone();
+                        ignore_devices = val;
                         env::remove_var(SDL_IGNORE_DEVICES);
                     },
                     Err(err) => {
@@ -153,7 +151,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
     let download_context = context.clone();
     
     if !game_info["choices"].is_null() {
-        let engine_choice = match package::download_all(app_id.to_string(), download_context) {
+        let engine_choice = match package::download_all(app_id, download_context) {
             Ok(s) => s,
             Err(err) => {
                 println!("download all error: {:?}", err);
@@ -169,7 +167,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
             }
         };
     } else {
-        package::download_all(app_id.to_string(), download_context)?;
+        package::download_all(app_id, download_context)?;
     }
 
     println!("json:");
@@ -190,7 +188,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
     }
     
     if !game_info["setup"].is_null() {
-        match run_setup(&game_info, context.clone()) {
+        match run_setup(&game_info, context) {
             Ok(()) => {
                 println!("setup complete");
             },
@@ -244,8 +242,7 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
         }
     }
 
-    let close_context = context.clone();
-    if let Some(close_context) = close_context {
+    if let Some(close_context) = context {
         println!("sending close to run context thread");
         let mut guard = close_context.lock().unwrap();
         guard.thread_command = Some(run_context::ThreadCommand::Stop);
@@ -276,7 +273,7 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
         };
     }
 
-    return ret;
+    ret
 }
 
 fn manual_download(args: &[&str]) -> io::Result<()> {
@@ -289,7 +286,7 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
     package::update_packages_json().unwrap();
     package::download_all(app_id.to_string(), None)?;
     
-    return Ok(());
+    Ok(())
 }
 
 fn main() -> io::Result<()> {

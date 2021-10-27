@@ -49,7 +49,7 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
         paths.filter_map(|entry| {
         entry.ok().and_then(|e|
             e.path().file_name()
-            .and_then(|n| n.to_str().map(|s| String::from(s)))
+            .and_then(|n| n.to_str().map(String::from))
         )
         }).collect::<Vec<String>>();
 
@@ -67,12 +67,9 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
         if name.parse::<f64>().is_ok() {
             let mut new_item = MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name, is_game: true, is_engine: false};
             let game_info_name = name.to_string();
-            match get_game_info_with_json(&game_info_name, &parsed) {
-                Some(game_info) => {
-                    new_item.friendly_name = game_info["game_name"].to_string().clone();
-                    games.push(new_item);
-                },
-                None => {}
+            if let Some(game_info) = get_game_info_with_json(&game_info_name, &parsed) {
+                new_item.friendly_name = game_info["game_name"].to_string().clone();
+                games.push(new_item);
             };
         } else {
             engines.push(MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name, is_game: false, is_engine: false});
@@ -85,7 +82,7 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
         config_paths.filter_map(|entry| {
         entry.ok().and_then(|e|
             e.path().file_name()
-            .and_then(|n| n.to_str().map(|s| String::from(s)))
+            .and_then(|n| n.to_str().map(String::from))
         )
         }).collect::<Vec<String>>();
 
@@ -101,12 +98,9 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                     let mut new_item = MgmtItem{id: name_clone, has_cache: false, has_config: true, friendly_name, is_game: true, is_engine: false};
 
                     let game_info_name = name.to_string();
-                    match get_game_info_with_json(&game_info_name, &parsed) {
-                        Some(game_info) => {
-                            new_item.friendly_name = game_info["game_name"].to_string().clone();
-                            games.push(new_item);
-                        },
-                        None => {}
+                    if let Some(game_info) = get_game_info_with_json(&game_info_name, &parsed) {
+                        new_item.friendly_name = game_info["game_name"].to_string().clone();
+                        games.push(new_item);
                     };
                 }
             }
@@ -175,7 +169,7 @@ pub fn run_mgmt() -> Result<(), Error> {
         }
     };
 
-    let title = &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION")).to_string();
+    let title = &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION"));
     let mut window = start_egui_window(1024, 768, title, true, None)?;
     let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
     let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
@@ -202,14 +196,14 @@ pub fn run_mgmt() -> Result<(), Error> {
 
         if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
             if window_instance.nav_counter_down != 0 {
-                current_choice_index = current_choice_index + window_instance.nav_counter_down;
+                current_choice_index += window_instance.nav_counter_down;
                 window_instance.nav_counter_down = 0;
             } else {
                 if current_choice_index == 0 {
                     current_choice_index = guard.items.len();
                 }
                 else {
-                    current_choice_index = current_choice_index - window_instance.nav_counter_up;
+                    current_choice_index -= window_instance.nav_counter_up;
                 }
 
                 if current_choice_index == 0 {
@@ -226,20 +220,17 @@ pub fn run_mgmt() -> Result<(), Error> {
             scroll_to_choice_index = current_choice_index;
         }
 
-        match window_instance.last_requested_action {
-            Some(last_requested_action) => {
-                if last_requested_action == RequestedAction::CustomAction && current_choice_index != 0 {
-                    clear_config(&mut guard.items[current_choice_index - 1]);
-                }
-                else if last_requested_action == RequestedAction::SecondCustomAction && current_choice_index != 0 {
-                    clear_cache(&mut guard.items[current_choice_index - 1]);
-                }
-                else if last_requested_action == RequestedAction::Confirm {
-                    reload_needed = true;
-                }
-                window_instance.last_requested_action = None;
+        if let Some(last_requested_action) = window_instance.last_requested_action {
+            if last_requested_action == RequestedAction::CustomAction && current_choice_index != 0 {
+                clear_config(&mut guard.items[current_choice_index - 1]);
             }
-            None => {}
+            else if last_requested_action == RequestedAction::SecondCustomAction && current_choice_index != 0 {
+                clear_cache(&mut guard.items[current_choice_index - 1]);
+            }
+            else if last_requested_action == RequestedAction::Confirm {
+                reload_needed = true;
+            }
+            window_instance.last_requested_action = None;
         }
 
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
