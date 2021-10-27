@@ -29,9 +29,10 @@ tokio = { version = "0.2", default-features = false, features = ["full"] }
 which = "4.2.2"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
 egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "496f79f" }
-egui_sdl2_gl = { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", rev = "41f694d" }
+egui_sdl2_gl = { git = "https://github.com/ArjunNair/egui_sdl2_gl.git", rev = "1f12bd8" }
 image = "0.23.14"
 steamy-controller = { git = "https://github.com/luxtorpeda-dev/steamy", rev = "3e4055f" }
+signal-hook = "0.3.10"
 
 [patch.crates-io]
 egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "496f79f" }

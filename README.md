@@ -69,6 +69,29 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
 
+## User Interface
+
+When a prompt appears from the client, it will accept input from controllers, keyboard or mouse. These prompts can include the engine chooser, progress indicator, error notices, and questions. The input works the following way:
+
+### Keyboard and Mouse
+
+* Keyboard and mouse are always supported, even if a controller is detected.
+* Keyboard icons will appear in the buttons if no controllers are detected. Keyboard arrows can be used to navigate the choices.
+
+### Controllers
+
+* SDL2's SDL_GameController is used to detect and accept inputs from controllers, other than the steam controller, so any controller that supports that interface should work.
+* Controller icons will appear in the buttons if a controller is detected.
+    * Icons are only available for controllers in the testing list below, with it falling back to the Xbox controller icons if an unknown controller is detected.
+    * Input with that controller should still work but the icons may be incorrect. If additional controller support is wanted, feel free to open an issue.
+* The following controllers have been tested:
+    * Xbox One Controller
+    * PS4 Controller
+    * Steam Controller (Direct USB connection and through dongle)
+        * If a steam controller is detected, then a special interface is setup that connects to the steam controller directly, via the USB signals. This is because normal behavior is to emulate a keyboard and mouse and would not be possible to detect input the normal way.
+        * This is best done inside Steam Big Picture mode, as the client uses the existence of the "Steam Virtual Gamepad" controller to detect if a steam controller is there.
+        * When using the steam controller, the client is taking over control of the controller for the short time the client is running. Once the client is finished, it will release control and Steam should then re-connect to it.
+
 ## Supported titles
 
 Just click "Play" and Luxtorpeda will download and install the package for you.

@@ -7,7 +7,11 @@ use egui_sdl2_gl as egui_backend;
 use sdl2::video::{SwapInterval,GLContext};
 extern crate image;
 use image::GenericImageView;
-extern crate steamy_controller;
+
+use crate::run_context::RunContext;
+use crate::run_context::ThreadCommand;
+use crate::run_context::SteamControllerEvent;
+
 
 const PROMPT_CONTROLLER_Y: &'static [u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &'static [u8] = include_bytes!("../res/prompts/Steam_A.png");
@@ -28,7 +32,7 @@ pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32 as f32;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RequestedAction {
     Confirm,
     Back,
@@ -39,8 +43,7 @@ pub enum RequestedAction {
 #[derive(PartialEq, Copy, Clone)]
 pub enum ControllerType {
     Xbox,
-    DualShock,
-    SteamController
+    DualShock
 }
 
 pub struct EguiWindowInstance {
@@ -48,7 +51,7 @@ pub struct EguiWindowInstance {
     _ctx: GLContext,
     pub egui_ctx: egui::CtxRef,
     event_pump: sdl2::EventPump,
-    _sdl2_controller: std::option::Option<sdl2::controller::GameController>,
+    sdl2_controller: std::option::Option<sdl2::controller::GameController>,
     pub painter: egui_sdl2_gl::painter::Painter,
     egui_state: egui_sdl2_gl::EguiStateHandler,
     start_time: std::time::Instant,
@@ -61,7 +64,7 @@ pub struct EguiWindowInstance {
     pub attached_to_controller: bool,
     pub last_requested_action: Option<RequestedAction>,
     pub controller_type: ControllerType,
-    steam_controller_thread: Option<std::thread::JoinHandle<()>>
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>
 }
 
 impl EguiWindowInstance {
@@ -73,6 +76,38 @@ impl EguiWindowInstance {
 
             let title = &self.title;
             let mut exit = false;
+
+            if self.sdl2_controller.is_none() {
+                let context_check = self.context.clone();
+                if let Some(context) = context_check {
+                    let mut guard = context.lock().unwrap();
+                    if let Some(event) = guard.event {
+                        match event {
+                            SteamControllerEvent::Connected => {
+                                self.attached_to_controller = true;
+                            },
+                            SteamControllerEvent::Disconnected => {
+                                self.attached_to_controller = false;
+                            },
+                            SteamControllerEvent::RequestedAction(action) => {
+                                self.last_requested_action = Some(action);
+                            },
+                            SteamControllerEvent::Up => {
+                                if self.enable_nav {
+                                    self.nav_counter_up = self.nav_counter_up + 1;
+                                }
+                            },
+                            SteamControllerEvent::Down => {
+                                if self.enable_nav {
+                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                }
+                            }
+                        }
+                        guard.event = None;
+                    }
+                    std::mem::drop(guard);
+                }
+            }
 
             match self.last_requested_action {
                 Some(last_requested_action) => {
@@ -255,10 +290,6 @@ impl EguiWindowInstance {
                 break;
             }
         }
-
-        if !self.steam_controller_thread.is_none() {
-            //self.steam_controller_thread.as_ref().unwrap().join();
-        }
     }
 
     pub fn close(&mut self) {
@@ -266,7 +297,8 @@ impl EguiWindowInstance {
     }
 }
 
-pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str, enable_nav: bool) -> Result<EguiWindowInstance, Error> {
+pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str, enable_nav: bool,
+        context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Result<EguiWindowInstance, Error> {
     sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
 
     let sdl_context = sdl2::init().unwrap();
@@ -302,12 +334,10 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     window.raise();
 
-    // Create a window context
     let _ctx = window.gl_create_context().unwrap();
     debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
     debug_assert_eq!(gl_attr.context_version(), (3, 2));
 
-    // Init egui stuff
     let egui_ctx = egui::CtxRef::default();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
@@ -325,7 +355,19 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
             println!("{} joysticks available", available);
 
             if available == 0 {
-                try_steam_controller = true;
+                let controller_context = context.clone();
+                if let Some(controller_context) = controller_context {
+                    let guard = controller_context.lock().unwrap();
+                    if let Some(last_connected_event) = guard.last_connected_event {
+                        match last_connected_event {
+                            SteamControllerEvent::Connected => {
+                                attached_to_controller = true;
+                            },
+                            _ => {}
+                        }
+                    }
+                    std::mem::drop(guard);
+                }
             }
 
             match (0..available)
@@ -385,62 +427,21 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
         }
     }
 
-    let mut steam_controller_thread = None;
-
-    if try_steam_controller {
-        println!("trying to connect to steam controller");
-
-        steam_controller_thread = Some(std::thread::spawn(move || {
-            let mut retry = true;
-            loop {
-                println!("trying steam controller thread");
-                 match steamy_controller::Manager::new() {
-                    Ok(mut manager) => {
-                        match manager.open() {
-                            Ok(mut controller) => {
-                                //attached_to_controller = true;
-
-                                loop {
-                                    match controller.state(Duration::from_secs(0)).unwrap() {
-                                        steamy_controller::State::Input { sequence, buttons, trigger, pad, orientation, acceleration, .. } => {
-                                            println!("{} {{", sequence);
-
-                                            if !buttons.is_empty() {
-                                                println!("\tbuttons: {:?}", buttons);
-
-                                                controller.close();
-                                                retry = false;
-                                                break;
-                                            }
-
-                                            println!("}}");
-                                            println!("");
-                                        }
-
-                                        _ => println!("controller ???")
-                                    }
-                                }
-                            },
-                            Err(err) => {
-                                println!("steamy_controller controller error: {:?}", err);
-                            }
-                        };
-                    },
-                    Err(err) => {
-                        println!("steamy_controller manager error: {:?}", err);
-                    }
-                };
-                if !retry {
-                    break;
-                }
-                std::thread::sleep(Duration::from_millis(2000))
-            }
-        }));
+    let controller_context = context.clone();
+    if let Some(controller_context) = controller_context {
+        let mut guard = controller_context.lock().unwrap();
+        if try_steam_controller && !attached_to_controller {
+            guard.thread_command = Some(ThreadCommand::Connect);
+        }
+        else if !sdl2_controller.is_none() {
+            guard.thread_command = Some(ThreadCommand::Stop);
+        }
+        std::mem::drop(guard);
     }
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, _sdl2_controller: sdl2_controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type, steam_controller_thread})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, sdl2_controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type, context})
 }
 
 pub fn egui_with_prompts(
@@ -453,11 +454,12 @@ pub fn egui_with_prompts(
         mut window_height: u32,
         button_text: &String,
         button_message: bool,
-        timeout_in_seconds: i8) -> Result<(bool, bool), Error> {
+        timeout_in_seconds: i8,
+        context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Result<(bool, bool), Error> {
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, false)?;
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, false, context)?;
     let mut no = false;
     let mut yes = false;
     let mut last_attached_state = window.attached_to_controller;
@@ -477,11 +479,11 @@ pub fn egui_with_prompts(
             None => {}
         }
 
-        if !window_instance.attached_to_controller && last_attached_state {
-            println!("Detected controller loss, reloading prompts");
+        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+            println!("Detected controller change, reloading prompts");
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
-            last_attached_state = false;
+            last_attached_state = window_instance.attached_to_controller;
         }
 
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {

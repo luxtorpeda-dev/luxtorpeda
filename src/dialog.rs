@@ -11,6 +11,7 @@ use crate::ui::DEFAULT_PROMPT_SIZE;
 use crate::ui::default_panel_frame;
 use crate::ui::RequestedAction;
 use crate::ui::prompt_image_for_action;
+use crate::run_context::RunContext;
 
 pub struct ProgressState {
     pub status: String,
@@ -21,8 +22,8 @@ pub struct ProgressState {
     pub error_str: String
 }
 
-pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
-    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 0, &"".to_string(), false, 0) {
+pub fn show_error(title: &String, error_message: &String, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<()> {
+    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), &title, &error_message, 0, &"".to_string(), false, 0, context) {
         Ok((yes, no)) => {
             println!("{} {}", yes, no);
             Ok(())
@@ -34,8 +35,8 @@ pub fn show_error(title: &String, error_message: &String) -> io::Result<()> {
     }
 }
 
-pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Result<(String, String)> {
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, 400, &title, true)?;
+pub fn show_choices(title: &str, column: &str, choices: &Vec<String>, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<(String, String)> {
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, 400, &title, true, context)?;
     let mut cancel = false;
     let mut ok = false;
     let mut choice = "";
@@ -95,12 +96,12 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
             None => {}
         }
 
-        if !window_instance.attached_to_controller && last_attached_state {
-            println!("Detected controller loss, reloading prompts");
+        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+            println!("Detected controller change, reloading prompts");
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
             texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, window_instance).unwrap().0;
-            last_attached_state = false;
+            last_attached_state = window_instance.attached_to_controller;
         }
 
         egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
@@ -187,14 +188,14 @@ pub fn show_choices(title: &str, column: &str, choices: &Vec<String>) -> io::Res
     Ok((choice.to_string(), default_choice.to_string()))
 }
 
-pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
+pub fn show_file_with_confirm(title: &str, file_path: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<()> {
     let mut file = File::open(&file_path)?;
     let mut file_buf = vec![];
     file.read_to_end(&mut file_buf)?;
     let file_str = String::from_utf8_lossy(&file_buf);
     let file_str_milk = file_str.as_ref();
 
-    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true, 0) {
+    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true, 0, context) {
         Ok((yes, ..)) => {
             if yes {
                 Ok(())
@@ -208,8 +209,8 @@ pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     }
 }
 
-pub fn show_question(title: &str, text: &str) -> Option<()> {
-    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 0) {
+pub fn show_question(title: &str, text: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Option<()> {
+    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 0, context) {
         Ok((yes, ..)) => {
             if yes {
                 Some(())
@@ -224,18 +225,18 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
     }
 }
 
-pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false).unwrap();
+pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Result<(), Error> {
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false, context).unwrap();
     let mut last_attached_state = window.attached_to_controller;
 
     let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(|window_instance| {
-        if !window_instance.attached_to_controller && last_attached_state {
-            println!("Detected controller loss, reloading prompts");
+        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+            println!("Detected controller change, reloading prompts");
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
-            last_attached_state = false;
+            last_attached_state = window_instance.attached_to_controller;
         }
 
         let mut guard = arc.lock().unwrap();
@@ -282,8 +283,8 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> R
     Ok(())
 }
 
-pub fn default_choice_confirmation_prompt(title: &str, text: &str) -> Option<()> {
-    match egui_with_prompts(false, true, &"".to_string(), &"Clear Default".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 4) {
+pub fn default_choice_confirmation_prompt(title: &str, text: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Option<()> {
+    match egui_with_prompts(false, true, &"".to_string(), &"Clear Default".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 4, context) {
         Ok((_yes, no)) => {
             if no {
                 Some(())
