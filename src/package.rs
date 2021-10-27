@@ -21,10 +21,8 @@ use reqwest::Client;
 use futures_util::StreamExt;
 use tokio::runtime::Runtime;
 use std::cmp::min;
-use tokio;
 
 use crate::user_env;
-
 use crate::dialog::show_error;
 use crate::dialog::show_choices;
 use crate::dialog::show_question;

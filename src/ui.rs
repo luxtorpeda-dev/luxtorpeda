@@ -16,20 +16,20 @@ use crate::run_context::RunContext;
 use crate::run_context::ThreadCommand;
 use crate::run_context::SteamControllerEvent;
 
-const PROMPT_CONTROLLER_Y: &'static [u8] = include_bytes!("../res/prompts/Steam_Y.png");
-const PROMPT_CONTROLLER_A: &'static [u8] = include_bytes!("../res/prompts/Steam_A.png");
-const PROMPT_CONTROLLER_X: &'static [u8] = include_bytes!("../res/prompts/Steam_X.png");
-const PROMPT_CONTROLLER_B: &'static [u8] = include_bytes!("../res/prompts/Steam_B.png");
+const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
+const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
+const PROMPT_CONTROLLER_X: &[u8] = include_bytes!("../res/prompts/Steam_X.png");
+const PROMPT_CONTROLLER_B: &[u8] = include_bytes!("../res/prompts/Steam_B.png");
 
-const PROMPT_CONTROLLER_DUALSHOCK_Y: &'static [u8] = include_bytes!("../res/prompts/PS4_Y.png");
-const PROMPT_CONTROLLER_DUALSHOCK_A: &'static [u8] = include_bytes!("../res/prompts/PS4_A.png");
-const PROMPT_CONTROLLER_DUALSHOCK_X: &'static [u8] = include_bytes!("../res/prompts/PS4_X.png");
-const PROMPT_CONTROLLER_DUALSHOCK_B: &'static [u8] = include_bytes!("../res/prompts/PS4_B.png");
+const PROMPT_CONTROLLER_DUALSHOCK_Y: &[u8] = include_bytes!("../res/prompts/PS4_Y.png");
+const PROMPT_CONTROLLER_DUALSHOCK_A: &[u8] = include_bytes!("../res/prompts/PS4_A.png");
+const PROMPT_CONTROLLER_DUALSHOCK_X: &[u8] = include_bytes!("../res/prompts/PS4_X.png");
+const PROMPT_CONTROLLER_DUALSHOCK_B: &[u8] = include_bytes!("../res/prompts/PS4_B.png");
 
-const PROMPT_KEYBOARD_SPACE: &'static [u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
-const PROMPT_KEYBOARD_ENTER: &'static [u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
-const PROMPT_KEYBOARD_ESC: &'static [u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
-const PROMPT_KEYBOARD_CTRL: &'static [u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
+const PROMPT_KEYBOARD_SPACE: &[u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
+const PROMPT_KEYBOARD_ENTER: &[u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
+const PROMPT_KEYBOARD_ESC: &[u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
+const PROMPT_KEYBOARD_CTRL: &[u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
 
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;

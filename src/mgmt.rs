@@ -65,7 +65,7 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
         let name_clone = name.to_string();
 
         if name.parse::<f64>().is_ok() {
-            let mut new_item = MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name: friendly_name, is_game: true, is_engine: false};
+            let mut new_item = MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name, is_game: true, is_engine: false};
             let game_info_name = name.to_string();
             match get_game_info_with_json(&game_info_name, &parsed) {
                 Some(game_info) => {
@@ -75,7 +75,7 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                 None => {}
             };
         } else {
-            engines.push(MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name: friendly_name, is_game: false, is_engine: false});
+            engines.push(MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name, is_game: false, is_engine: false});
         }
     }
 
@@ -98,7 +98,7 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                 None => {
                     let friendly_name = name.to_string();
                     let name_clone = name.to_string();
-                    let mut new_item = MgmtItem{id: name_clone, has_cache: false, has_config: true, friendly_name: friendly_name, is_game: true, is_engine: false};
+                    let mut new_item = MgmtItem{id: name_clone, has_cache: false, has_config: true, friendly_name, is_game: true, is_engine: false};
 
                     let game_info_name = name.to_string();
                     match get_game_info_with_json(&game_info_name, &parsed) {
