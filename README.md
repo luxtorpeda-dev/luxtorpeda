@@ -26,6 +26,7 @@ additional dependencies.
 4. Restart Steam
 5. In Steam game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda".
+<img height="220px" src="https://user-images.githubusercontent.com/54072917/139227152-0536ac68-0d4b-44bf-be88-42105f5c3dd6.png" />
 
 ## Installation (using tarball)
 
