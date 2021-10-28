@@ -18,6 +18,15 @@ additional dependencies.
 
 **Using Luxtorpeda with [Steam native runtime](https://wiki.archlinux.org/index.php/Steam/Troubleshooting#Steam_native_runtime) may or may not work, but is not supported.**
 
+## Installation (using GUI)
+
+1. Download ProtonUp-Qt from here: https://davidotek.github.io/protonup-qt/#download
+2. Run ProtonUp-Qt and select Steam
+3. Click `Add Version`, select Luxtorpeda and press `Install`
+4. Restart Steam
+5. In Steam game properties window select "Force the use of a specific Steam Play
+   compatibility tool" and select "Luxtorpeda".
+
 ## Installation (using tarball)
 
 *This is pre-release quality software, expect bugs and missing features.*
