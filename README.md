@@ -17,6 +17,7 @@ All packaged games are compiled for Steam Runtime Soldier environment and requir
 additional dependencies.
 
 **Using Luxtorpeda with [Steam native runtime](https://wiki.archlinux.org/index.php/Steam/Troubleshooting#Steam_native_runtime) may or may not work, but is not supported.**
+
 ## Installation (using tarball)
 
 *This is pre-release quality software, expect bugs and missing features.*
