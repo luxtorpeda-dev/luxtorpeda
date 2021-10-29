@@ -310,14 +310,6 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let video_subsystem = sdl_context.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(GLProfile::Core);
-
-    // Let OpenGL know we are dealing with SRGB colors so that it
-    // can do the blending correctly. Not setting the framebuffer
-    // leads to darkened, oversaturated colors.
-    gl_attr.set_framebuffer_srgb_compatible(true);
-    gl_attr.set_double_buffer(true);
-    gl_attr.set_multisample_samples(4);
-    // OpenGL 3.2 is the minimum that we will support.
     gl_attr.set_context_version(3, 2);
 
     let mut window_flags: u32 = 0;
