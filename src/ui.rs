@@ -1,4 +1,4 @@
-use std::io::Error;
+use std::io::{Error, ErrorKind};
 use std::time::{Duration, Instant};
 use crate::user_env;
 use std::fs;
@@ -16,25 +16,25 @@ use crate::run_context::RunContext;
 use crate::run_context::ThreadCommand;
 use crate::run_context::SteamControllerEvent;
 
-const PROMPT_CONTROLLER_Y: &'static [u8] = include_bytes!("../res/prompts/Steam_Y.png");
-const PROMPT_CONTROLLER_A: &'static [u8] = include_bytes!("../res/prompts/Steam_A.png");
-const PROMPT_CONTROLLER_X: &'static [u8] = include_bytes!("../res/prompts/Steam_X.png");
-const PROMPT_CONTROLLER_B: &'static [u8] = include_bytes!("../res/prompts/Steam_B.png");
+const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
+const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
+const PROMPT_CONTROLLER_X: &[u8] = include_bytes!("../res/prompts/Steam_X.png");
+const PROMPT_CONTROLLER_B: &[u8] = include_bytes!("../res/prompts/Steam_B.png");
 
-const PROMPT_CONTROLLER_DUALSHOCK_Y: &'static [u8] = include_bytes!("../res/prompts/PS4_Y.png");
-const PROMPT_CONTROLLER_DUALSHOCK_A: &'static [u8] = include_bytes!("../res/prompts/PS4_A.png");
-const PROMPT_CONTROLLER_DUALSHOCK_X: &'static [u8] = include_bytes!("../res/prompts/PS4_X.png");
-const PROMPT_CONTROLLER_DUALSHOCK_B: &'static [u8] = include_bytes!("../res/prompts/PS4_B.png");
+const PROMPT_CONTROLLER_DUALSHOCK_Y: &[u8] = include_bytes!("../res/prompts/PS4_Y.png");
+const PROMPT_CONTROLLER_DUALSHOCK_A: &[u8] = include_bytes!("../res/prompts/PS4_A.png");
+const PROMPT_CONTROLLER_DUALSHOCK_X: &[u8] = include_bytes!("../res/prompts/PS4_X.png");
+const PROMPT_CONTROLLER_DUALSHOCK_B: &[u8] = include_bytes!("../res/prompts/PS4_B.png");
 
-const PROMPT_KEYBOARD_SPACE: &'static [u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
-const PROMPT_KEYBOARD_ENTER: &'static [u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
-const PROMPT_KEYBOARD_ESC: &'static [u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
-const PROMPT_KEYBOARD_CTRL: &'static [u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
+const PROMPT_KEYBOARD_SPACE: &[u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
+const PROMPT_KEYBOARD_ENTER: &[u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
+const PROMPT_KEYBOARD_ESC: &[u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
+const PROMPT_KEYBOARD_CTRL: &[u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
 
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
-pub const DEFAULT_PROMPT_SIZE: f32 = 32 as f32;
-pub const SCROLL_TIMES: usize = 40 as usize;
+pub const DEFAULT_PROMPT_SIZE: f32 = 32_f32;
+pub const SCROLL_TIMES: usize = 40_usize;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RequestedAction {
@@ -68,7 +68,8 @@ pub struct EguiWindowInstance {
     pub attached_to_controller: bool,
     pub last_requested_action: Option<RequestedAction>,
     pub controller_type: ControllerType,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+    video_subsystem: egui_sdl2_gl::sdl2::VideoSubsystem
 }
 
 impl EguiWindowInstance {
@@ -98,12 +99,12 @@ impl EguiWindowInstance {
                             },
                             SteamControllerEvent::Up => {
                                 if self.enable_nav {
-                                    self.nav_counter_up = self.nav_counter_up + 1;
+                                    self.nav_counter_up += 1;
                                 }
                             },
                             SteamControllerEvent::Down => {
                                 if self.enable_nav {
-                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                    self.nav_counter_down += 1;
                                 }
                             }
                         }
@@ -113,15 +114,12 @@ impl EguiWindowInstance {
                 }
             }
 
-            match self.last_requested_action {
-                Some(last_requested_action) => {
-                    if last_requested_action == RequestedAction::Back {
-                        exit = true;
-                        self.from_exit = true;
-                        self.last_requested_action = None;
-                    }
+            if let Some(last_requested_action) = self.last_requested_action {
+                if last_requested_action == RequestedAction::Back {
+                    exit = true;
+                    self.from_exit = true;
+                    self.last_requested_action = None;
                 }
-                None => {}
             }
 
             if exit {
@@ -159,11 +157,11 @@ impl EguiWindowInstance {
                         Event::ControllerButtonUp { button, .. } => {
                             if button == sdl2::controller::Button::DPadUp {
                                 if self.enable_nav {
-                                    self.nav_counter_up = self.nav_counter_up + 1;
+                                    self.nav_counter_up += 1;
                                 }
                             } else if button == sdl2::controller::Button::DPadDown {
                                 if self.enable_nav {
-                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                    self.nav_counter_down += 1;
                                 }
                             } else if button == sdl2::controller::Button::A {
                                 self.last_requested_action = Some(RequestedAction::Confirm);
@@ -176,44 +174,44 @@ impl EguiWindowInstance {
                             }
                         },
                         Event::KeyDown { keycode, .. } => {
-                            if self.enable_nav {
-                                if !keycode.is_none() {
-                                    Some(match keycode.unwrap() {
-                                        sdl2::keyboard::Keycode::Down => {
-                                            if self.enable_nav {
-                                                self.nav_counter_down = self.nav_counter_down + 1;
-                                            }
-                                        },
-                                        sdl2::keyboard::Keycode::Up => {
-                                            if self.enable_nav {
-                                                self.nav_counter_up = self.nav_counter_up + 1;
-                                            }
-                                        },
-                                        sdl2::keyboard::Keycode::S => {
-                                            if self.enable_nav {
-                                                self.nav_counter_down = self.nav_counter_down + 1;
-                                            }
-                                        },
-                                        sdl2::keyboard::Keycode::W => {
-                                            if self.enable_nav {
-                                                self.nav_counter_up = self.nav_counter_up + 1;
-                                            }
-                                        },
-                                        sdl2::keyboard::Keycode::Return => {
-                                            self.last_requested_action = Some(RequestedAction::Confirm);
-                                        },
-                                        sdl2::keyboard::Keycode::Escape => {
-                                            self.last_requested_action = Some(RequestedAction::Back);
-                                        },
-                                        sdl2::keyboard::Keycode::Space => {
-                                            self.last_requested_action = Some(RequestedAction::CustomAction);
-                                        },
-                                        sdl2::keyboard::Keycode::LCtrl => {
-                                            self.last_requested_action = Some(RequestedAction::SecondCustomAction);
-                                        },
-                                        _ => {}
-                                    });
-                                }
+                            if let Some(keycode) = keycode {
+                                match keycode {
+                                    sdl2::keyboard::Keycode::Down => {
+                                        if self.enable_nav {
+                                            self.nav_counter_down += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::Up => {
+                                        if self.enable_nav {
+                                            self.nav_counter_up += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::S => {
+                                        if self.enable_nav {
+                                            self.nav_counter_down += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::W => {
+                                        if self.enable_nav {
+                                            self.nav_counter_up += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::Return => {
+                                        self.last_requested_action = Some(RequestedAction::Confirm);
+                                    },
+                                    sdl2::keyboard::Keycode::Escape => {
+                                        self.last_requested_action = Some(RequestedAction::Back);
+                                    },
+                                    sdl2::keyboard::Keycode::Space => {
+                                        self.last_requested_action = Some(RequestedAction::CustomAction);
+                                    },
+                                    sdl2::keyboard::Keycode::LCtrl => {
+                                        self.last_requested_action = Some(RequestedAction::SecondCustomAction);
+                                    },
+                                    _ => {
+                                        self.egui_state.process_input(&self.window, event, &mut self.painter);
+                                    }
+                                };
                             }
                         },
                         Event::ControllerDeviceRemoved { .. } => {
@@ -231,11 +229,11 @@ impl EguiWindowInstance {
                         Event::ControllerButtonUp { button, .. } => {
                             if button == sdl2::controller::Button::DPadUp {
                                 if self.enable_nav {
-                                    self.nav_counter_up = self.nav_counter_up + 1;
+                                    self.nav_counter_up += 1;
                                 }
                             } else if button == sdl2::controller::Button::DPadDown {
                                 if self.enable_nav {
-                                    self.nav_counter_down = self.nav_counter_down + 1;
+                                    self.nav_counter_down += 1;
                                 }
                             } else if button == sdl2::controller::Button::A {
                                 self.last_requested_action = Some(RequestedAction::Confirm);
@@ -248,37 +246,45 @@ impl EguiWindowInstance {
                             }
                         },
                         Event::KeyDown { keycode, .. } => {
-                            Some(match keycode.unwrap() {
-                                sdl2::keyboard::Keycode::Down => {
-                                    self.nav_counter_down = self.nav_counter_down + 1;
-                                },
-                                sdl2::keyboard::Keycode::Up => {
-                                    self.nav_counter_up = self.nav_counter_up + 1;
-                                },
-                                sdl2::keyboard::Keycode::S => {
-                                    if self.enable_nav {
-                                        self.nav_counter_down = self.nav_counter_down + 1;
+                            if let Some(keycode) = keycode {
+                                match keycode {
+                                    sdl2::keyboard::Keycode::Down => {
+                                        if self.enable_nav {
+                                            self.nav_counter_down += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::Up => {
+                                        if self.enable_nav {
+                                            self.nav_counter_up += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::S => {
+                                        if self.enable_nav {
+                                            self.nav_counter_down += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::W => {
+                                        if self.enable_nav {
+                                            self.nav_counter_up += 1;
+                                        }
+                                    },
+                                    sdl2::keyboard::Keycode::Return => {
+                                        self.last_requested_action = Some(RequestedAction::Confirm);
+                                    },
+                                    sdl2::keyboard::Keycode::Escape => {
+                                        self.last_requested_action = Some(RequestedAction::Back);
+                                    },
+                                    sdl2::keyboard::Keycode::Space => {
+                                        self.last_requested_action = Some(RequestedAction::CustomAction);
+                                    },
+                                    sdl2::keyboard::Keycode::LCtrl => {
+                                        self.last_requested_action = Some(RequestedAction::SecondCustomAction);
+                                    },
+                                    _ => {
+                                        self.egui_state.process_input(&self.window, event, &mut self.painter);
                                     }
-                                },
-                                sdl2::keyboard::Keycode::W => {
-                                    if self.enable_nav {
-                                        self.nav_counter_up = self.nav_counter_up + 1;
-                                    }
-                                },
-                                sdl2::keyboard::Keycode::Return => {
-                                    self.last_requested_action = Some(RequestedAction::Confirm);
-                                },
-                                sdl2::keyboard::Keycode::Escape => {
-                                    self.last_requested_action = Some(RequestedAction::Back);
-                                },
-                                sdl2::keyboard::Keycode::Space => {
-                                    self.last_requested_action = Some(RequestedAction::CustomAction);
-                                },
-                                sdl2::keyboard::Keycode::LCtrl => {
-                                    self.last_requested_action = Some(RequestedAction::SecondCustomAction);
-                                },
-                                _ => {}
-                            });
+                                };
+                            }
                         },
                         Event::ControllerDeviceRemoved { .. } => {
                             self.attached_to_controller = false;
@@ -299,6 +305,17 @@ impl EguiWindowInstance {
     pub fn close(&mut self) {
         self.should_close = true;
     }
+
+    pub fn get_clipboard_contents(&mut self) -> Result<String, Error> {
+        match self.video_subsystem.clipboard().clipboard_text() {
+            Ok(clipboard_text) => {
+                Ok(clipboard_text)
+            },
+            Err(_err) => {
+                Err(Error::new(ErrorKind::Other, "clipboard contents error"))
+            }
+        }
+    }
 }
 
 pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &str, enable_nav: bool,
@@ -309,14 +326,6 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
     let video_subsystem = sdl_context.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(GLProfile::Core);
-
-    // Let OpenGL know we are dealing with SRGB colors so that it
-    // can do the blending correctly. Not setting the framebuffer
-    // leads to darkened, oversaturated colors.
-    gl_attr.set_framebuffer_srgb_compatible(true);
-    gl_attr.set_double_buffer(true);
-    gl_attr.set_multisample_samples(4);
-    // OpenGL 3.2 is the minimum that we will support.
     gl_attr.set_context_version(3, 2);
 
     let mut window_flags: u32 = 0;
@@ -326,7 +335,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let mut window = video_subsystem
         .window(
-            &window_title,
+            window_title,
             window_width,
             window_height,
         )
@@ -376,20 +385,14 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
                     let controller_context = context.clone();
                     if let Some(controller_context) = controller_context {
                         let guard = controller_context.lock().unwrap();
-                        if let Some(last_connected_event) = guard.last_connected_event {
-                            match last_connected_event {
-                                SteamControllerEvent::Connected => {
-                                    attached_to_controller = true;
-                                },
-                                _ => {}
-                            }
+                        if let Some(SteamControllerEvent::Connected) = guard.last_connected_event {
+                            attached_to_controller = true;
                         }
                         std::mem::drop(guard);
                     }
                 }
 
-                match (0..available)
-                .find_map(|id| {
+               if let Some(found_controller) = (0..available).find_map(|id| {
                     if !game_controller_subsystem.is_game_controller(id) {
                         println!("{} is not a game controller", id);
                         return None;
@@ -424,20 +427,17 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
                         }
                     }
                 }) {
-                    Some(found_controller) => {
-                        println!("Controller connected mapping: {}", found_controller.mapping());
+                    println!("Controller connected mapping: {}", found_controller.mapping());
 
-                        if found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
-                            println!("controller assumed to be dualshock");
-                            controller_type = ControllerType::DualShock;
-                        } else {
-                            println!("controller assumed to be xbox");
-                        }
+                    if found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
+                        println!("controller assumed to be dualshock");
+                        controller_type = ControllerType::DualShock;
+                    } else {
+                        println!("controller assumed to be xbox");
+                    }
 
-                        sdl2_controller = Some(found_controller);
-                        attached_to_controller = true;
-                    },
-                    None => {}
+                    sdl2_controller = Some(found_controller);
+                    attached_to_controller = true;
                 }
             },
             Err(err) => {
@@ -454,7 +454,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
         if try_steam_controller && !attached_to_controller && use_steam_controller {
             guard.thread_command = Some(ThreadCommand::Connect);
         }
-        else if !sdl2_controller.is_none() || !use_controller || !use_steam_controller {
+        else if sdl2_controller.is_some() || !use_controller || !use_steam_controller {
             guard.thread_command = Some(ThreadCommand::Stop);
             if !use_steam_controller {
                 println!("steam controller support disabled");
@@ -465,25 +465,25 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, sdl2_controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type, context})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, sdl2_controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type, context, video_subsystem})
 }
 
 pub fn egui_with_prompts(
         yes_button: bool,
         no_button: bool,
-        yes_text: &String,
-        no_text: &String,
-        title: &String,
-        message: &String,
+        yes_text: &str,
+        no_text: &str,
+        title: &str,
+        message: &str,
         mut window_height: u32,
-        button_text: &String,
+        button_text: &str,
         button_message: bool,
         timeout_in_seconds: i8,
         context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Result<(bool, bool), Error> {
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, &title, true, context)?;
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, window_height, title, true, context)?;
     let mut no = false;
     let mut yes = false;
     let mut last_attached_state = window.attached_to_controller;
@@ -496,14 +496,11 @@ pub fn egui_with_prompts(
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(|window_instance| {
-        match window_instance.last_requested_action {
-            Some(last_requested_action) => {
-                if last_requested_action == RequestedAction::Confirm {
-                    yes = true;
-                }
-                window_instance.last_requested_action = None;
+        if let Some(last_requested_action) = window_instance.last_requested_action {
+            if last_requested_action == RequestedAction::Confirm {
+                yes = true;
             }
-            None => {}
+            window_instance.last_requested_action = None;
         }
 
         if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
@@ -537,16 +534,12 @@ pub fn egui_with_prompts(
             egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
                 let layout = egui::Layout::right_to_left().with_cross_justify(true);
                 ui.with_layout(layout,|ui| {
-                    if yes_button {
-                        if ui.button_with_image(texture_confirm, prompt_vec, &yes_text).clicked() {
-                            yes = true;
-                        }
+                    if yes_button && ui.button_with_image(texture_confirm, prompt_vec, &yes_text).clicked() {
+                        yes = true;
                     }
 
-                    if no_button {
-                        if ui.button_with_image(texture_back, prompt_vec, &no_text).clicked() {
-                            no = true;
-                        }
+                    if no_button && ui.button_with_image(texture_back, prompt_vec, &no_text).clicked() {
+                        no = true;
                     }
                 });
             });
@@ -609,18 +602,17 @@ pub fn egui_with_prompts(
 }
 
 pub fn default_panel_frame() -> egui::Frame {
-    let frame = egui::Frame {
+    egui::Frame {
         margin: egui::Vec2::new(8.0, 2.0),
         corner_radius: 0.0,
         fill: egui::Color32::from_gray(24),
         stroke: egui::Stroke::new(0.0, egui::Color32::from_gray(60)),
         shadow: egui::epaint::Shadow::big_dark()
-    };
-    frame
+    }
 }
 
 fn image_as_texture(image_data: &[u8], window_instance: &mut EguiWindowInstance) -> (egui::TextureId, usize, usize) {
-    let image = image::load_from_memory(&image_data).expect("Failed to load image");
+    let image = image::load_from_memory(image_data).expect("Failed to load image");
     let image_buffer = image.to_rgba8();
 
     let pixels = image_buffer.into_vec();
@@ -630,7 +622,7 @@ fn image_as_texture(image_data: &[u8], window_instance: &mut EguiWindowInstance)
         .collect();
     let texture_id = window_instance.painter.new_user_texture((image.width() as usize, image.height() as usize), &pixels, false);
 
-    return (texture_id, image.width() as usize, image.height() as usize);
+    (texture_id, image.width() as usize, image.height() as usize)
 }
 
 pub fn prompt_image_for_action(action: RequestedAction, window_instance: &mut EguiWindowInstance) -> Result<(egui::TextureId, usize, usize), Error> {
@@ -682,5 +674,5 @@ pub fn prompt_image_for_action(action: RequestedAction, window_instance: &mut Eg
         }
     };
 
-    return Ok(image_as_texture(image, window_instance));
+    Ok(image_as_texture(image, window_instance))
 }

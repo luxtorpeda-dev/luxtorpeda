@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### Pre-release 43.0 (2021-10-26)
+### Pre-release 44.0 (2021-10-29)
 
 * Moved GUI from gtk to egui with sdl2 backing
 * Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for futher information.
@@ -19,6 +19,10 @@
 * Added steam controller support, using direct USB access.
 * Added scrolling with controller or keyboard to the scrollable prompts, such as the license agreement review.
 * Add configuration parameters for disabling controller support or steam controller USB support.
+* Code cleanup.
+* Fix crash with wayland, by removing opengl startup sequence that does not look to be needed.
+* Add dialog for text input, currently used for ut2004. Allows controller to be used, by supporting a button for pasting into the input box.
+* Support showing errors from run scripts inside the client with egui.
 
 ### 40.0 (2021-10-17)
 
