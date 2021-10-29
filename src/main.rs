@@ -9,6 +9,7 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::process::Command;
 use std::fs::File;
+use std::fs;
 
 mod package;
 mod pid_file;
@@ -22,6 +23,7 @@ static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEP
 static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
 static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
 static LD_PRELOAD: &str = "LD_PRELOAD";
+static LUX_ERRORS_SUPPORTED: &str = "LUX_ERRORS_SUPPORTED";
 
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -144,6 +146,8 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
             println!("virtual gamepad setting not found: {}", err);
         }
     }
+
+    env::set_var(LUX_ERRORS_SUPPORTED, "1");
 
     package::update_packages_json().unwrap();
 
@@ -275,20 +279,76 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
                     .args(cmd_args)
                     .args(exe_args)
                     .status() {
-                        Ok(exit_status) => {
-                            println!("run returned with {}", exit_status);
-                            return Ok(());
+                        Ok(status) => {
+                            println!("run returned with {}", status);
+                            if let Some(exit_code) = status.code() {
+                                if exit_code == 10 {
+                                    println!("run returned with lux exit code");
+                                    match fs::read_to_string("last_error.txt") {
+                                        Ok(s) => {
+                                            show_error_after_run(&"Run Error", &s)?;
+                                        },
+                                        Err(err) => {
+                                            println!("read err: {:?}", err);
+                                        }
+                                    };
+                                }
+                            }
+                            ret = Ok(());
                         },
                         Err(err) => {
-                            return Err(err);
+                            ret = Err(err);
                         }
-                    }
-
+                    };
             }
         };
     }
 
     ret
+}
+
+fn show_error_after_run(title: &str, error_message: &str) -> io::Result<()> {
+    let (context, context_thread) = run_context::setup_run_context();
+    let close_context = context.clone();
+
+    match env::var(SDL_VIRTUAL_GAMEPAD) {
+        Ok(val) => {
+            if val == "1" {
+                 println!("turning virtual gamepad off");
+                 env::remove_var(SDL_VIRTUAL_GAMEPAD);
+
+                 match env::var(SDL_IGNORE_DEVICES) {
+                    Ok(_val) => {
+                        env::remove_var(SDL_IGNORE_DEVICES);
+                    },
+                    Err(err) => {
+                         println!("SDL_IGNORE_DEVICES not found: {}", err);
+                    }
+                };
+            }
+        },
+        Err(err) => {
+            println!("virtual gamepad setting not found: {}", err);
+        }
+    };
+
+    match dialog::show_error(title, error_message, context) {
+        Ok(()) => {},
+        Err(err) => {
+            println!("error showing show_error: {:?}", err);
+        }
+    };
+
+    if let Some(close_context) = close_context {
+        println!("sending close to run context thread");
+        let mut guard = close_context.lock().unwrap();
+        guard.thread_command = Some(run_context::ThreadCommand::Stop);
+        std::mem::drop(guard);
+    }
+
+    context_thread.join().unwrap();
+
+    Ok(())
 }
 
 fn manual_download(args: &[&str]) -> io::Result<()> {
