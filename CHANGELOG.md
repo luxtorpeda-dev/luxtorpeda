@@ -22,6 +22,7 @@
 * Code cleanup.
 * Fix crash with wayland, by removing opengl startup sequence that does not look to be needed.
 * Add dialog for text input, currently used for ut2004. Allows controller to be used, by supporting a button for pasting into the input box.
+* Support showing errors from run scripts inside the client with egui.
 
 ### 40.0 (2021-10-17)
 
