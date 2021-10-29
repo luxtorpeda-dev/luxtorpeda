@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### Pre-release 44.0 (2021-10-30)
+### Pre-release 44.0 (2021-10-29)
 
 * Moved GUI from gtk to egui with sdl2 backing
 * Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for futher information.
