@@ -31,7 +31,6 @@
 * For the controller support, steam virtual gamepad is disabled, then re-enabled before launching the game.
 * For the new GUI, steam overlay is disabled, then re-enabled before launching the game.
 
-
 ### 40.0 (2021-10-17)
 
 * Remove legacy support for original packages, so that runtime is now the default.
