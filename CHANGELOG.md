@@ -3,15 +3,13 @@
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
 ### Pre-release 44.0 (2021-10-29)
+**New in 44 (2021-10-29)**
+* Code cleanup.
+* Fix crash with wayland, by removing opengl startup sequence that does not look to be needed.
+* Add dialog for text input, currently used for ut2004. Allows controller to be used, by supporting a button for pasting into the input box.
+* Support showing errors from run scripts inside the client with egui.
 
-* Moved GUI from gtk to egui with sdl2 backing
-* Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for futher information.
-* For the controller support, steam virtual gamepad is disabled, then re-enabled before launching the game.
-* For the new GUI, steam overlay is disabled, then re-enabled before launching the game.
-* Improved choices list to support controller friendly UI, using dpad to select items and buttons with controller icons. Keyboard navigation is also supported and will show icons for keyboard if no controller found. Arrow keys or w & s can be used to select items or can always use the mouse.
-* Improved other UIs like progress, error & question prompts, and license agreements to have controller support
-* Client-side decoration for title bar and SDL2 flags to make it more seamless
-* Added default engine confirmation, where a window will appear for a few seconds to give the user a chance to clear the default and select a different engine.
+**New in 43 (2021-10-26)**
 * Added basic management tool for clearing config and cache directories for particular games or engines. Can be accessed by going to the installation directory and executing ```./luxtorpeda.sh mgmt``` in a Terminal window.
 * Added icons for Playstation controllers (will use the PS4 icons).
 * Fix issue where using the joysticks on a connected controller while the client was running caused a freeze.
@@ -19,10 +17,20 @@
 * Added steam controller support, using direct USB access.
 * Added scrolling with controller or keyboard to the scrollable prompts, such as the license agreement review.
 * Add configuration parameters for disabling controller support or steam controller USB support.
-* Code cleanup.
-* Fix crash with wayland, by removing opengl startup sequence that does not look to be needed.
-* Add dialog for text input, currently used for ut2004. Allows controller to be used, by supporting a button for pasting into the input box.
-* Support showing errors from run scripts inside the client with egui.
+* Support w and s for keyboard navigation of choices.
+
+**New in 42 (2021-10-23)**
+* Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for futher information.
+* Improved choices list to support controller friendly UI, using dpad to select items and buttons with controller icons. Keyboard navigation is also supported and will show icons for keyboard if no controller found. Arrow keys or w & s can be used to select items or can always use the mouse.
+* Improved other UIs like progress, error & question prompts, and license agreements to have controller support
+* Client-side decoration for title bar and SDL2 flags to make it more seamless
+* Added default engine confirmation, where a window will appear for a few seconds to give the user a chance to clear the default and select a different engine.
+
+**New in 41 (2021-10-20)**
+* Moved GUI from gtk to egui with sdl2 backing
+* For the controller support, steam virtual gamepad is disabled, then re-enabled before launching the game.
+* For the new GUI, steam overlay is disabled, then re-enabled before launching the game.
+
 
 ### 40.0 (2021-10-17)
 
