@@ -286,7 +286,7 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
                                     println!("run returned with lux exit code");
                                     match fs::read_to_string("last_error.txt") {
                                         Ok(s) => {
-                                            show_error_after_run(&"Run Error", &s)?;
+                                            show_error_after_run("Run Error", &s)?;
                                         },
                                         Err(err) => {
                                             println!("read err: {:?}", err);
