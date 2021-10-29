@@ -138,10 +138,6 @@ pub fn show_choices(title: &str, column: &str, choices: &[String], context: Opti
             });
         });
 
-        /*egui::SidePanel::right("Right Panel 2").resizable(false).show(&window_instance.egui_ctx, |ui| {
-            ui.label(choice);
-        });*/
-
         egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
             ui.label(column);
 
