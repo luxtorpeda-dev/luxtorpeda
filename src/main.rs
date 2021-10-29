@@ -85,6 +85,21 @@ fn run_setup(game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sy
                 }
             }
         }
+
+        if !&setup_info["dialogs"].is_null() {
+            for entry in setup_info["dialogs"].members() {
+                let dialog_context = context.clone();
+                if entry["type"] == "input" {
+                    match dialog::text_input(&entry["title"].to_string(), &entry["label"].to_string(), &entry["key"].to_string(), dialog_context) {
+                        Ok(_) => {},
+                        Err(err) => {
+                            println!("setup failed, text input dialog error: {:?}", err);
+                            return Err(Error::new(ErrorKind::Other, "setup failed, input dialog failed"));
+                        }
+                    };
+                }
+            }
+        }
                     
         let command_str = setup_info["command"].to_string();
         println!("setup run: \"{}\"", command_str);

@@ -21,6 +21,7 @@
 * Add configuration parameters for disabling controller support or steam controller USB support.
 * Code cleanup.
 * Fix crash with wayland, by removing opengl startup sequence that does not look to be needed.
+* Add dialog for text input, currently used for ut2004. Allows controller to be used, by supporting a button for pasting into the input box.
 
 ### 40.0 (2021-10-17)
 

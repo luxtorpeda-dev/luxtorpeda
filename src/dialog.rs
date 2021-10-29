@@ -2,6 +2,7 @@ use std::io;
 use std::io::{Error, ErrorKind};
 use std::fs::File;
 use std::io::Read;
+use std::env;
 
 use crate::ui::egui_with_prompts;
 use crate::ui::start_egui_window;
@@ -136,6 +137,10 @@ pub fn show_choices(title: &str, column: &str, choices: &[String], context: Opti
                 });
             });
         });
+
+        /*egui::SidePanel::right("Right Panel 2").resizable(false).show(&window_instance.egui_ctx, |ui| {
+            ui.label(choice);
+        });*/
 
         egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
             ui.label(column);
@@ -294,4 +299,97 @@ pub fn default_choice_confirmation_prompt(title: &str, text: &str, context: Opti
             None
         }
     }
+}
+
+pub fn text_input(title: &str, label: &str, key: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<String> {
+    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, title, false, context)?;
+    let mut cancel = false;
+    let mut ok = false;
+    let mut text_input = String::new();
+    let mut last_attached_state = window.attached_to_controller;
+
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap().0;
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
+    let mut texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap().0;
+    let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
+
+    window.start_egui_loop(|window_instance| {
+        if let Some(last_requested_action) = window_instance.last_requested_action {
+            if last_requested_action == RequestedAction::Confirm && !text_input.is_empty() {
+                ok = true;
+            }
+            else if last_requested_action == RequestedAction::CustomAction {
+                match window_instance.get_clipboard_contents() {
+                    Ok(s) => {
+                        text_input = s;
+                    },
+                    Err(err) => {
+                        println!("get_clipboard_contents error: {:?}", err);
+                    }
+                }
+            }
+            window_instance.last_requested_action = None;
+        }
+
+        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+            println!("Detected controller change, reloading prompts");
+            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
+            texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, window_instance).unwrap().0;
+            last_attached_state = window_instance.attached_to_controller;
+        }
+
+        let mut paste_clicked = false;
+
+        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
+            ui.separator();
+
+            egui::SidePanel::left("Left Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
+                if ui.button_with_image(texture_custom_action, prompt_vec, "Paste").clicked() {
+                    paste_clicked = true;
+                };
+            });
+
+            egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
+                let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                ui.with_layout(layout,|ui| {
+                    ui.add_enabled_ui(!text_input.is_empty(), |ui| {
+                        if ui.button_with_image(texture_confirm, prompt_vec, "Ok").clicked() {
+                            ok = true;
+                        }
+                    });
+
+                    if ui.button_with_image(texture_back, prompt_vec, "Cancel").clicked() {
+                        cancel = true;
+                    }
+                });
+            });
+        });
+
+        egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
+            let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
+            ui.with_layout(layout,|ui| {
+                ui.label(label);
+                ui.add(egui::TextEdit::singleline(&mut text_input));
+            });
+        });
+
+        if paste_clicked {
+            window_instance.last_requested_action = Some(RequestedAction::CustomAction);
+        }
+
+        if cancel || ok {
+            window_instance.close();
+        }
+    });
+
+    if !ok {
+        return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
+    }
+
+    if !key.is_empty() {
+        env::set_var(std::format!("DIALOGRESPONSE_{}", key), text_input.clone());
+    }
+
+    Ok(text_input)
 }

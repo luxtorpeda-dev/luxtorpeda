@@ -1,4 +1,4 @@
-use std::io::Error;
+use std::io::{Error, ErrorKind};
 use std::time::{Duration, Instant};
 use crate::user_env;
 use std::fs;
@@ -68,7 +68,8 @@ pub struct EguiWindowInstance {
     pub attached_to_controller: bool,
     pub last_requested_action: Option<RequestedAction>,
     pub controller_type: ControllerType,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+    video_subsystem: egui_sdl2_gl::sdl2::VideoSubsystem
 }
 
 impl EguiWindowInstance {
@@ -207,7 +208,9 @@ impl EguiWindowInstance {
                                     sdl2::keyboard::Keycode::LCtrl => {
                                         self.last_requested_action = Some(RequestedAction::SecondCustomAction);
                                     },
-                                    _ => {}
+                                    _ => {
+                                        self.egui_state.process_input(&self.window, event, &mut self.painter);
+                                    }
                                 };
                             }
                         },
@@ -277,7 +280,9 @@ impl EguiWindowInstance {
                                     sdl2::keyboard::Keycode::LCtrl => {
                                         self.last_requested_action = Some(RequestedAction::SecondCustomAction);
                                     },
-                                    _ => {}
+                                    _ => {
+                                        self.egui_state.process_input(&self.window, event, &mut self.painter);
+                                    }
                                 };
                             }
                         },
@@ -299,6 +304,17 @@ impl EguiWindowInstance {
 
     pub fn close(&mut self) {
         self.should_close = true;
+    }
+
+    pub fn get_clipboard_contents(&mut self) -> Result<String, Error> {
+        match self.video_subsystem.clipboard().clipboard_text() {
+            Ok(clipboard_text) => {
+                Ok(clipboard_text)
+            },
+            Err(_err) => {
+                Err(Error::new(ErrorKind::Other, "clipboard contents error"))
+            }
+        }
     }
 }
 
@@ -449,7 +465,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
 
     let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
     let start_time = Instant::now();
-    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, sdl2_controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type, context})
+    Ok(EguiWindowInstance{window, _ctx, egui_ctx, event_pump, sdl2_controller, painter, egui_state, start_time, should_close: false, title: window_title.to_string(), from_exit: false, enable_nav, nav_counter_down: 0, nav_counter_up: 0, attached_to_controller, last_requested_action: None, controller_type, context, video_subsystem})
 }
 
 pub fn egui_with_prompts(
