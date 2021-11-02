@@ -105,6 +105,12 @@ struct PackageInfo {
     cache_by_name: bool
 }
 
+#[derive(Debug)]
+pub struct ChoiceInfo {
+    pub name: String,
+    pub notices: Vec<String>
+}
+
 pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
     let remote_hash_response = match reqwest::blocking::get(remote_hash_url) {
         Ok(s) => s,
@@ -212,6 +218,32 @@ pub fn update_packages_json() -> io::Result<()> {
     Ok(())
 }
 
+fn convert_notice_to_str(notice_item: &json::JsonValue, notice_map: &json::JsonValue) -> String {
+    let mut notice = String::new();
+
+    if !notice_item.is_null() {
+        if !notice_item["label"].is_null() {
+            notice = notice_item["label"].to_string();
+        } else if !notice_item["value"].is_null() {
+            if !notice_map[notice_item["value"].to_string()].is_null() {
+                 notice = notice_map[notice_item["value"].to_string()].to_string();
+            }
+            else {
+                notice = notice_item["value"].to_string();
+            }
+        } else if !notice_item["key"].is_null() {
+            if !notice_map[notice_item["key"].to_string()].is_null() {
+                 notice = notice_map[notice_item["key"].to_string()].to_string();
+            }
+            else {
+                notice = notice_item["key"].to_string();
+            }
+        }
+    }
+
+    notice
+}
+
 fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<String> {
     let check_default_choice_file_path = place_config_file(app_id, "default_engine_choice.txt")?;
     if check_default_choice_file_path.exists() {
@@ -240,13 +272,41 @@ fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue, context: Option
             return Ok(default_engine_choice_str)
         }
     }
+
+    let engines_option = get_engines_info();
         
-    let mut choices: Vec<String> = vec![];
+    let mut choices: Vec<ChoiceInfo> = vec![];
     for entry in game_info["choices"].members() {
         if entry["name"].is_null() {
             return Err(Error::new(ErrorKind::Other, "missing choice info"));
         }
-        choices.push(entry["name"].to_string());
+
+        let mut choice_info = ChoiceInfo { name: entry["name"].to_string(), notices: Vec::new() };
+
+        let mut engine_name = entry["name"].to_string();
+        if !entry["engine_name"].is_null() {
+            engine_name = entry["engine_name"].to_string();
+        }
+
+        let engine_name_clone = engine_name.clone();
+        if let Some((ref engines, ref notice_map)) = engines_option {
+            if !engines[engine_name_clone].is_null() {
+                let engine_name_clone_clone = engine_name.clone();
+                if !engines[engine_name_clone_clone]["notices"].is_null() {
+                    for entry in engines[engine_name]["notices"].members() {
+                        choice_info.notices.push(convert_notice_to_str(entry, notice_map));
+                    }
+                }
+            }
+
+            if !game_info["notices"].is_null() {
+                for entry in game_info["notices"].members() {
+                    choice_info.notices.push(convert_notice_to_str(entry, notice_map));
+                }
+            }
+        }
+
+        choices.push(choice_info);
     }
     
     let (choice_name, default_choice) = match show_choices("Pick the engine below", "Select Engine", &choices, context) {
@@ -818,6 +878,30 @@ pub fn get_game_info(app_id: &str, context: Option<std::sync::Arc<std::sync::Mut
         }
     } else {
         Some(game_info)
+    }
+}
+
+pub fn get_engines_info() -> Option<(json::JsonValue, json::JsonValue)> {
+    let packages_json_file = path_to_packages_file();
+    let json_str = match fs::read_to_string(packages_json_file) {
+        Ok(s) => s,
+        Err(err) => {
+            println!("read err: {:?}", err);
+            return None;
+        }
+    };
+    let parsed = match json::parse(&json_str) {
+        Ok(j) => j,
+        Err(err) => {
+            println!("parsing err: {:?}", err);
+            return None;
+        }
+    };
+
+    if parsed["engines"].is_null() || parsed["noticeMap"].is_null() {
+        None
+    } else {
+        Some((parsed["engines"].clone(), parsed["noticeMap"].clone()))
     }
 }
 

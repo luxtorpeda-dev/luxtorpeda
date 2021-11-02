@@ -13,6 +13,7 @@ use crate::ui::default_panel_frame;
 use crate::ui::RequestedAction;
 use crate::ui::prompt_image_for_action;
 use crate::run_context::RunContext;
+use crate::package::ChoiceInfo;
 
 pub struct ProgressState {
     pub status: String,
@@ -36,11 +37,12 @@ pub fn show_error(title: &str, error_message: &str, context: Option<std::sync::A
     }
 }
 
-pub fn show_choices(title: &str, column: &str, choices: &[String], context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<(String, String)> {
+pub fn show_choices(title: &str, column: &str, choices: &[ChoiceInfo], context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<(String, String)> {
     let mut window = start_egui_window(DEFAULT_WINDOW_W, 400, title, true, context)?;
     let mut cancel = false;
     let mut ok = false;
     let mut choice = "";
+    let mut choice_notices = Vec::new();
     let mut default_choice = "";
     let mut current_choice_index = 0;
     let mut scroll_to_choice_index = 0;
@@ -77,7 +79,8 @@ pub fn show_choices(title: &str, column: &str, choices: &[String], context: Opti
                 current_choice_index = 1;
             }
             scroll_to_choice_index = current_choice_index;
-            choice = &choices[current_choice_index_arr];
+            choice = &choices[current_choice_index_arr].name;
+            choice_notices = choices[current_choice_index_arr].notices.clone();
         }
 
         if let Some(last_requested_action) = window_instance.last_requested_action {
@@ -138,6 +141,23 @@ pub fn show_choices(title: &str, column: &str, choices: &[String], context: Opti
             });
         });
 
+        if !choice_notices.is_empty() {
+            egui::SidePanel::right("Detail Panel").resizable(false).frame(default_panel_frame()).show(&window_instance.egui_ctx, |ui| {
+                ui.horizontal_top(|ui| {
+                    ui.separator();
+                    //ui.add(egui::Separator::default().vertical());
+                    let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
+                    ui.with_layout(layout,|ui| {
+                        egui::ScrollArea::vertical().show(ui, |ui| {
+                            for (_d_idx, d) in choice_notices.iter().enumerate() {
+                                ui.label(d);
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
         egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
             ui.label(column);
 
@@ -145,9 +165,9 @@ pub fn show_choices(title: &str, column: &str, choices: &[String], context: Opti
             ui.with_layout(layout,|ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     for (d_idx, d) in choices.iter().enumerate() {
-                        let mut label = std::format!("{}", d);
-                        if d == default_choice {
-                            label = std::format!("{} (Default)", d);
+                        let mut label = std::format!("{}", d.name);
+                        if d.name == default_choice {
+                            label = std::format!("{} (Default)", d.name);
                         }
 
                         let mut is_selected = false;
@@ -163,7 +183,8 @@ pub fn show_choices(title: &str, column: &str, choices: &[String], context: Opti
 
                         if response.clicked() {
                             current_choice_index = d_idx + 1;
-                            choice = d;
+                            choice = &d.name;
+                            choice_notices = d.notices.clone();
                         }
                     }
                 });
