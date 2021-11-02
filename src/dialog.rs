@@ -145,7 +145,6 @@ pub fn show_choices(title: &str, column: &str, choices: &[ChoiceInfo], context: 
             egui::SidePanel::right("Detail Panel").resizable(false).frame(default_panel_frame()).show(&window_instance.egui_ctx, |ui| {
                 ui.horizontal_top(|ui| {
                     ui.separator();
-                    //ui.add(egui::Separator::default().vertical());
                     let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
                     ui.with_layout(layout,|ui| {
                         egui::ScrollArea::vertical().show(ui, |ui| {
