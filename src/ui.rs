@@ -605,9 +605,9 @@ pub fn default_panel_frame() -> egui::Frame {
     egui::Frame {
         margin: egui::Vec2::new(8.0, 2.0),
         corner_radius: 0.0,
-        fill: egui::Color32::from_gray(24),
+        fill: egui::Color32::from_gray(27),
         stroke: egui::Stroke::new(0.0, egui::Color32::from_gray(60)),
-        shadow: egui::epaint::Shadow::big_dark()
+        shadow: egui::epaint::Shadow {extrusion: 0.0, color: egui::Color32::from_gray(27)}
     }
 }
 

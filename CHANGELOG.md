@@ -2,7 +2,13 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### Pre-release 44.0 (2021-10-29)
+### 45.0 (2021-11-01)
+
+Full release of egui UI. All features listed below are in this new release.
+
+**New in 45 (2021-11-01)**
+* Add support for showing additional details in engine choice menu. This is based on any notices that engine may have.
+
 **New in 44 (2021-10-29)**
 * Code cleanup.
 * Fix crash with wayland, by removing opengl startup sequence that does not look to be needed.
