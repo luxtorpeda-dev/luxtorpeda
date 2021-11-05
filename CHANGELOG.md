@@ -2,6 +2,12 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 46.0 (2021-11-05)
+
+* Fix for user-packages default overriding all games.
+* Add ```override_all_with_user_default``` flag to user-packages file, where if true, will override all games with the default in the user-packages file.
+* Add support for exe_in_args flag in engine configuration, to pass the exectuable path as an argument to the launch script of the engine.
+
 ### 45.0 (2021-11-01)
 
 Full release of egui UI. All features listed below are in this new release.

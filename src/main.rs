@@ -241,8 +241,6 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
     }
 
     let exe = args[0].to_lowercase();
-    let exe_args = &args[1..];
-
     if exe.ends_with("iscriptevaluator.exe") {
         return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
     }
@@ -271,6 +269,13 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
     context_thread.join().unwrap();
 
     if let Some(game_info) = game_info {
+        let exe_args;
+        if game_info["exe_in_args"] == true {
+            exe_args = &args[0..];
+        } else {
+            exe_args = &args[1..];
+        }
+
         match find_game_command(&game_info, args) {
             None => ret = Err(Error::new(ErrorKind::Other, "No command line defined")),
             Some((cmd, cmd_args)) => {
