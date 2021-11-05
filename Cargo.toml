@@ -36,3 +36,4 @@ signal-hook = "0.3.10"
 
 [patch.crates-io]
 egui = { git = "https://github.com/luxtorpeda-dev/egui.git", rev = "496f79f" }
+bit-set = { git = "https://github.com/luxtorpeda-dev/bit-set.git", rev = "7e7460d" }
