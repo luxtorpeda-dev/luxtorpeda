@@ -111,17 +111,16 @@ checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
 [[package]]
 name = "bit-set"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6e1e6fb1c9e3d6fcdec57216a74eaa03e41f52a22f13a16438251d8e88b89da"
+source = "git+https://github.com/luxtorpeda-dev/bit-set.git?rev=7e7460d#7e7460dd0aa7d985299b6ec8b5a22240fa894c83"
 dependencies = [
  "bit-vec",
 ]
 
 [[package]]
 name = "bit-vec"
-version = "0.6.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+checksum = "02b4ff8b16e6076c3e14220b39fbc1fabb6737522281a388998046859400895f"
 
 [[package]]
 name = "bitflags"
@@ -987,7 +986,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "45.0.0"
+version = "46.0.0"
 dependencies = [
  "bzip2 0.4.1",
  "egui",

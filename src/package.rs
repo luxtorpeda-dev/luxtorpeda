@@ -852,15 +852,15 @@ pub fn get_game_info(app_id: &str, context: Option<std::sync::Arc<std::sync::Mut
                 }
             };
             
-            let game_info = user_parsed[app_id].clone();
-            if game_info.is_null() {
-                if !user_parsed["default"].is_null() {
+            let user_game_info = user_parsed[app_id].clone();
+            if user_game_info.is_null() {
+                if !user_parsed["default"].is_null() && (game_info.is_null() || (!user_parsed["override_all_with_user_default"].is_null() && user_parsed["override_all_with_user_default"] == true)) {
                     println!("game info using user default");
                     return Some(user_parsed["default"].clone());
                 }
             } else {
                 println!("user_packages_file used for game_info");
-                return Some(game_info)
+                return Some(user_game_info)
             }
         },
         None => {

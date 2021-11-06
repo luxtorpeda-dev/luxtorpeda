@@ -24,6 +24,8 @@ static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
 static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
 static LD_PRELOAD: &str = "LD_PRELOAD";
 static LUX_ERRORS_SUPPORTED: &str = "LUX_ERRORS_SUPPORTED";
+static LUX_ORIGINAL_EXE: &str = "LUX_ORIGINAL_EXE";
+static LUX_ORIGINAL_EXE_FILE: &str = "LUX_ORIGINAL_EXE_FILE";
 
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -247,6 +249,14 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
         return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
     }
 
+    let mut exe_file = "";
+    let exe_path = Path::new(args[0]);
+    if let Some(exe_file_name) = exe_path.file_name() {
+        if let Some(exe_file_str) = exe_file_name.to_str() {
+            exe_file = exe_file_str;
+        }
+    }
+
     let mut ret: Result<(), Error> = Ok(());
     let mut game_info = None;
     let (context, context_thread) = run_context::setup_run_context();
@@ -278,6 +288,8 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
                 match Command::new(cmd)
                     .args(cmd_args)
                     .args(exe_args)
+                    .env(LUX_ORIGINAL_EXE, args[0])
+                    .env(LUX_ORIGINAL_EXE_FILE, exe_file)
                     .status() {
                         Ok(status) => {
                             println!("run returned with {}", status);
