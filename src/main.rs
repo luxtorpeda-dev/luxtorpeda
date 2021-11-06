@@ -24,6 +24,8 @@ static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
 static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
 static LD_PRELOAD: &str = "LD_PRELOAD";
 static LUX_ERRORS_SUPPORTED: &str = "LUX_ERRORS_SUPPORTED";
+static LUX_ORIGINAL_EXE: &str = "LUX_ORIGINAL_EXE";
+static LUX_ORIGINAL_EXE_FILE: &str = "LUX_ORIGINAL_EXE_FILE";
 
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -241,8 +243,17 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
     }
 
     let exe = args[0].to_lowercase();
+    let exe_args = &args[1..];
     if exe.ends_with("iscriptevaluator.exe") {
         return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
+    }
+
+    let mut exe_file = "";
+    let exe_path = Path::new(args[0]);
+    if let Some(exe_file_name) = exe_path.file_name() {
+        if let Some(exe_file_str) = exe_file_name.to_str() {
+            exe_file = exe_file_str;
+        }
     }
 
     let mut ret: Result<(), Error> = Ok(());
@@ -269,13 +280,6 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
     context_thread.join().unwrap();
 
     if let Some(game_info) = game_info {
-        let exe_args;
-        if game_info["exe_in_args"] == true {
-            exe_args = &args[0..];
-        } else {
-            exe_args = &args[1..];
-        }
-
         match find_game_command(&game_info, args) {
             None => ret = Err(Error::new(ErrorKind::Other, "No command line defined")),
             Some((cmd, cmd_args)) => {
@@ -283,6 +287,8 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
                 match Command::new(cmd)
                     .args(cmd_args)
                     .args(exe_args)
+                    .env(LUX_ORIGINAL_EXE, args[0])
+                    .env(LUX_ORIGINAL_EXE_FILE, exe_file)
                     .status() {
                         Ok(status) => {
                             println!("run returned with {}", status);
