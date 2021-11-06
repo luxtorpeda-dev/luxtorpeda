@@ -244,6 +244,7 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
 
     let exe = args[0].to_lowercase();
     let exe_args = &args[1..];
+
     if exe.ends_with("iscriptevaluator.exe") {
         return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignorning"));
     }
