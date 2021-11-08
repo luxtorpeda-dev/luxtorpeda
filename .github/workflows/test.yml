@@ -42,7 +42,7 @@ jobs:
       run: rustup component add clippy
     - name: Clippy Run
       run: cargo clippy
- clippy:
+  fmt:
     runs-on: ubuntu-latest
     container:
       image: rust:1.56-buster
