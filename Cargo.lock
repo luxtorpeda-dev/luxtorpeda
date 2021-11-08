@@ -429,8 +429,8 @@ checksum = "ea57b42383d091c85abcc2706240b94ab2a8fa1fc81c10ff23c4de06e2a90b5e"
 
 [[package]]
 name = "egui"
-version = "0.14.2"
-source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=496f79f#496f79f102125c3d21426f44be069eeba133aca5"
+version = "0.15.0"
+source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=f20b3b1#f20b3b1fa33c081131ecd969cc46bd2bd15c9d6c"
 dependencies = [
  "ahash",
  "epaint",
@@ -439,8 +439,8 @@ dependencies = [
 
 [[package]]
 name = "egui_sdl2_gl"
-version = "0.14.1"
-source = "git+https://github.com/ArjunNair/egui_sdl2_gl.git?rev=1f12bd8#1f12bd8add7bf396003e2cadb5df1087c5a2d13c"
+version = "0.15.0"
+source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=e0fd6da#e0fd6dab03dc8ad969ca27e5fa78ebcc9dd86b65"
 dependencies = [
  "egui",
  "gl",
@@ -455,8 +455,8 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "emath"
-version = "0.14.0"
-source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=496f79f#496f79f102125c3d21426f44be069eeba133aca5"
+version = "0.15.0"
+source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=f20b3b1#f20b3b1fa33c081131ecd969cc46bd2bd15c9d6c"
 
 [[package]]
 name = "encoding_rs"
@@ -469,8 +469,8 @@ dependencies = [
 
 [[package]]
 name = "epaint"
-version = "0.14.0"
-source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=496f79f#496f79f102125c3d21426f44be069eeba133aca5"
+version = "0.15.0"
+source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=f20b3b1#f20b3b1fa33c081131ecd969cc46bd2bd15c9d6c"
 dependencies = [
  "ab_glyph",
  "ahash",
