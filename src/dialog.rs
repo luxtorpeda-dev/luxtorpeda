@@ -188,9 +188,9 @@ pub fn show_choices(
                                     "Cancel",
                                 ))
                                 .clicked()
-                                {
-                                    cancel = true;
-                                }
+                            {
+                                cancel = true;
+                            }
 
                             ui.add_enabled_ui(!choice.is_empty(), |ui| {
                                 if ui
