@@ -56,6 +56,6 @@ jobs:
     - name: Install libusb
       run: apt update && apt-get install -y libusb-1.0-0-dev
     - name: Install fmt
-      run: rustup component add fmt
+      run: rustup component add rustfmt
     - name: fmt Run
       run: cargo fmt --all -- --check
