@@ -5,6 +5,8 @@
 ### 47.0 (2021-11-07)
 
 * Fix for PS3 controller showing xbox glyphs.
+* Upgraded to latest egui.
+* Code cleanup.
 
 ### 46.0 (2021-11-05)
 
