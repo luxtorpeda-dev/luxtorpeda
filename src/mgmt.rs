@@ -321,17 +321,6 @@ pub fn run_mgmt() -> Result<(), Error> {
                         ui.with_layout(layout, |ui| {
                             if ui
                                 .add(egui::Button::image_and_text(
-                                    texture_confirm,
-                                    prompt_vec,
-                                    "Refresh",
-                                ))
-                                .clicked()
-                            {
-                                reload_needed = true;
-                            }
-
-                            if ui
-                                .add(egui::Button::image_and_text(
                                     texture_back,
                                     prompt_vec,
                                     "Exit",
@@ -339,6 +328,17 @@ pub fn run_mgmt() -> Result<(), Error> {
                                 .clicked()
                             {
                                 guard.close = true;
+                            }
+
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_confirm,
+                                    prompt_vec,
+                                    "Refresh",
+                                ))
+                                .clicked()
+                            {
+                                reload_needed = true;
                             }
                         });
                     });

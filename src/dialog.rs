@@ -181,6 +181,17 @@ pub fn show_choices(
                     .show_inside(ui, |ui| {
                         let layout = egui::Layout::right_to_left().with_cross_justify(true);
                         ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back,
+                                    prompt_vec,
+                                    "Cancel",
+                                ))
+                                .clicked()
+                                {
+                                    cancel = true;
+                                }
+
                             ui.add_enabled_ui(!choice.is_empty(), |ui| {
                                 if ui
                                     .add(egui::Button::image_and_text(
@@ -193,17 +204,6 @@ pub fn show_choices(
                                     ok = true;
                                 }
                             });
-
-                            if ui
-                                .add(egui::Button::image_and_text(
-                                    texture_back,
-                                    prompt_vec,
-                                    "Cancel",
-                                ))
-                                .clicked()
-                            {
-                                cancel = true;
-                            }
                         });
                     });
             });
@@ -552,6 +552,17 @@ pub fn text_input(
                     .show_inside(ui, |ui| {
                         let layout = egui::Layout::right_to_left().with_cross_justify(true);
                         ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back,
+                                    prompt_vec,
+                                    "Cancel",
+                                ))
+                                .clicked()
+                            {
+                                cancel = true;
+                            }
+
                             ui.add_enabled_ui(!text_input.is_empty(), |ui| {
                                 if ui
                                     .add(egui::Button::image_and_text(
@@ -564,17 +575,6 @@ pub fn text_input(
                                     ok = true;
                                 }
                             });
-
-                            if ui
-                                .add(egui::Button::image_and_text(
-                                    texture_back,
-                                    prompt_vec,
-                                    "Cancel",
-                                ))
-                                .clicked()
-                            {
-                                cancel = true;
-                            }
                         });
                     });
             });

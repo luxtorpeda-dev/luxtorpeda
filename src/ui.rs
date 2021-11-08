@@ -605,18 +605,6 @@ pub fn egui_with_prompts(
                     .show_inside(ui, |ui| {
                         let layout = egui::Layout::right_to_left().with_cross_justify(true);
                         ui.with_layout(layout, |ui| {
-                            if yes_button
-                                && ui
-                                    .add(egui::Button::image_and_text(
-                                        texture_confirm,
-                                        prompt_vec,
-                                        yes_text,
-                                    ))
-                                    .clicked()
-                            {
-                                yes = true;
-                            }
-
                             if no_button
                                 && ui
                                     .add(egui::Button::image_and_text(
@@ -627,6 +615,18 @@ pub fn egui_with_prompts(
                                     .clicked()
                             {
                                 no = true;
+                            }
+
+                            if yes_button
+                                && ui
+                                    .add(egui::Button::image_and_text(
+                                        texture_confirm,
+                                        prompt_vec,
+                                        yes_text,
+                                    ))
+                                    .clicked()
+                            {
+                                yes = true;
                             }
                         });
                     });
