@@ -7,6 +7,7 @@
 * Fix for PS3 controller showing xbox glyphs.
 * Upgraded to latest egui.
 * Code cleanup.
+* Added cargo fmt for automated checks.
 
 ### 46.0 (2021-11-05)
 
