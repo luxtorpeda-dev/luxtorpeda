@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 47.0 (2021-11-07)
+
+* Fix for PS3 controller showing xbox glyphs.
+
 ### 46.0 (2021-11-05)
 
 * Fix for user-packages default overriding all games.

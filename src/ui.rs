@@ -429,7 +429,7 @@ pub fn start_egui_window(window_width: u32, window_height: u32, window_title: &s
                 }) {
                     println!("Controller connected mapping: {}", found_controller.mapping());
 
-                    if found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
+                    if found_controller.name().contains("PS3") || found_controller.name().contains("PS4") || found_controller.name().contains("PS5") {
                         println!("controller assumed to be dualshock");
                         controller_type = ControllerType::DualShock;
                     } else {
