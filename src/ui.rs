@@ -644,13 +644,13 @@ pub fn egui_with_prompts(
                 let calculated_scroll =
                     last_current_scroll + (requested_scroll_down * SCROLL_TIMES) as f32;
                 if calculated_scroll <= last_max_scroll {
-                    scroll_area = scroll_area.scroll_offset(egui::vec2(calculated_scroll, 0.0));
+                    scroll_area = scroll_area.scroll_offset(egui::vec2(0.0, calculated_scroll));
                 }
             } else if requested_scroll_up != 0 {
                 let calculated_scroll =
                     last_current_scroll - (requested_scroll_up * SCROLL_TIMES) as f32;
                 if calculated_scroll >= 0.0 {
-                    scroll_area = scroll_area.scroll_offset(egui::vec2(calculated_scroll, 0.0));
+                    scroll_area = scroll_area.scroll_offset(egui::vec2(0.0, calculated_scroll));
                 }
             }
 
