@@ -8,6 +8,7 @@
 * Upgraded to latest egui.
 * Code cleanup.
 * Added cargo fmt for automated checks.
+* Change position of buttons in UI.
 
 ### 46.0 (2021-11-05)
 

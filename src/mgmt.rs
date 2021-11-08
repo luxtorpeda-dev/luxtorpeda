@@ -279,23 +279,6 @@ pub fn run_mgmt() -> Result<(), Error> {
                         ui.with_layout(layout, |ui| {
                             ui.add_enabled_ui(
                                 current_choice_index != 0
-                                    && guard.items[current_choice_index - 1].has_config,
-                                |ui| {
-                                    if ui
-                                        .add(egui::Button::image_and_text(
-                                            texture_custom_action,
-                                            prompt_vec,
-                                            "Clear Config",
-                                        ))
-                                        .clicked()
-                                    {
-                                        clear_config(&mut guard.items[current_choice_index - 1]);
-                                    }
-                                },
-                            );
-
-                            ui.add_enabled_ui(
-                                current_choice_index != 0
                                     && guard.items[current_choice_index - 1].has_cache,
                                 |ui| {
                                     if ui
@@ -307,6 +290,23 @@ pub fn run_mgmt() -> Result<(), Error> {
                                         .clicked()
                                     {
                                         clear_cache(&mut guard.items[current_choice_index - 1]);
+                                    }
+                                },
+                            );
+
+                            ui.add_enabled_ui(
+                                current_choice_index != 0
+                                    && guard.items[current_choice_index - 1].has_config,
+                                |ui| {
+                                    if ui
+                                        .add(egui::Button::image_and_text(
+                                            texture_custom_action,
+                                            prompt_vec,
+                                            "Clear Config",
+                                        ))
+                                        .clicked()
+                                    {
+                                        clear_config(&mut guard.items[current_choice_index - 1]);
                                     }
                                 },
                             );
