@@ -1,15 +1,15 @@
 use std::fs;
 use std::io::{Error, ErrorKind};
 
+use crate::package::get_game_info_with_json;
 use crate::package::path_to_cache;
 use crate::package::path_to_config;
-use crate::package::get_game_info_with_json;
 use crate::package::path_to_packages_file;
-use crate::ui::start_egui_window;
-use crate::ui::DEFAULT_PROMPT_SIZE;
 use crate::ui::default_panel_frame;
-use crate::ui::RequestedAction;
 use crate::ui::prompt_image_for_action;
+use crate::ui::start_egui_window;
+use crate::ui::RequestedAction;
+use crate::ui::DEFAULT_PROMPT_SIZE;
 
 #[derive(Debug)]
 struct MgmtItem {
@@ -18,12 +18,12 @@ struct MgmtItem {
     pub has_cache: bool,
     pub has_config: bool,
     pub is_game: bool,
-    pub is_engine: bool
+    pub is_engine: bool,
 }
 
 struct MgmtState {
     pub items: Vec<MgmtItem>,
-    pub close: bool
+    pub close: bool,
 }
 
 fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), Error> {
@@ -45,13 +45,15 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
 
     let cache_path = path_to_cache();
     let paths = fs::read_dir(cache_path).unwrap();
-    let names =
-        paths.filter_map(|entry| {
-        entry.ok().and_then(|e|
-            e.path().file_name()
-            .and_then(|n| n.to_str().map(String::from))
-        )
-        }).collect::<Vec<String>>();
+    let names = paths
+        .filter_map(|entry| {
+            entry.ok().and_then(|e| {
+                e.path()
+                    .file_name()
+                    .and_then(|n| n.to_str().map(String::from))
+            })
+        })
+        .collect::<Vec<String>>();
 
     let mut games: Vec<MgmtItem> = Vec::new();
     let mut engines: Vec<MgmtItem> = Vec::new();
@@ -65,37 +67,60 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
         let name_clone = name.to_string();
 
         if name.parse::<f64>().is_ok() {
-            let mut new_item = MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name, is_game: true, is_engine: false};
+            let mut new_item = MgmtItem {
+                id: name_clone,
+                has_cache: true,
+                has_config: false,
+                friendly_name,
+                is_game: true,
+                is_engine: false,
+            };
             let game_info_name = name.to_string();
             if let Some(game_info) = get_game_info_with_json(&game_info_name, &parsed) {
                 new_item.friendly_name = game_info["game_name"].to_string().clone();
                 games.push(new_item);
             };
         } else {
-            engines.push(MgmtItem{id: name_clone, has_cache: true, has_config: false, friendly_name, is_game: false, is_engine: false});
+            engines.push(MgmtItem {
+                id: name_clone,
+                has_cache: true,
+                has_config: false,
+                friendly_name,
+                is_game: false,
+                is_engine: false,
+            });
         }
     }
 
     let config_path = path_to_config();
     let config_paths = fs::read_dir(config_path).unwrap();
-    let config_names =
-        config_paths.filter_map(|entry| {
-        entry.ok().and_then(|e|
-            e.path().file_name()
-            .and_then(|n| n.to_str().map(String::from))
-        )
-        }).collect::<Vec<String>>();
+    let config_names = config_paths
+        .filter_map(|entry| {
+            entry.ok().and_then(|e| {
+                e.path()
+                    .file_name()
+                    .and_then(|n| n.to_str().map(String::from))
+            })
+        })
+        .collect::<Vec<String>>();
 
     for name in config_names {
         if name.parse::<f64>().is_ok() {
-            match games.iter_mut().find(|i| i.id==name) {
+            match games.iter_mut().find(|i| i.id == name) {
                 Some(item) => {
                     item.has_config = true;
-                },
+                }
                 None => {
                     let friendly_name = name.to_string();
                     let name_clone = name.to_string();
-                    let mut new_item = MgmtItem{id: name_clone, has_cache: false, has_config: true, friendly_name, is_game: true, is_engine: false};
+                    let mut new_item = MgmtItem {
+                        id: name_clone,
+                        has_cache: false,
+                        has_config: true,
+                        friendly_name,
+                        is_game: true,
+                        is_engine: false,
+                    };
 
                     let game_info_name = name.to_string();
                     if let Some(game_info) = get_game_info_with_json(&game_info_name, &parsed) {
@@ -125,7 +150,7 @@ fn clear_config(mgmt_item: &mut MgmtItem) {
     match fs::remove_dir_all(folder_path) {
         Ok(()) => {
             println!("clear_config done");
-        },
+        }
         Err(err) => {
             println!("clear_config. err: {:?}", err);
         }
@@ -142,7 +167,7 @@ fn clear_cache(mgmt_item: &mut MgmtItem) {
     match fs::remove_dir_all(folder_path) {
         Ok(()) => {
             println!("clear_cache done");
-        },
+        }
         Err(err) => {
             println!("clear_cache. err: {:?}", err);
         }
@@ -152,7 +177,10 @@ fn clear_cache(mgmt_item: &mut MgmtItem) {
 }
 
 pub fn run_mgmt() -> Result<(), Error> {
-    let mgmt_state = MgmtState{close: false, items: Vec::new()};
+    let mgmt_state = MgmtState {
+        close: false,
+        items: Vec::new(),
+    };
     let mutex = std::sync::Mutex::new(mgmt_state);
     let arc = std::sync::Arc::new(mutex);
     let detect_arc = arc.clone();
@@ -162,7 +190,7 @@ pub fn run_mgmt() -> Result<(), Error> {
     let mut reload_needed = false;
 
     match detect_mgmt(detect_arc) {
-        Ok(()) => {},
+        Ok(()) => {}
         Err(err) => {
             println!("run_mgmt detect_mgmt error: {}", err);
             return Err(Error::new(ErrorKind::Other, "detect_mgmt failed"));
@@ -170,21 +198,24 @@ pub fn run_mgmt() -> Result<(), Error> {
     };
 
     let title = &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION"));
-    let mut window = start_egui_window(1024, 768, title, true, None)?;
+    let (mut window, egui_ctx) = start_egui_window(1024, 768, title, true, None)?;
     let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
-    let (texture_confirm, ..) = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
-    let (texture_custom_action, ..) = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap();
-    let (texture_second_custom_action, ..) = prompt_image_for_action(RequestedAction::SecondCustomAction, &mut window).unwrap();
+    let (texture_confirm, ..) =
+        prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
+    let (texture_custom_action, ..) =
+        prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap();
+    let (texture_second_custom_action, ..) =
+        prompt_image_for_action(RequestedAction::SecondCustomAction, &mut window).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
-    window.start_egui_loop(|window_instance| {
+    window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
         if reload_needed {
             println!("run_mgmt detect_mgmt reload");
             let detect_loop_arc = arc.clone();
             match detect_mgmt(detect_loop_arc) {
                 Ok(()) => {
                     current_choice_index = 0;
-                },
+                }
                 Err(err) => {
                     println!("run_mgmt detect_mgmt error: {}", err);
                 }
@@ -194,15 +225,16 @@ pub fn run_mgmt() -> Result<(), Error> {
 
         let mut guard = arc.lock().unwrap();
 
-        if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
+        if window_instance.enable_nav
+            && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0)
+        {
             if window_instance.nav_counter_down != 0 {
                 current_choice_index += window_instance.nav_counter_down;
                 window_instance.nav_counter_down = 0;
             } else {
                 if current_choice_index == 0 {
                     current_choice_index = guard.items.len();
-                }
-                else {
+                } else {
                     current_choice_index -= window_instance.nav_counter_up;
                 }
 
@@ -223,55 +255,100 @@ pub fn run_mgmt() -> Result<(), Error> {
         if let Some(last_requested_action) = window_instance.last_requested_action {
             if last_requested_action == RequestedAction::CustomAction && current_choice_index != 0 {
                 clear_config(&mut guard.items[current_choice_index - 1]);
-            }
-            else if last_requested_action == RequestedAction::SecondCustomAction && current_choice_index != 0 {
+            } else if last_requested_action == RequestedAction::SecondCustomAction
+                && current_choice_index != 0
+            {
                 clear_cache(&mut guard.items[current_choice_index - 1]);
-            }
-            else if last_requested_action == RequestedAction::Confirm {
+            } else if last_requested_action == RequestedAction::Confirm {
                 reload_needed = true;
             }
             window_instance.last_requested_action = None;
         }
 
-        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
-            ui.separator();
+        egui::TopBottomPanel::bottom("bottom_panel")
+            .frame(default_panel_frame())
+            .resizable(false)
+            .show(egui_ctx, |ui| {
+                ui.separator();
 
-            egui::SidePanel::left("Left Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
-                let layout = egui::Layout::left_to_right().with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    ui.add_enabled_ui(current_choice_index != 0 && guard.items[current_choice_index - 1].has_config, |ui| {
-                        if ui.button_with_image(texture_custom_action, prompt_vec, "Clear Config").clicked() {
-                            clear_config(&mut guard.items[current_choice_index - 1]);
-                        }
+                egui::SidePanel::left("Left Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::left_to_right().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            ui.add_enabled_ui(
+                                current_choice_index != 0
+                                    && guard.items[current_choice_index - 1].has_cache,
+                                |ui| {
+                                    if ui
+                                        .add(egui::Button::image_and_text(
+                                            texture_second_custom_action,
+                                            prompt_vec,
+                                            "Clear Cache",
+                                        ))
+                                        .clicked()
+                                    {
+                                        clear_cache(&mut guard.items[current_choice_index - 1]);
+                                    }
+                                },
+                            );
+
+                            ui.add_enabled_ui(
+                                current_choice_index != 0
+                                    && guard.items[current_choice_index - 1].has_config,
+                                |ui| {
+                                    if ui
+                                        .add(egui::Button::image_and_text(
+                                            texture_custom_action,
+                                            prompt_vec,
+                                            "Clear Config",
+                                        ))
+                                        .clicked()
+                                    {
+                                        clear_config(&mut guard.items[current_choice_index - 1]);
+                                    }
+                                },
+                            );
+                        });
                     });
 
-                    ui.add_enabled_ui(current_choice_index != 0 && guard.items[current_choice_index - 1].has_cache, |ui| {
-                        if ui.button_with_image(texture_second_custom_action, prompt_vec, "Clear Cache").clicked() {
-                            clear_cache(&mut guard.items[current_choice_index - 1]);
-                        }
+                egui::SidePanel::right("Right Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back,
+                                    prompt_vec,
+                                    "Exit",
+                                ))
+                                .clicked()
+                            {
+                                guard.close = true;
+                            }
+
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_confirm,
+                                    prompt_vec,
+                                    "Refresh",
+                                ))
+                                .clicked()
+                            {
+                                reload_needed = true;
+                            }
+                        });
                     });
-                });
             });
 
-            egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
-                let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    if ui.button_with_image(texture_confirm, prompt_vec, "Refresh").clicked() {
-                        reload_needed = true;
-                    }
-
-                    if ui.button_with_image(texture_back, prompt_vec, "Exit").clicked() {
-                        guard.close = true;
-                    }
-                });
-            });
-        });
-
-        egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
+        egui::CentralPanel::default().show(egui_ctx, |ui| {
             ui.label("Items");
 
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
+            ui.with_layout(layout, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     for (d_idx, d) in guard.items.iter().enumerate() {
                         let label = &d.friendly_name;

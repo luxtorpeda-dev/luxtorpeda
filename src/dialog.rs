@@ -1,19 +1,19 @@
-use std::io;
-use std::io::{Error, ErrorKind};
-use std::fs::File;
-use std::io::Read;
 use std::env;
+use std::fs::File;
+use std::io;
+use std::io::Read;
+use std::io::{Error, ErrorKind};
 
-use crate::ui::egui_with_prompts;
-use crate::ui::start_egui_window;
-use crate::ui::DEFAULT_WINDOW_W;
-use crate::ui::DEFAULT_WINDOW_H;
-use crate::ui::DEFAULT_PROMPT_SIZE;
-use crate::ui::default_panel_frame;
-use crate::ui::RequestedAction;
-use crate::ui::prompt_image_for_action;
-use crate::run_context::RunContext;
 use crate::package::ChoiceInfo;
+use crate::run_context::RunContext;
+use crate::ui::default_panel_frame;
+use crate::ui::egui_with_prompts;
+use crate::ui::prompt_image_for_action;
+use crate::ui::start_egui_window;
+use crate::ui::RequestedAction;
+use crate::ui::DEFAULT_PROMPT_SIZE;
+use crate::ui::DEFAULT_WINDOW_H;
+use crate::ui::DEFAULT_WINDOW_W;
 
 pub struct ProgressState {
     pub status: String,
@@ -21,15 +21,31 @@ pub struct ProgressState {
     pub close: bool,
     pub error: bool,
     pub complete: bool,
-    pub error_str: String
+    pub error_str: String,
 }
 
-pub fn show_error(title: &str, error_message: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<()> {
-    match egui_with_prompts(true, false, &"Ok".to_string(), &"".to_string(), title, error_message, 0, &"".to_string(), false, 0, context) {
+pub fn show_error(
+    title: &str,
+    error_message: &str,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+) -> io::Result<()> {
+    match egui_with_prompts(
+        true,
+        false,
+        &"Ok".to_string(),
+        &"".to_string(),
+        title,
+        error_message,
+        0,
+        &"".to_string(),
+        false,
+        0,
+        context,
+    ) {
         Ok((yes, no)) => {
             println!("{} {}", yes, no);
             Ok(())
-        },
+        }
         Err(err) => {
             println!("{:?}", err);
             Err(err)
@@ -37,8 +53,13 @@ pub fn show_error(title: &str, error_message: &str, context: Option<std::sync::A
     }
 }
 
-pub fn show_choices(title: &str, column: &str, choices: &[ChoiceInfo], context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<(String, String)> {
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, 400, title, true, context)?;
+pub fn show_choices(
+    title: &str,
+    column: &str,
+    choices: &[ChoiceInfo],
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+) -> io::Result<(String, String)> {
+    let (mut window, egui_ctx) = start_egui_window(DEFAULT_WINDOW_W, 400, title, true, context)?;
     let mut cancel = false;
     let mut ok = false;
     let mut choice = "";
@@ -48,21 +69,29 @@ pub fn show_choices(title: &str, column: &str, choices: &[ChoiceInfo], context: 
     let mut scroll_to_choice_index = 0;
     let mut last_attached_state = window.attached_to_controller;
 
-    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap().0;
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
-    let mut texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap().0;
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window)
+        .unwrap()
+        .0;
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
+        .unwrap()
+        .0;
+    let mut texture_custom_action =
+        prompt_image_for_action(RequestedAction::CustomAction, &mut window)
+            .unwrap()
+            .0;
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
-    window.start_egui_loop(|window_instance| {
-        if window_instance.enable_nav && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0) {
+    window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
+        if window_instance.enable_nav
+            && (window_instance.nav_counter_down != 0 || window_instance.nav_counter_up != 0)
+        {
             if window_instance.nav_counter_down != 0 {
                 current_choice_index += window_instance.nav_counter_down;
                 window_instance.nav_counter_down = 0;
             } else {
                 if current_choice_index == 0 {
                     current_choice_index = choices.len();
-                }
-                else {
+                } else {
                     current_choice_index -= window_instance.nav_counter_up;
                 }
 
@@ -86,8 +115,7 @@ pub fn show_choices(title: &str, column: &str, choices: &[ChoiceInfo], context: 
         if let Some(last_requested_action) = window_instance.last_requested_action {
             if last_requested_action == RequestedAction::Confirm && !choice.is_empty() {
                 ok = true;
-            }
-            else if last_requested_action == RequestedAction::CustomAction && !choice.is_empty() {
+            } else if last_requested_action == RequestedAction::CustomAction && !choice.is_empty() {
                 if default_choice != choice {
                     default_choice = choice;
                 } else {
@@ -97,71 +125,114 @@ pub fn show_choices(title: &str, column: &str, choices: &[ChoiceInfo], context: 
             window_instance.last_requested_action = None;
         }
 
-        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+        if (!window_instance.attached_to_controller && last_attached_state)
+            || (window_instance.attached_to_controller && !last_attached_state)
+        {
             println!("Detected controller change, reloading prompts");
-            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
-            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
-            texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, window_instance).unwrap().0;
+            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
+                .unwrap()
+                .0;
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
+                .unwrap()
+                .0;
+            texture_custom_action =
+                prompt_image_for_action(RequestedAction::CustomAction, window_instance)
+                    .unwrap()
+                    .0;
             last_attached_state = window_instance.attached_to_controller;
         }
 
-        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
-            ui.separator();
+        egui::TopBottomPanel::bottom("bottom_panel")
+            .frame(default_panel_frame())
+            .resizable(false)
+            .show(egui_ctx, |ui| {
+                ui.separator();
 
-            egui::SidePanel::left("Left Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
-                ui.add_enabled_ui(!choice.is_empty(), |ui| {
-                    let mut button_text = "Set as default";
-                    if default_choice == choice && !default_choice.is_empty() {
-                        button_text = "Unset as default"
-                    }
+                egui::SidePanel::left("Left Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        ui.add_enabled_ui(!choice.is_empty(), |ui| {
+                            let mut button_text = "Set as default";
+                            if default_choice == choice && !default_choice.is_empty() {
+                                button_text = "Unset as default"
+                            }
 
-                    if ui.button_with_image(texture_custom_action, prompt_vec, button_text).clicked() {
-                        if default_choice != choice {
-                            default_choice = choice;
-                        } else {
-                            default_choice = "";
-                        }
-                    }
-                });
-            });
-
-            egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
-                let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    ui.add_enabled_ui(!choice.is_empty(), |ui| {
-                        if ui.button_with_image(texture_confirm, prompt_vec, "Ok").clicked() {
-                            ok = true;
-                        }
-                    });
-
-                    if ui.button_with_image(texture_back, prompt_vec, "Cancel").clicked() {
-                        cancel = true;
-                    }
-                });
-            });
-        });
-
-        if !choice_notices.is_empty() {
-            egui::SidePanel::right("Detail Panel").resizable(false).frame(default_panel_frame()).show(&window_instance.egui_ctx, |ui| {
-                ui.horizontal_top(|ui| {
-                    ui.separator();
-                    let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
-                    ui.with_layout(layout,|ui| {
-                        egui::ScrollArea::vertical().show(ui, |ui| {
-                            for (_d_idx, d) in choice_notices.iter().enumerate() {
-                                ui.label(d);
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_custom_action,
+                                    prompt_vec,
+                                    button_text,
+                                ))
+                                .clicked()
+                            {
+                                if default_choice != choice {
+                                    default_choice = choice;
+                                } else {
+                                    default_choice = "";
+                                }
                             }
                         });
                     });
-                });
+
+                egui::SidePanel::right("Right Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back,
+                                    prompt_vec,
+                                    "Cancel",
+                                ))
+                                .clicked()
+                            {
+                                cancel = true;
+                            }
+
+                            ui.add_enabled_ui(!choice.is_empty(), |ui| {
+                                if ui
+                                    .add(egui::Button::image_and_text(
+                                        texture_confirm,
+                                        prompt_vec,
+                                        "Ok",
+                                    ))
+                                    .clicked()
+                                {
+                                    ok = true;
+                                }
+                            });
+                        });
+                    });
             });
+
+        if !choice_notices.is_empty() {
+            egui::SidePanel::right("Detail Panel")
+                .resizable(false)
+                .frame(default_panel_frame())
+                .show(egui_ctx, |ui| {
+                    ui.horizontal_top(|ui| {
+                        ui.separator();
+                        let layout =
+                            egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            egui::ScrollArea::vertical().show(ui, |ui| {
+                                for (_d_idx, d) in choice_notices.iter().enumerate() {
+                                    ui.label(d);
+                                }
+                            });
+                        });
+                    });
+                });
         }
 
-        egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
+        egui::CentralPanel::default().show(egui_ctx, |ui| {
             ui.label(column);
 
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
+            ui.with_layout(layout, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     for (d_idx, d) in choices.iter().enumerate() {
                         let mut label = std::format!("{}", d.name);
@@ -206,36 +277,66 @@ pub fn show_choices(title: &str, column: &str, choices: &[ChoiceInfo], context: 
     Ok((choice.to_string(), default_choice.to_string()))
 }
 
-pub fn show_file_with_confirm(title: &str, file_path: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<()> {
+pub fn show_file_with_confirm(
+    title: &str,
+    file_path: &str,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+) -> io::Result<()> {
     let mut file = File::open(&file_path)?;
     let mut file_buf = vec![];
     file.read_to_end(&mut file_buf)?;
     let file_str = String::from_utf8_lossy(&file_buf);
     let file_str_milk = file_str.as_ref();
 
-    match egui_with_prompts(true, true, &"Ok".to_string(), &"Cancel".to_string(), &title.to_string(), &file_str_milk.to_string(), 600, &"By clicking Ok below, you are agreeing to the above.".to_string(), true, 0, context) {
+    match egui_with_prompts(
+        true,
+        true,
+        &"Ok".to_string(),
+        &"Cancel".to_string(),
+        &title.to_string(),
+        &file_str_milk.to_string(),
+        600,
+        &"By clicking Ok below, you are agreeing to the above.".to_string(),
+        true,
+        0,
+        context,
+    ) {
         Ok((yes, ..)) => {
             if yes {
                 Ok(())
             } else {
                 Err(Error::new(ErrorKind::Other, "dialog was rejected"))
             }
-        },
-        Err(err) => {
-            Err(err)
         }
+        Err(err) => Err(err),
     }
 }
 
-pub fn show_question(title: &str, text: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Option<()> {
-    match egui_with_prompts(true, true, &"Yes".to_string(), &"No".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 0, context) {
+pub fn show_question(
+    title: &str,
+    text: &str,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+) -> Option<()> {
+    match egui_with_prompts(
+        true,
+        true,
+        &"Yes".to_string(),
+        &"No".to_string(),
+        &title.to_string(),
+        &text.to_string(),
+        0,
+        &"".to_string(),
+        false,
+        0,
+        context,
+    ) {
         Ok((yes, ..)) => {
             if yes {
                 Some(())
             } else {
                 None
             }
-        },
+        }
         Err(err) => {
             println!("show_question err: {:?}", err);
             None
@@ -243,39 +344,68 @@ pub fn show_question(title: &str, text: &str, context: Option<std::sync::Arc<std
     }
 }
 
-pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Result<(), Error> {
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false, context).unwrap();
+pub fn start_progress(
+    arc: std::sync::Arc<std::sync::Mutex<ProgressState>>,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+) -> Result<(), Error> {
+    let (mut window, egui_ctx) = start_egui_window(
+        DEFAULT_WINDOW_W,
+        DEFAULT_WINDOW_H,
+        "Progress",
+        false,
+        context,
+    )
+    .unwrap();
     let mut last_attached_state = window.attached_to_controller;
 
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
+        .unwrap()
+        .0;
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
-    window.start_egui_loop(|window_instance| {
-        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+    window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
+        if (!window_instance.attached_to_controller && last_attached_state)
+            || (window_instance.attached_to_controller && !last_attached_state)
+        {
             println!("Detected controller change, reloading prompts");
-            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
+                .unwrap()
+                .0;
             last_attached_state = window_instance.attached_to_controller;
         }
 
         let mut guard = arc.lock().unwrap();
 
-        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
-            let layout = egui::Layout::top_down(egui::Align::Center).with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
-                ui.separator();
-            });
-
-            egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
-                let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    if ui.button_with_image(texture_back, prompt_vec, "Cancel").clicked() {
-                        guard.close = true;
-                    }
+        egui::TopBottomPanel::bottom("bottom_panel")
+            .frame(default_panel_frame())
+            .resizable(false)
+            .show(egui_ctx, |ui| {
+                let layout = egui::Layout::top_down(egui::Align::Center).with_cross_justify(true);
+                ui.with_layout(layout, |ui| {
+                    ui.separator();
                 });
-            });
-        });
 
-        egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
+                egui::SidePanel::right("Right Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back,
+                                    prompt_vec,
+                                    "Cancel",
+                                ))
+                                .clicked()
+                            {
+                                guard.close = true;
+                            }
+                        });
+                    });
+            });
+
+        egui::CentralPanel::default().show(egui_ctx, |ui| {
             ui.vertical_centered(|ui| {
                 ui.label(guard.status.to_string());
                 ui.separator();
@@ -301,15 +431,31 @@ pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>, cont
     Ok(())
 }
 
-pub fn default_choice_confirmation_prompt(title: &str, text: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> Option<()> {
-    match egui_with_prompts(false, true, &"".to_string(), &"Clear Default".to_string(), &title.to_string(), &text.to_string(), 0, &"".to_string(), false, 4, context) {
+pub fn default_choice_confirmation_prompt(
+    title: &str,
+    text: &str,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+) -> Option<()> {
+    match egui_with_prompts(
+        false,
+        true,
+        &"".to_string(),
+        &"Clear Default".to_string(),
+        &title.to_string(),
+        &text.to_string(),
+        0,
+        &"".to_string(),
+        false,
+        4,
+        context,
+    ) {
         Ok((_yes, no)) => {
             if no {
                 Some(())
             } else {
                 None
             }
-        },
+        }
         Err(err) => {
             println!("default_choice_confirmation_prompt err: {:?}", err);
             None
@@ -317,28 +463,40 @@ pub fn default_choice_confirmation_prompt(title: &str, text: &str, context: Opti
     }
 }
 
-pub fn text_input(title: &str, label: &str, key: &str, context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>) -> io::Result<String> {
-    let mut window = start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, title, false, context)?;
+pub fn text_input(
+    title: &str,
+    label: &str,
+    key: &str,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+) -> io::Result<String> {
+    let (mut window, egui_ctx) =
+        start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, title, false, context)?;
     let mut cancel = false;
     let mut ok = false;
     let mut text_input = String::new();
     let mut last_attached_state = window.attached_to_controller;
 
-    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap().0;
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap().0;
-    let mut texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, &mut window).unwrap().0;
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window)
+        .unwrap()
+        .0;
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
+        .unwrap()
+        .0;
+    let mut texture_custom_action =
+        prompt_image_for_action(RequestedAction::CustomAction, &mut window)
+            .unwrap()
+            .0;
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
-    window.start_egui_loop(|window_instance| {
+    window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
         if let Some(last_requested_action) = window_instance.last_requested_action {
             if last_requested_action == RequestedAction::Confirm && !text_input.is_empty() {
                 ok = true;
-            }
-            else if last_requested_action == RequestedAction::CustomAction {
+            } else if last_requested_action == RequestedAction::CustomAction {
                 match window_instance.get_clipboard_contents() {
                     Ok(s) => {
                         text_input = s;
-                    },
+                    }
                     Err(err) => {
                         println!("get_clipboard_contents error: {:?}", err);
                     }
@@ -347,44 +505,83 @@ pub fn text_input(title: &str, label: &str, key: &str, context: Option<std::sync
             window_instance.last_requested_action = None;
         }
 
-        if (!window_instance.attached_to_controller && last_attached_state) || (window_instance.attached_to_controller && !last_attached_state) {
+        if (!window_instance.attached_to_controller && last_attached_state)
+            || (window_instance.attached_to_controller && !last_attached_state)
+        {
             println!("Detected controller change, reloading prompts");
-            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap().0;
-            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap().0;
-            texture_custom_action = prompt_image_for_action(RequestedAction::CustomAction, window_instance).unwrap().0;
+            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
+                .unwrap()
+                .0;
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
+                .unwrap()
+                .0;
+            texture_custom_action =
+                prompt_image_for_action(RequestedAction::CustomAction, window_instance)
+                    .unwrap()
+                    .0;
             last_attached_state = window_instance.attached_to_controller;
         }
 
         let mut paste_clicked = false;
 
-        egui::TopBottomPanel::bottom("bottom_panel").frame(default_panel_frame()).resizable(false).show(&window_instance.egui_ctx, |ui| {
-            ui.separator();
+        egui::TopBottomPanel::bottom("bottom_panel")
+            .frame(default_panel_frame())
+            .resizable(false)
+            .show(egui_ctx, |ui| {
+                ui.separator();
 
-            egui::SidePanel::left("Left Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
-                if ui.button_with_image(texture_custom_action, prompt_vec, "Paste").clicked() {
-                    paste_clicked = true;
-                };
-            });
-
-            egui::SidePanel::right("Right Panel").frame(egui::Frame::none()).resizable(false).show_inside(ui, |ui| {
-                let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                ui.with_layout(layout,|ui| {
-                    ui.add_enabled_ui(!text_input.is_empty(), |ui| {
-                        if ui.button_with_image(texture_confirm, prompt_vec, "Ok").clicked() {
-                            ok = true;
-                        }
+                egui::SidePanel::left("Left Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        if ui
+                            .add(egui::Button::image_and_text(
+                                texture_custom_action,
+                                prompt_vec,
+                                "Paste",
+                            ))
+                            .clicked()
+                        {
+                            paste_clicked = true;
+                        };
                     });
 
-                    if ui.button_with_image(texture_back, prompt_vec, "Cancel").clicked() {
-                        cancel = true;
-                    }
-                });
-            });
-        });
+                egui::SidePanel::right("Right Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back,
+                                    prompt_vec,
+                                    "Cancel",
+                                ))
+                                .clicked()
+                            {
+                                cancel = true;
+                            }
 
-        egui::CentralPanel::default().show(&window_instance.egui_ctx, |ui| {
+                            ui.add_enabled_ui(!text_input.is_empty(), |ui| {
+                                if ui
+                                    .add(egui::Button::image_and_text(
+                                        texture_confirm,
+                                        prompt_vec,
+                                        "Ok",
+                                    ))
+                                    .clicked()
+                                {
+                                    ok = true;
+                                }
+                            });
+                        });
+                    });
+            });
+
+        egui::CentralPanel::default().show(egui_ctx, |ui| {
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
-            ui.with_layout(layout,|ui| {
+            ui.with_layout(layout, |ui| {
                 ui.label(label);
                 ui.add(egui::TextEdit::singleline(&mut text_input));
             });

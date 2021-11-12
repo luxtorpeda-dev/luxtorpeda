@@ -1,23 +1,23 @@
-extern crate json;
 extern crate hex;
+extern crate json;
 extern crate reqwest;
 
 use regex::Regex;
 use std::env;
+use std::fs;
+use std::fs::File;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::process::Command;
-use std::fs::File;
-use std::fs;
 
-mod package;
-mod pid_file;
-mod user_env;
 mod dialog;
 mod mgmt;
-mod ui;
+mod package;
+mod pid_file;
 mod run_context;
+mod ui;
+mod user_env;
 
 static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
 static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
@@ -65,12 +65,21 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
-fn run_setup(game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>) -> io::Result<()> {
+fn run_setup(
+    game_info: &json::JsonValue,
+    context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>,
+) -> io::Result<()> {
     let setup_info = &game_info["setup"];
     if !package::is_setup_complete(&game_info["setup"]) {
-        if !&setup_info["license_path"].is_null() && Path::new(&setup_info["license_path"].to_string()).exists() {
+        if !&setup_info["license_path"].is_null()
+            && Path::new(&setup_info["license_path"].to_string()).exists()
+        {
             let license_context = context.clone();
-            match dialog::show_file_with_confirm("Closed Source Engine EULA", &setup_info["license_path"].to_string(), license_context) {
+            match dialog::show_file_with_confirm(
+                "Closed Source Engine EULA",
+                &setup_info["license_path"].to_string(),
+                license_context,
+            ) {
                 Ok(()) => {
                     println!("show eula. dialog was accepted");
                 }
@@ -94,56 +103,71 @@ fn run_setup(game_info: &json::JsonValue, context: Option<std::sync::Arc<std::sy
             for entry in setup_info["dialogs"].members() {
                 let dialog_context = context.clone();
                 if entry["type"] == "input" {
-                    match dialog::text_input(&entry["title"].to_string(), &entry["label"].to_string(), &entry["key"].to_string(), dialog_context) {
-                        Ok(_) => {},
+                    match dialog::text_input(
+                        &entry["title"].to_string(),
+                        &entry["label"].to_string(),
+                        &entry["key"].to_string(),
+                        dialog_context,
+                    ) {
+                        Ok(_) => {}
                         Err(err) => {
                             println!("setup failed, text input dialog error: {:?}", err);
-                            return Err(Error::new(ErrorKind::Other, "setup failed, input dialog failed"));
+                            return Err(Error::new(
+                                ErrorKind::Other,
+                                "setup failed, input dialog failed",
+                            ));
                         }
                     };
                 }
             }
         }
-                    
+
         let command_str = setup_info["command"].to_string();
         println!("setup run: \"{}\"", command_str);
         let setup_cmd = Command::new(command_str)
             .env("LD_PRELOAD", "")
             .status()
             .expect("failed to execute process");
-            
+
         if !setup_cmd.success() {
-            dialog::show_error(&"Setup Error".to_string(), &"Setup failed to complete".to_string(), context)?;
+            dialog::show_error(
+                &"Setup Error".to_string(),
+                &"Setup failed to complete".to_string(),
+                context,
+            )?;
             return Err(Error::new(ErrorKind::Other, "setup failed"));
         }
-                        
+
         File::create(&setup_info["complete_path"].to_string())?;
     }
 
     Ok(())
 }
 
-fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>) -> io::Result<json::JsonValue> {
+fn run(
+    args: &[&str],
+    context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>,
+) -> io::Result<json::JsonValue> {
     let mut allow_virtual_gamepad = false;
     let mut ignore_devices = "".to_string();
     match env::var(SDL_VIRTUAL_GAMEPAD) {
         Ok(val) => {
             if val == "1" {
-                 println!("turning virtual gamepad off");
-                 env::remove_var(SDL_VIRTUAL_GAMEPAD);
-                 allow_virtual_gamepad = true;
+                println!("turning virtual gamepad off");
+                env::remove_var(SDL_VIRTUAL_GAMEPAD);
+                allow_virtual_gamepad = true;
 
-                 match env::var(SDL_IGNORE_DEVICES) {
+                match env::var(SDL_IGNORE_DEVICES) {
                     Ok(val) => {
                         ignore_devices = val;
                         env::remove_var(SDL_IGNORE_DEVICES);
-                    },
+                    }
                     Err(err) => {
-                         println!("SDL_IGNORE_DEVICES not found: {}", err);
+                        println!("SDL_IGNORE_DEVICES not found: {}", err);
                     }
                 };
             }
-        },
+        }
         Err(err) => {
             println!("virtual gamepad setting not found: {}", err);
         }
@@ -161,7 +185,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
     println!("original command: {:?}", args);
     println!("working dir: {:?}", env::current_dir());
     println!("tool dir: {:?}", user_env::tool_dir());
-    
+
     let mut game_info = package::get_game_info(app_id.as_str(), context.clone())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
@@ -170,7 +194,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
     }
 
     let download_context = context.clone();
-    
+
     if !game_info["choices"].is_null() {
         let engine_choice = match package::download_all(app_id, download_context) {
             Ok(s) => s,
@@ -182,7 +206,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
         match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {
                 println!("engine choice complete");
-            },
+            }
             Err(err) => {
                 return Err(err);
             }
@@ -193,12 +217,12 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
 
     println!("json:");
     println!("{:#}", game_info);
-    
+
     if game_info["use_original_command_directory"] == true {
         let tmp_path = Path::new(args[0]);
         let parent_path = tmp_path.parent().unwrap();
         env::set_current_dir(parent_path).unwrap();
-        
+
         println!("original command: {:?}", args);
         println!("working dir: {:?}", env::current_dir());
         println!("tool dir: {:?}", user_env::tool_dir());
@@ -207,12 +231,12 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
     if !game_info["download"].is_null() {
         package::install(&game_info, context.clone())?;
     }
-    
+
     if !game_info["setup"].is_null() {
         match run_setup(&game_info, context) {
             Ok(()) => {
                 println!("setup complete");
-            },
+            }
             Err(err) => {
                 return Err(err);
             }
@@ -227,7 +251,7 @@ fn run(args: &[&str], context: Option<std::sync::Arc<std::sync::Mutex<run_contex
     match env::var(ORIGINAL_LD_PRELOAD) {
         Ok(val) => {
             env::set_var(LD_PRELOAD, val);
-        },
+        }
         Err(err) => {
             println!("ORIGINAL_LD_PRELOAD not found: {}", err);
         }
@@ -265,7 +289,7 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
     match run(args, run_context) {
         Ok(g) => {
             game_info = Some(g);
-        },
+        }
         Err(err) => {
             ret = Err(err);
         }
@@ -290,28 +314,29 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
                     .args(exe_args)
                     .env(LUX_ORIGINAL_EXE, args[0])
                     .env(LUX_ORIGINAL_EXE_FILE, exe_file)
-                    .status() {
-                        Ok(status) => {
-                            println!("run returned with {}", status);
-                            if let Some(exit_code) = status.code() {
-                                if exit_code == 10 {
-                                    println!("run returned with lux exit code");
-                                    match fs::read_to_string("last_error.txt") {
-                                        Ok(s) => {
-                                            show_error_after_run("Run Error", &s)?;
-                                        },
-                                        Err(err) => {
-                                            println!("read err: {:?}", err);
-                                        }
-                                    };
-                                }
+                    .status()
+                {
+                    Ok(status) => {
+                        println!("run returned with {}", status);
+                        if let Some(exit_code) = status.code() {
+                            if exit_code == 10 {
+                                println!("run returned with lux exit code");
+                                match fs::read_to_string("last_error.txt") {
+                                    Ok(s) => {
+                                        show_error_after_run("Run Error", &s)?;
+                                    }
+                                    Err(err) => {
+                                        println!("read err: {:?}", err);
+                                    }
+                                };
                             }
-                            ret = Ok(());
-                        },
-                        Err(err) => {
-                            ret = Err(err);
                         }
-                    };
+                        ret = Ok(());
+                    }
+                    Err(err) => {
+                        ret = Err(err);
+                    }
+                };
             }
         };
     }
@@ -326,26 +351,26 @@ fn show_error_after_run(title: &str, error_message: &str) -> io::Result<()> {
     match env::var(SDL_VIRTUAL_GAMEPAD) {
         Ok(val) => {
             if val == "1" {
-                 println!("turning virtual gamepad off");
-                 env::remove_var(SDL_VIRTUAL_GAMEPAD);
+                println!("turning virtual gamepad off");
+                env::remove_var(SDL_VIRTUAL_GAMEPAD);
 
-                 match env::var(SDL_IGNORE_DEVICES) {
+                match env::var(SDL_IGNORE_DEVICES) {
                     Ok(_val) => {
                         env::remove_var(SDL_IGNORE_DEVICES);
-                    },
+                    }
                     Err(err) => {
-                         println!("SDL_IGNORE_DEVICES not found: {}", err);
+                        println!("SDL_IGNORE_DEVICES not found: {}", err);
                     }
                 };
             }
-        },
+        }
         Err(err) => {
             println!("virtual gamepad setting not found: {}", err);
         }
     };
 
     match dialog::show_error(title, error_message, context) {
-        Ok(()) => {},
+        Ok(()) => {}
         Err(err) => {
             println!("error showing show_error: {:?}", err);
         }
@@ -368,11 +393,11 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
         usage();
         std::process::exit(0)
     }
-    
+
     let app_id = args[0];
     package::update_packages_json().unwrap();
     package::download_all(app_id.to_string(), None)?;
-    
+
     Ok(())
 }
 
@@ -396,16 +421,16 @@ fn main() -> io::Result<()> {
         "wait-before-run" => {
             pid_file::wait_while_exists();
             run_wrapper(cmd_args)
-        },
+        }
         "waitforexitandrun" => {
             pid_file::wait_while_exists();
             run_wrapper(cmd_args)
-        },
+        }
         "manual-download" => manual_download(cmd_args),
         "mgmt" => {
             package::update_packages_json().unwrap();
             mgmt::run_mgmt()
-        },
+        }
         _ => {
             usage();
             std::process::exit(1)
