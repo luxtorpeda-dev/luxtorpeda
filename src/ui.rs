@@ -35,6 +35,7 @@ pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32_f32;
 pub const SCROLL_TIMES: usize = 40_usize;
+pub const AXIS_DEAD_ZONE: i16 = 10_000;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RequestedAction {
@@ -76,6 +77,8 @@ impl EguiWindowInstance {
     where
         F: FnMut((&mut EguiWindowInstance, &egui::CtxRef)),
     {
+        let mut last_axis_value = 0;
+        let mut last_axis_timestamp = Instant::now();
         'running: loop {
             self.window
                 .subsystem()
@@ -117,6 +120,26 @@ impl EguiWindowInstance {
                                 guard.event = None;
                             }
                             std::mem::drop(guard);
+                        }
+                    } else {
+                        if self.enable_nav {
+                            let controller = self.sdl2_controller.as_ref().unwrap();
+                            let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
+                            if axis_value == last_axis_value {
+                                last_axis_timestamp = Instant::now();
+                            }
+                            else if last_axis_timestamp.elapsed().as_millis() >= 300 {
+                                if axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE {
+                                    last_axis_timestamp = Instant::now();
+                                    last_axis_value = axis_value;
+
+                                    if axis_value < 0 {
+                                        self.nav_counter_up += 1;
+                                    } else {
+                                        self.nav_counter_down += 1;
+                                    }
+                                }
+                            }
                         }
                     }
 
