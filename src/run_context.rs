@@ -104,26 +104,31 @@ pub fn setup_run_context() -> (
 
                                 match controller.state(Duration::from_secs(0)) {
                                     Ok(state) => {
-                                        if let steamy_controller::State::Input { buttons, pad, .. } =
-                                            state
+                                        if let steamy_controller::State::Input {
+                                            buttons,
+                                            pad,
+                                            ..
+                                        } = state
                                         {
                                             if pad.left.y != 0 {
                                                 if pad.left.y == last_axis_value {
                                                     pad_time_elapsed = Instant::now();
-                                                }
-                                                else if pad_time_elapsed.elapsed().as_millis() >= 300 {
-                                                    if pad.left.y > AXIS_DEAD_ZONE || pad.left.y < -AXIS_DEAD_ZONE {
-                                                        let mut guard = thread_arc.lock().unwrap();
-                                                        if pad.left.y < 0 {
-                                                            guard.event = Some(SteamControllerEvent::Down);
-                                                            pad_time_elapsed = Instant::now();
-                                                        } else {
-                                                            guard.event = Some(SteamControllerEvent::Up);
-                                                            pad_time_elapsed = Instant::now();
-                                                        }
-                                                        last_axis_value = pad.left.y;
-                                                        std::mem::drop(guard);
+                                                } else if pad_time_elapsed.elapsed().as_millis()
+                                                    >= 300
+                                                    && (pad.left.y > AXIS_DEAD_ZONE
+                                                        || pad.left.y < -AXIS_DEAD_ZONE)
+                                                {
+                                                    let mut guard = thread_arc.lock().unwrap();
+                                                    if pad.left.y < 0 {
+                                                        guard.event =
+                                                            Some(SteamControllerEvent::Down);
+                                                    } else {
+                                                        guard.event =
+                                                            Some(SteamControllerEvent::Up);
                                                     }
+                                                    last_axis_value = pad.left.y;
+                                                    pad_time_elapsed = Instant::now();
+                                                    std::mem::drop(guard);
                                                 }
                                             }
                                             if !buttons.is_empty() {

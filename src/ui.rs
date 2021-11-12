@@ -121,24 +121,21 @@ impl EguiWindowInstance {
                             }
                             std::mem::drop(guard);
                         }
-                    } else {
-                        if self.enable_nav {
-                            let controller = self.sdl2_controller.as_ref().unwrap();
-                            let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
-                            if axis_value == last_axis_value {
-                                last_axis_timestamp = Instant::now();
-                            }
-                            else if last_axis_timestamp.elapsed().as_millis() >= 300 {
-                                if axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE {
-                                    last_axis_timestamp = Instant::now();
-                                    last_axis_value = axis_value;
+                    } else if self.enable_nav {
+                        let controller = self.sdl2_controller.as_ref().unwrap();
+                        let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
+                        if axis_value == last_axis_value {
+                            last_axis_timestamp = Instant::now();
+                        } else if last_axis_timestamp.elapsed().as_millis() >= 300
+                            && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
+                        {
+                            last_axis_timestamp = Instant::now();
+                            last_axis_value = axis_value;
 
-                                    if axis_value < 0 {
-                                        self.nav_counter_up += 1;
-                                    } else {
-                                        self.nav_counter_down += 1;
-                                    }
-                                }
+                            if axis_value < 0 {
+                                self.nav_counter_up += 1;
+                            } else {
+                                self.nav_counter_down += 1;
                             }
                         }
                     }
