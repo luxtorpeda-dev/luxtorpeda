@@ -2,13 +2,14 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 47.0 (2021-11-07)
+### 47.0 (2021-11-12)
 
 * Fix for PS3 controller showing xbox glyphs.
 * Upgraded to latest egui.
 * Code cleanup.
 * Added cargo fmt for automated checks.
 * Change position of buttons in UI.
+* Add support for left y-axis navigation.
 
 ### 46.0 (2021-11-05)
 
