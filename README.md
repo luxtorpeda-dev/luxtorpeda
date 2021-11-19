@@ -99,6 +99,7 @@ When a prompt appears from the client, it will accept input from controllers, ke
 * The following controllers have been tested:
     * Xbox One Controller
     * PS4 Controller (PS5 Controller should work and use PS4 icons)
+    * Switch Pro Controller (Will show icons)
     * Steam Controller (Direct USB connection and through dongle)
         * If a steam controller is detected, then a special interface is setup that connects to the steam controller directly, via the USB signals. This is because normal behavior is to emulate a keyboard and mouse and would not be possible to detect input the normal way.
         * This is best done inside Steam Big Picture mode, as the client uses the existence of the "Steam Virtual Gamepad" controller to detect if a steam controller is there.
