@@ -196,7 +196,6 @@ impl EguiWindowInstance {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
                             if last_input_timestamp.elapsed().as_millis() >= 300 {
-                                println!("button: {:?}", button);
                                 last_input_timestamp = Instant::now();
                                 if button == sdl2::controller::Button::DPadUp {
                                     if self.enable_nav {
@@ -223,7 +222,6 @@ impl EguiWindowInstance {
                             if let Some(keycode) = keycode {
                                 if last_input_timestamp.elapsed().as_millis() >= 300 {
                                     last_input_timestamp = Instant::now();
-                                    println!("keycode: {:?}", keycode);
                                     match keycode {
                                         sdl2::keyboard::Keycode::Down => {
                                             if self.enable_nav {
@@ -287,7 +285,6 @@ impl EguiWindowInstance {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
                             if last_input_timestamp.elapsed().as_millis() >= 300 {
-                                println!("button: {:?}", button);
                                 last_input_timestamp = Instant::now();
                                 if button == sdl2::controller::Button::DPadUp {
                                     if self.enable_nav {
