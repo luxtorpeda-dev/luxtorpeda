@@ -85,6 +85,7 @@ impl EguiWindowInstance {
     {
         let mut last_axis_value = 0;
         let mut last_axis_timestamp = Instant::now();
+        let mut last_input_timestamp = Instant::now();
         'running: loop {
             self.window
                 .subsystem()
@@ -133,9 +134,11 @@ impl EguiWindowInstance {
                         if axis_value == last_axis_value {
                             last_axis_timestamp = Instant::now();
                         } else if last_axis_timestamp.elapsed().as_millis() >= 300
+                            && last_input_timestamp.elapsed().as_millis() >= 300
                             && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
                         {
                             last_axis_timestamp = Instant::now();
+                            last_input_timestamp = Instant::now();
                             last_axis_value = axis_value;
 
                             if axis_value < 0 {
@@ -192,70 +195,81 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if button == sdl2::controller::Button::DPadUp {
-                                if self.enable_nav {
-                                    self.nav_counter_up += 1;
+                            if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                println!("button: {:?}", button);
+                                last_input_timestamp = Instant::now();
+                                if button == sdl2::controller::Button::DPadUp {
+                                    if self.enable_nav {
+                                        self.nav_counter_up += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::DPadDown {
+                                    if self.enable_nav {
+                                        self.nav_counter_down += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::A {
+                                    self.last_requested_action = Some(RequestedAction::Confirm);
+                                } else if button == sdl2::controller::Button::B {
+                                    self.last_requested_action = Some(RequestedAction::Back);
+                                } else if button == sdl2::controller::Button::Y {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::CustomAction);
+                                } else if button == sdl2::controller::Button::X {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::SecondCustomAction);
                                 }
-                            } else if button == sdl2::controller::Button::DPadDown {
-                                if self.enable_nav {
-                                    self.nav_counter_down += 1;
-                                }
-                            } else if button == sdl2::controller::Button::A {
-                                self.last_requested_action = Some(RequestedAction::Confirm);
-                            } else if button == sdl2::controller::Button::B {
-                                self.last_requested_action = Some(RequestedAction::Back);
-                            } else if button == sdl2::controller::Button::Y {
-                                self.last_requested_action = Some(RequestedAction::CustomAction);
-                            } else if button == sdl2::controller::Button::X {
-                                self.last_requested_action =
-                                    Some(RequestedAction::SecondCustomAction);
                             }
                         }
                         Event::KeyDown { keycode, .. } => {
                             if let Some(keycode) = keycode {
-                                match keycode {
-                                    sdl2::keyboard::Keycode::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                    last_input_timestamp = Instant::now();
+                                    println!("keycode: {:?}", keycode);
+                                    match keycode {
+                                        sdl2::keyboard::Keycode::Down => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::Up => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::S => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                        sdl2::keyboard::Keycode::S => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::W => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::W => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Return => {
-                                        self.last_requested_action = Some(RequestedAction::Confirm);
-                                    }
-                                    sdl2::keyboard::Keycode::Escape => {
-                                        self.last_requested_action = Some(RequestedAction::Back);
-                                    }
-                                    sdl2::keyboard::Keycode::Space => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::CustomAction);
-                                    }
-                                    sdl2::keyboard::Keycode::LCtrl => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::SecondCustomAction);
-                                    }
-                                    _ => {
-                                        self.egui_state.process_input(
-                                            &self.window,
-                                            event,
-                                            &mut self.painter,
-                                        );
-                                    }
-                                };
+                                        sdl2::keyboard::Keycode::Return => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Confirm);
+                                        }
+                                        sdl2::keyboard::Keycode::Escape => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Back);
+                                        }
+                                        sdl2::keyboard::Keycode::Space => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::CustomAction);
+                                        }
+                                        sdl2::keyboard::Keycode::LCtrl => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::SecondCustomAction);
+                                        }
+                                        _ => {
+                                            self.egui_state.process_input(
+                                                &self.window,
+                                                event,
+                                                &mut self.painter,
+                                            );
+                                        }
+                                    };
+                                }
                             }
                         }
                         Event::ControllerDeviceRemoved { .. } => {
@@ -272,70 +286,80 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if button == sdl2::controller::Button::DPadUp {
-                                if self.enable_nav {
-                                    self.nav_counter_up += 1;
+                            if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                println!("button: {:?}", button);
+                                last_input_timestamp = Instant::now();
+                                if button == sdl2::controller::Button::DPadUp {
+                                    if self.enable_nav {
+                                        self.nav_counter_up += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::DPadDown {
+                                    if self.enable_nav {
+                                        self.nav_counter_down += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::A {
+                                    self.last_requested_action = Some(RequestedAction::Confirm);
+                                } else if button == sdl2::controller::Button::B {
+                                    self.last_requested_action = Some(RequestedAction::Back);
+                                } else if button == sdl2::controller::Button::Y {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::CustomAction);
+                                } else if button == sdl2::controller::Button::X {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::SecondCustomAction);
                                 }
-                            } else if button == sdl2::controller::Button::DPadDown {
-                                if self.enable_nav {
-                                    self.nav_counter_down += 1;
-                                }
-                            } else if button == sdl2::controller::Button::A {
-                                self.last_requested_action = Some(RequestedAction::Confirm);
-                            } else if button == sdl2::controller::Button::B {
-                                self.last_requested_action = Some(RequestedAction::Back);
-                            } else if button == sdl2::controller::Button::Y {
-                                self.last_requested_action = Some(RequestedAction::CustomAction);
-                            } else if button == sdl2::controller::Button::X {
-                                self.last_requested_action =
-                                    Some(RequestedAction::SecondCustomAction);
                             }
                         }
                         Event::KeyDown { keycode, .. } => {
                             if let Some(keycode) = keycode {
-                                match keycode {
-                                    sdl2::keyboard::Keycode::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                    last_input_timestamp = Instant::now();
+                                    match keycode {
+                                        sdl2::keyboard::Keycode::Down => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::Up => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::S => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                        sdl2::keyboard::Keycode::S => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::W => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::W => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Return => {
-                                        self.last_requested_action = Some(RequestedAction::Confirm);
-                                    }
-                                    sdl2::keyboard::Keycode::Escape => {
-                                        self.last_requested_action = Some(RequestedAction::Back);
-                                    }
-                                    sdl2::keyboard::Keycode::Space => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::CustomAction);
-                                    }
-                                    sdl2::keyboard::Keycode::LCtrl => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::SecondCustomAction);
-                                    }
-                                    _ => {
-                                        self.egui_state.process_input(
-                                            &self.window,
-                                            event,
-                                            &mut self.painter,
-                                        );
-                                    }
-                                };
+                                        sdl2::keyboard::Keycode::Return => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Confirm);
+                                        }
+                                        sdl2::keyboard::Keycode::Escape => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Back);
+                                        }
+                                        sdl2::keyboard::Keycode::Space => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::CustomAction);
+                                        }
+                                        sdl2::keyboard::Keycode::LCtrl => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::SecondCustomAction);
+                                        }
+                                        _ => {
+                                            self.egui_state.process_input(
+                                                &self.window,
+                                                event,
+                                                &mut self.painter,
+                                            );
+                                        }
+                                    };
+                                }
                             }
                         }
                         Event::ControllerDeviceRemoved { .. } => {
