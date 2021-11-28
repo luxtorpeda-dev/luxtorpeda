@@ -526,19 +526,26 @@ pub fn start_egui_window(
 
     match window.display_index() {
         Ok(display_index) => {
-            println!("display_index: {:?}", display_index);
+            println!("window is on display_index: {:?}", display_index);
 
-            match video_subsystem.display_dpi(display_index)  {
+            match video_subsystem.display_dpi(display_index) {
                 Ok(dpi) => {
-                    println!("dpi: {:?}", dpi);
-                },
-                Err(err) => {}
+                    println!("found dpi: {:?}", dpi);
+                    dpi_scaling = 1.25 / (96_f32 / dpi.0);
+                }
+                Err(err) => {
+                    println!("error getting dpi: {:?}", err);
+                }
             }
-        },
-        Err(err) => {}
+        }
+        Err(err) => {
+            println!("error getting display index: {:?}", err);
+        }
     }
 
-    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.5));
+    println!("using dpi scaling of {}", dpi_scaling);
+
+    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(dpi_scaling));
     let start_time = Instant::now();
     Ok((
         EguiWindowInstance {
