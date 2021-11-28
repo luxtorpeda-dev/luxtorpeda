@@ -6,10 +6,6 @@ Steam Play compatibility tool to run games using native Linux engines
 
 ![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
 
-Official mirrors:
-[GitHub](https://github.com/luxtorpeda-dev/luxtorpeda),
-[dreamer GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
-
 ## Pre-requisites
 
 Compatibility tool will work on any modern 64-bit Linux distribution.
@@ -29,7 +25,7 @@ additional dependencies.
 3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ tar xJf luxtorpeda-45.tar.xz
+        $ tar xJf luxtorpeda-48.tar.xz
 
 4. Start Steam.
 5. In game properties window select "Force the use of a specific Steam Play
@@ -99,6 +95,7 @@ When a prompt appears from the client, it will accept input from controllers, ke
 * The following controllers have been tested:
     * Xbox One Controller
     * PS4 Controller (PS5 Controller should work and use PS4 icons)
+    * Switch Pro Controller (Will show icons)
     * Steam Controller (Direct USB connection and through dongle)
         * If a steam controller is detected, then a special interface is setup that connects to the steam controller directly, via the USB signals. This is because normal behavior is to emulate a keyboard and mouse and would not be possible to detect input the normal way.
         * This is best done inside Steam Big Picture mode, as the client uses the existence of the "Steam Virtual Gamepad" controller to detect if a steam controller is there.

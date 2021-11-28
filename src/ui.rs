@@ -26,6 +26,11 @@ const PROMPT_CONTROLLER_DUALSHOCK_A: &[u8] = include_bytes!("../res/prompts/PS4_
 const PROMPT_CONTROLLER_DUALSHOCK_X: &[u8] = include_bytes!("../res/prompts/PS4_X.png");
 const PROMPT_CONTROLLER_DUALSHOCK_B: &[u8] = include_bytes!("../res/prompts/PS4_B.png");
 
+const PROMPT_CONTROLLER_SWITCH_Y: &[u8] = include_bytes!("../res/prompts/Switch_Y.png");
+const PROMPT_CONTROLLER_SWITCH_A: &[u8] = include_bytes!("../res/prompts/Switch_A.png");
+const PROMPT_CONTROLLER_SWITCH_X: &[u8] = include_bytes!("../res/prompts/Switch_X.png");
+const PROMPT_CONTROLLER_SWITCH_B: &[u8] = include_bytes!("../res/prompts/Switch_B.png");
+
 const PROMPT_KEYBOARD_SPACE: &[u8] = include_bytes!("../res/prompts/Space_Key_Dark.png");
 const PROMPT_KEYBOARD_ENTER: &[u8] = include_bytes!("../res/prompts/Enter_Key_Dark.png");
 const PROMPT_KEYBOARD_ESC: &[u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
@@ -49,6 +54,7 @@ pub enum RequestedAction {
 pub enum ControllerType {
     Xbox,
     DualShock,
+    Switch,
 }
 
 pub struct EguiWindowInstance {
@@ -79,6 +85,7 @@ impl EguiWindowInstance {
     {
         let mut last_axis_value = 0;
         let mut last_axis_timestamp = Instant::now();
+        let mut last_input_timestamp = Instant::now();
         'running: loop {
             self.window
                 .subsystem()
@@ -127,9 +134,11 @@ impl EguiWindowInstance {
                         if axis_value == last_axis_value {
                             last_axis_timestamp = Instant::now();
                         } else if last_axis_timestamp.elapsed().as_millis() >= 300
+                            && last_input_timestamp.elapsed().as_millis() >= 300
                             && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
                         {
                             last_axis_timestamp = Instant::now();
+                            last_input_timestamp = Instant::now();
                             last_axis_value = axis_value;
 
                             if axis_value < 0 {
@@ -186,70 +195,79 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if button == sdl2::controller::Button::DPadUp {
-                                if self.enable_nav {
-                                    self.nav_counter_up += 1;
+                            if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                last_input_timestamp = Instant::now();
+                                if button == sdl2::controller::Button::DPadUp {
+                                    if self.enable_nav {
+                                        self.nav_counter_up += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::DPadDown {
+                                    if self.enable_nav {
+                                        self.nav_counter_down += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::A {
+                                    self.last_requested_action = Some(RequestedAction::Confirm);
+                                } else if button == sdl2::controller::Button::B {
+                                    self.last_requested_action = Some(RequestedAction::Back);
+                                } else if button == sdl2::controller::Button::Y {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::CustomAction);
+                                } else if button == sdl2::controller::Button::X {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::SecondCustomAction);
                                 }
-                            } else if button == sdl2::controller::Button::DPadDown {
-                                if self.enable_nav {
-                                    self.nav_counter_down += 1;
-                                }
-                            } else if button == sdl2::controller::Button::A {
-                                self.last_requested_action = Some(RequestedAction::Confirm);
-                            } else if button == sdl2::controller::Button::B {
-                                self.last_requested_action = Some(RequestedAction::Back);
-                            } else if button == sdl2::controller::Button::Y {
-                                self.last_requested_action = Some(RequestedAction::CustomAction);
-                            } else if button == sdl2::controller::Button::X {
-                                self.last_requested_action =
-                                    Some(RequestedAction::SecondCustomAction);
                             }
                         }
                         Event::KeyDown { keycode, .. } => {
                             if let Some(keycode) = keycode {
-                                match keycode {
-                                    sdl2::keyboard::Keycode::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                    last_input_timestamp = Instant::now();
+                                    match keycode {
+                                        sdl2::keyboard::Keycode::Down => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::Up => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::S => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                        sdl2::keyboard::Keycode::S => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::W => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::W => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Return => {
-                                        self.last_requested_action = Some(RequestedAction::Confirm);
-                                    }
-                                    sdl2::keyboard::Keycode::Escape => {
-                                        self.last_requested_action = Some(RequestedAction::Back);
-                                    }
-                                    sdl2::keyboard::Keycode::Space => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::CustomAction);
-                                    }
-                                    sdl2::keyboard::Keycode::LCtrl => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::SecondCustomAction);
-                                    }
-                                    _ => {
-                                        self.egui_state.process_input(
-                                            &self.window,
-                                            event,
-                                            &mut self.painter,
-                                        );
-                                    }
-                                };
+                                        sdl2::keyboard::Keycode::Return => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Confirm);
+                                        }
+                                        sdl2::keyboard::Keycode::Escape => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Back);
+                                        }
+                                        sdl2::keyboard::Keycode::Space => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::CustomAction);
+                                        }
+                                        sdl2::keyboard::Keycode::LCtrl => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::SecondCustomAction);
+                                        }
+                                        _ => {
+                                            self.egui_state.process_input(
+                                                &self.window,
+                                                event,
+                                                &mut self.painter,
+                                            );
+                                        }
+                                    };
+                                }
                             }
                         }
                         Event::ControllerDeviceRemoved { .. } => {
@@ -266,70 +284,79 @@ impl EguiWindowInstance {
                     match event {
                         Event::Quit { .. } => break 'running,
                         Event::ControllerButtonUp { button, .. } => {
-                            if button == sdl2::controller::Button::DPadUp {
-                                if self.enable_nav {
-                                    self.nav_counter_up += 1;
+                            if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                last_input_timestamp = Instant::now();
+                                if button == sdl2::controller::Button::DPadUp {
+                                    if self.enable_nav {
+                                        self.nav_counter_up += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::DPadDown {
+                                    if self.enable_nav {
+                                        self.nav_counter_down += 1;
+                                    }
+                                } else if button == sdl2::controller::Button::A {
+                                    self.last_requested_action = Some(RequestedAction::Confirm);
+                                } else if button == sdl2::controller::Button::B {
+                                    self.last_requested_action = Some(RequestedAction::Back);
+                                } else if button == sdl2::controller::Button::Y {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::CustomAction);
+                                } else if button == sdl2::controller::Button::X {
+                                    self.last_requested_action =
+                                        Some(RequestedAction::SecondCustomAction);
                                 }
-                            } else if button == sdl2::controller::Button::DPadDown {
-                                if self.enable_nav {
-                                    self.nav_counter_down += 1;
-                                }
-                            } else if button == sdl2::controller::Button::A {
-                                self.last_requested_action = Some(RequestedAction::Confirm);
-                            } else if button == sdl2::controller::Button::B {
-                                self.last_requested_action = Some(RequestedAction::Back);
-                            } else if button == sdl2::controller::Button::Y {
-                                self.last_requested_action = Some(RequestedAction::CustomAction);
-                            } else if button == sdl2::controller::Button::X {
-                                self.last_requested_action =
-                                    Some(RequestedAction::SecondCustomAction);
                             }
                         }
                         Event::KeyDown { keycode, .. } => {
                             if let Some(keycode) = keycode {
-                                match keycode {
-                                    sdl2::keyboard::Keycode::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                    last_input_timestamp = Instant::now();
+                                    match keycode {
+                                        sdl2::keyboard::Keycode::Down => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::Up => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::S => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
+                                        sdl2::keyboard::Keycode::S => {
+                                            if self.enable_nav {
+                                                self.nav_counter_down += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::W => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
+                                        sdl2::keyboard::Keycode::W => {
+                                            if self.enable_nav {
+                                                self.nav_counter_up += 1;
+                                            }
                                         }
-                                    }
-                                    sdl2::keyboard::Keycode::Return => {
-                                        self.last_requested_action = Some(RequestedAction::Confirm);
-                                    }
-                                    sdl2::keyboard::Keycode::Escape => {
-                                        self.last_requested_action = Some(RequestedAction::Back);
-                                    }
-                                    sdl2::keyboard::Keycode::Space => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::CustomAction);
-                                    }
-                                    sdl2::keyboard::Keycode::LCtrl => {
-                                        self.last_requested_action =
-                                            Some(RequestedAction::SecondCustomAction);
-                                    }
-                                    _ => {
-                                        self.egui_state.process_input(
-                                            &self.window,
-                                            event,
-                                            &mut self.painter,
-                                        );
-                                    }
-                                };
+                                        sdl2::keyboard::Keycode::Return => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Confirm);
+                                        }
+                                        sdl2::keyboard::Keycode::Escape => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::Back);
+                                        }
+                                        sdl2::keyboard::Keycode::Space => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::CustomAction);
+                                        }
+                                        sdl2::keyboard::Keycode::LCtrl => {
+                                            self.last_requested_action =
+                                                Some(RequestedAction::SecondCustomAction);
+                                        }
+                                        _ => {
+                                            self.egui_state.process_input(
+                                                &self.window,
+                                                event,
+                                                &mut self.painter,
+                                            );
+                                        }
+                                    };
+                                }
                             }
                         }
                         Event::ControllerDeviceRemoved { .. } => {
@@ -380,6 +407,7 @@ pub fn start_egui_window(
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
 
     let mut window = video_subsystem
         .window(window_title, window_width, window_height)
@@ -482,6 +510,9 @@ pub fn start_egui_window(
                     {
                         println!("controller assumed to be dualshock");
                         controller_type = ControllerType::DualShock;
+                    } else if found_controller.name().contains("Pro") {
+                        println!("controller assumed to be switch");
+                        controller_type = ControllerType::Switch;
                     } else {
                         println!("controller assumed to be xbox");
                     }
@@ -512,7 +543,30 @@ pub fn start_egui_window(
         std::mem::drop(guard);
     }
 
-    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
+    let mut dpi_scaling = 1.1;
+
+    match window.display_index() {
+        Ok(display_index) => {
+            println!("window is on display_index: {:?}", display_index);
+
+            match video_subsystem.display_dpi(display_index) {
+                Ok(dpi) => {
+                    println!("found dpi: {:?}", dpi);
+                    dpi_scaling = 1.25 / (96_f32 / dpi.0);
+                }
+                Err(err) => {
+                    println!("error getting dpi: {:?}", err);
+                }
+            }
+        }
+        Err(err) => {
+            println!("error getting display index: {:?}", err);
+        }
+    }
+
+    println!("using dpi scaling of {}", dpi_scaling);
+
+    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(dpi_scaling));
     let start_time = Instant::now();
     Ok((
         EguiWindowInstance {
@@ -757,6 +811,8 @@ pub fn prompt_image_for_action(
             if window_instance.attached_to_controller {
                 if window_instance.controller_type == ControllerType::DualShock {
                     image = PROMPT_CONTROLLER_DUALSHOCK_A;
+                } else if window_instance.controller_type == ControllerType::Switch {
+                    image = PROMPT_CONTROLLER_SWITCH_A;
                 } else {
                     image = PROMPT_CONTROLLER_A;
                 }
@@ -768,6 +824,8 @@ pub fn prompt_image_for_action(
             if window_instance.attached_to_controller {
                 if window_instance.controller_type == ControllerType::DualShock {
                     image = PROMPT_CONTROLLER_DUALSHOCK_B;
+                } else if window_instance.controller_type == ControllerType::Switch {
+                    image = PROMPT_CONTROLLER_SWITCH_B;
                 } else {
                     image = PROMPT_CONTROLLER_B;
                 }
@@ -779,6 +837,8 @@ pub fn prompt_image_for_action(
             if window_instance.attached_to_controller {
                 if window_instance.controller_type == ControllerType::DualShock {
                     image = PROMPT_CONTROLLER_DUALSHOCK_Y;
+                } else if window_instance.controller_type == ControllerType::Switch {
+                    image = PROMPT_CONTROLLER_SWITCH_Y;
                 } else {
                     image = PROMPT_CONTROLLER_Y;
                 }
@@ -790,6 +850,8 @@ pub fn prompt_image_for_action(
             if window_instance.attached_to_controller {
                 if window_instance.controller_type == ControllerType::DualShock {
                     image = PROMPT_CONTROLLER_DUALSHOCK_X;
+                } else if window_instance.controller_type == ControllerType::Switch {
+                    image = PROMPT_CONTROLLER_SWITCH_X;
                 } else {
                     image = PROMPT_CONTROLLER_X;
                 }
