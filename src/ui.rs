@@ -386,6 +386,7 @@ pub fn start_egui_window(
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
 
     let mut window = video_subsystem
         .window(window_title, window_width, window_height)
@@ -521,7 +522,23 @@ pub fn start_egui_window(
         std::mem::drop(guard);
     }
 
-    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.1));
+    let mut dpi_scaling = 1.1;
+
+    match window.display_index() {
+        Ok(display_index) => {
+            println!("display_index: {:?}", display_index);
+
+            match video_subsystem.display_dpi(display_index)  {
+                Ok(dpi) => {
+                    println!("dpi: {:?}", dpi);
+                },
+                Err(err) => {}
+            }
+        },
+        Err(err) => {}
+    }
+
+    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(1.5));
     let start_time = Instant::now();
     Ok((
         EguiWindowInstance {
