@@ -6,10 +6,6 @@ Steam Play compatibility tool to run games using native Linux engines
 
 ![screenshot-0](https://user-images.githubusercontent.com/3967/61964568-7b674500-afce-11e9-9c42-ef6cc1b425b6.png)
 
-Official mirrors:
-[GitHub](https://github.com/luxtorpeda-dev/luxtorpeda),
-[dreamer GitLab](https://gitlab.com/luxtorpeda/luxtorpeda).
-
 ## Pre-requisites
 
 Compatibility tool will work on any modern 64-bit Linux distribution.

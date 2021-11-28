@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 48.0 (2021-11-27)
+### 48.0 (2021-11-28)
 
 * Add switch pro controller support and glyphs.
 * Improved DPI scaling.
