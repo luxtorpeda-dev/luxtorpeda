@@ -4,7 +4,8 @@
 
 ### 48.0 (2021-11-19)
 
-* Add switch pro controller glyphs.
+* Add switch pro controller support and glyphs.
+* Improved DPI scaling.
 
 ### 47.0 (2021-11-12)
 
