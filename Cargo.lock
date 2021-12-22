@@ -440,9 +440,10 @@ dependencies = [
 [[package]]
 name = "egui_sdl2_gl"
 version = "0.15.0"
-source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=7900c76b27ffa1a9fe46f9d71addfea1d1498006#7900c76b27ffa1a9fe46f9d71addfea1d1498006"
+source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=46adb231cf9a75d8a6d0bdf54086bad02c6b15f2#46adb231cf9a75d8a6d0bdf54086bad02c6b15f2"
 dependencies = [
  "egui",
+ "epi",
  "gl",
  "sdl2",
 ]
@@ -477,6 +478,15 @@ dependencies = [
  "atomic_refcell",
  "emath",
  "nohash-hasher",
+]
+
+[[package]]
+name = "epi"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f5e4e08127f9b86e2c450c96a3032764b63546eb170c2fc54684dc70ff3fc82"
+dependencies = [
+ "egui",
 ]
 
 [[package]]
@@ -1765,6 +1775,7 @@ checksum = "94cb479353c0603785c834e2307440d83d196bf255f204f7f6741358de8d6a2f"
 dependencies = [
  "cfg-if 1.0.0",
  "libc",
+ "pkg-config",
  "version-compare",
 ]
 
