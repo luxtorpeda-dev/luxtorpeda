@@ -304,7 +304,7 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
         std::mem::drop(guard);
     }
 
-     println!("! 2");
+    println!("! 2");
 
     context_thread.join().unwrap();
 

@@ -17,8 +17,6 @@ struct MgmtItem {
     pub friendly_name: String,
     pub has_cache: bool,
     pub has_config: bool,
-    pub is_game: bool,
-    pub is_engine: bool,
 }
 
 struct MgmtState {
@@ -72,8 +70,6 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                 has_cache: true,
                 has_config: false,
                 friendly_name,
-                is_game: true,
-                is_engine: false,
             };
             let game_info_name = name.to_string();
             if let Some(game_info) = get_game_info_with_json(&game_info_name, &parsed) {
@@ -86,8 +82,6 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                 has_cache: true,
                 has_config: false,
                 friendly_name,
-                is_game: false,
-                is_engine: false,
             });
         }
     }
@@ -118,8 +112,6 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                         has_cache: false,
                         has_config: true,
                         friendly_name,
-                        is_game: true,
-                        is_engine: false,
                     };
 
                     let game_info_name = name.to_string();
@@ -189,7 +181,7 @@ pub fn run_mgmt() -> Result<(), Error> {
     let mut scroll_to_choice_index = 0;
     let mut reload_needed = false;
 
-     println!("! a1");
+    println!("! a1");
 
     match detect_mgmt(detect_arc) {
         Ok(()) => {}
@@ -210,7 +202,7 @@ pub fn run_mgmt() -> Result<(), Error> {
         prompt_image_for_action(RequestedAction::SecondCustomAction, &mut window).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
-     println!("! a2");
+    println!("! a2");
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
         if reload_needed {
@@ -382,7 +374,7 @@ pub fn run_mgmt() -> Result<(), Error> {
         std::mem::drop(guard);
     });
 
-     println!("! a3");
+    println!("! a3");
 
     Ok(())
 }
