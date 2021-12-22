@@ -286,8 +286,6 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
     let (context, context_thread) = run_context::setup_run_context();
     let run_context = context.clone();
 
-    println!("! 1");
-
     match run(args, run_context) {
         Ok(g) => {
             game_info = Some(g);
@@ -303,8 +301,6 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
         guard.thread_command = Some(run_context::ThreadCommand::Stop);
         std::mem::drop(guard);
     }
-
-    println!("! 2");
 
     context_thread.join().unwrap();
 

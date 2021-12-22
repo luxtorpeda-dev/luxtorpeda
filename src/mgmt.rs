@@ -202,8 +202,6 @@ pub fn run_mgmt() -> Result<(), Error> {
         prompt_image_for_action(RequestedAction::SecondCustomAction, &mut window).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
-    println!("! a2");
-
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
         if reload_needed {
             println!("run_mgmt detect_mgmt reload");
@@ -373,8 +371,6 @@ pub fn run_mgmt() -> Result<(), Error> {
         }
         std::mem::drop(guard);
     });
-
-    println!("! a3");
 
     Ok(())
 }
