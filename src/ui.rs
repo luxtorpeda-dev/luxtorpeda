@@ -186,10 +186,6 @@ impl EguiWindowInstance {
                 std::thread::sleep(Duration::from_millis(10))
             }
 
-            self.painter
-                .paint_jobs(None, paint_jobs, &egui_ctx.texture());
-            self.window.gl_swap_window();
-
             if !egui_output.needs_repaint {
                 if let Some(event) = self.event_pump.wait_event_timeout(5) {
                     match event {
@@ -280,6 +276,9 @@ impl EguiWindowInstance {
                     }
                 }
             } else {
+                self.painter
+                .paint_jobs(None, paint_jobs, &egui_ctx.texture());
+                self.window.gl_swap_window();
                 for event in self.event_pump.poll_iter() {
                     match event {
                         Event::Quit { .. } => break 'running,
@@ -413,7 +412,7 @@ pub fn start_egui_window(
         .window(window_title, window_width, window_height)
         .set_window_flags(window_flags)
         .opengl()
-        .borderless()
+       // .borderless()
         .build()
         .unwrap();
 
