@@ -412,7 +412,7 @@ pub fn start_egui_window(
         .window(window_title, window_width, window_height)
         .set_window_flags(window_flags)
         .opengl()
-       // .borderless()
+        .borderless()
         .build()
         .unwrap();
 

@@ -181,8 +181,6 @@ pub fn run_mgmt() -> Result<(), Error> {
     let mut scroll_to_choice_index = 0;
     let mut reload_needed = false;
 
-    println!("! a1");
-
     match detect_mgmt(detect_arc) {
         Ok(()) => {}
         Err(err) => {
