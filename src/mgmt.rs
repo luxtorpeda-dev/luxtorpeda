@@ -189,6 +189,8 @@ pub fn run_mgmt() -> Result<(), Error> {
     let mut scroll_to_choice_index = 0;
     let mut reload_needed = false;
 
+     println!("! a1");
+
     match detect_mgmt(detect_arc) {
         Ok(()) => {}
         Err(err) => {
@@ -207,6 +209,8 @@ pub fn run_mgmt() -> Result<(), Error> {
     let (texture_second_custom_action, ..) =
         prompt_image_for_action(RequestedAction::SecondCustomAction, &mut window).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
+
+     println!("! a2");
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
         if reload_needed {
@@ -377,6 +381,8 @@ pub fn run_mgmt() -> Result<(), Error> {
         }
         std::mem::drop(guard);
     });
+
+     println!("! a3");
 
     Ok(())
 }
