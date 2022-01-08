@@ -29,7 +29,7 @@ tokio = { version = "0.2", default-features = false, features = ["full"] }
 which = "4.2.2"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
 egui = { git = "https://github.com/emilk/egui.git", rev = "c69fe94" }
-egui_sdl2_gl =  { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", "rev" = "46adb231cf9a75d8a6d0bdf54086bad02c6b15f2", features = ["use_epi", "sdl2_use-pkgconfig"] }
+egui_sdl2_gl =  { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", "rev" = "46adb231cf9a75d8a6d0bdf54086bad02c6b15f2" }
 image = "0.23.14"
 steamy-controller = { git = "https://github.com/luxtorpeda-dev/steamy", rev = "3e4055f" }
 signal-hook = "0.3.10"
