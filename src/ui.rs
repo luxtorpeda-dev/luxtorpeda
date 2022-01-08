@@ -277,7 +277,7 @@ impl EguiWindowInstance {
                 }
             } else {
                 self.painter
-                .paint_jobs(None, paint_jobs, &egui_ctx.texture());
+                    .paint_jobs(None, paint_jobs, &egui_ctx.texture());
                 self.window.gl_swap_window();
                 for event in self.event_pump.poll_iter() {
                     match event {
