@@ -58,11 +58,11 @@ pub enum ControllerType {
 }
 
 pub struct EguiWindowInstance {
+    pub painter: egui_sdl2_gl::painter::Painter,
     window: egui_sdl2_gl::sdl2::video::Window,
     _ctx: GLContext,
     event_pump: sdl2::EventPump,
     sdl2_controller: std::option::Option<sdl2::controller::GameController>,
-    pub painter: egui_sdl2_gl::painter::Painter,
     egui_state: egui_sdl2_gl::EguiStateHandler,
     start_time: std::time::Instant,
     should_close: bool,
