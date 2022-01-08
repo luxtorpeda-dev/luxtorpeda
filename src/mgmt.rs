@@ -17,8 +17,6 @@ struct MgmtItem {
     pub friendly_name: String,
     pub has_cache: bool,
     pub has_config: bool,
-    pub is_game: bool,
-    pub is_engine: bool,
 }
 
 struct MgmtState {
@@ -72,8 +70,6 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                 has_cache: true,
                 has_config: false,
                 friendly_name,
-                is_game: true,
-                is_engine: false,
             };
             let game_info_name = name.to_string();
             if let Some(game_info) = get_game_info_with_json(&game_info_name, &parsed) {
@@ -86,8 +82,6 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                 has_cache: true,
                 has_config: false,
                 friendly_name,
-                is_game: false,
-                is_engine: false,
             });
         }
     }
@@ -118,8 +112,6 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
                         has_cache: false,
                         has_config: true,
                         friendly_name,
-                        is_game: true,
-                        is_engine: false,
                     };
 
                     let game_info_name = name.to_string();
