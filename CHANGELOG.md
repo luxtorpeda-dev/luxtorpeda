@@ -2,6 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 50.0 (2022-02-28)
+
+* Fix for controller scrolling no longer working, regression from 49 version. Re-tested wayland crash and that is still fixed.
+* Workaround for DPI detection crash when using gamescope, will used canned DPI in that case. Possible fix for steam deck issues.
+
 ### 49.0 (2022-01-08)
 
 * Upgrading UI libraries (egui, egui sdl2 support).

@@ -430,7 +430,7 @@ checksum = "ea57b42383d091c85abcc2706240b94ab2a8fa1fc81c10ff23c4de06e2a90b5e"
 [[package]]
 name = "egui"
 version = "0.15.0"
-source = "git+https://github.com/emilk/egui.git?rev=c69fe94#c69fe941afdea5ef6f3f84ed063554500b6262e8"
+source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=e8d9794#e8d9794572c359edf3af3534c5ebad59f527580a"
 dependencies = [
  "ahash",
  "epaint",
@@ -440,7 +440,7 @@ dependencies = [
 [[package]]
 name = "egui_sdl2_gl"
 version = "0.15.0"
-source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=46adb231cf9a75d8a6d0bdf54086bad02c6b15f2#46adb231cf9a75d8a6d0bdf54086bad02c6b15f2"
+source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=addd3f750c3f481b10b6992c9abbbdc98caf2864#addd3f750c3f481b10b6992c9abbbdc98caf2864"
 dependencies = [
  "egui",
  "gl",
@@ -456,7 +456,7 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 [[package]]
 name = "emath"
 version = "0.15.0"
-source = "git+https://github.com/emilk/egui.git?rev=c69fe94#c69fe941afdea5ef6f3f84ed063554500b6262e8"
+source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=e8d9794#e8d9794572c359edf3af3534c5ebad59f527580a"
 
 [[package]]
 name = "encoding_rs"
@@ -470,7 +470,7 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.15.0"
-source = "git+https://github.com/emilk/egui.git?rev=c69fe94#c69fe941afdea5ef6f3f84ed063554500b6262e8"
+source = "git+https://github.com/luxtorpeda-dev/egui.git?rev=e8d9794#e8d9794572c359edf3af3534c5ebad59f527580a"
 dependencies = [
  "ab_glyph",
  "ahash",
@@ -986,7 +986,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "49.0.0"
+version = "50.0.0"
 dependencies = [
  "bzip2 0.4.1",
  "egui",
@@ -1747,9 +1747,9 @@ dependencies = [
 
 [[package]]
 name = "sdl2"
-version = "0.35.1"
+version = "0.34.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f035f8e87735fa3a8437292be49fe6056450f7cbb13c230b4bcd1bdd7279421f"
+checksum = "deecbc3fa9460acff5a1e563e05cb5f31bba0aa0c214bb49a43db8159176d54b"
 dependencies = [
  "bitflags",
  "lazy_static",
@@ -1759,11 +1759,11 @@ dependencies = [
 
 [[package]]
 name = "sdl2-sys"
-version = "0.35.1"
+version = "0.34.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94cb479353c0603785c834e2307440d83d196bf255f204f7f6741358de8d6a2f"
+checksum = "41a29aa21f175b5a41a6e26da572d5e5d1ee5660d35f9f9d0913e8a802098f74"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.9",
  "libc",
  "version-compare",
 ]
@@ -2349,9 +2349,9 @@ dependencies = [
 
 [[package]]
 name = "version-compare"
-version = "0.1.0"
+version = "0.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe88247b92c1df6b6de80ddc290f3976dbdf2f5f5d3fd049a9fb598c6dd5ca73"
+checksum = "d63556a25bae6ea31b52e640d7c41d1ab27faba4ccb600013837a3d0b3994ca1"
 
 [[package]]
 name = "version_check"
