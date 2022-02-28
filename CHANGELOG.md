@@ -2,11 +2,6 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 49.0 (2022-01-08)
-
-* Upgrading UI libraries (egui, egui sdl2 support).
-* Add fix for crashing when using wayland. egui painter was being freed after the window was closed.
-
 ### 48.0 (2021-11-28)
 
 * Add switch pro controller support and glyphs.
