@@ -440,7 +440,7 @@ dependencies = [
 [[package]]
 name = "egui_sdl2_gl"
 version = "0.15.0"
-source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=e0fd6da#e0fd6dab03dc8ad969ca27e5fa78ebcc9dd86b65"
+source = "git+https://github.com/luxtorpeda-dev/egui_sdl2_gl.git?rev=addd3f750c3f481b10b6992c9abbbdc98caf2864#addd3f750c3f481b10b6992c9abbbdc98caf2864"
 dependencies = [
  "egui",
  "gl",
