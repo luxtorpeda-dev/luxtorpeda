@@ -101,6 +101,11 @@ When a prompt appears from the client, it will accept input from controllers, ke
         * This is best done inside Steam Big Picture mode, as the client uses the existence of the "Steam Virtual Gamepad" controller to detect if a steam controller is there.
         * When using the steam controller, the client is taking over control of the controller for the short time the client is running. Once the client is finished, it will release control and Steam should then re-connect to it.
 
+### Steam Deck
+
+* Thanks to LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
+* The steam deck's controller does not function in the luxtorpeda UI, but you can use the trackpad as a mouse for selections. https://github.com/luxtorpeda-dev/luxtorpeda/issues/130 is to track fixing that in the future.
+
 ## Supported titles
 
 Just click "Play" and Luxtorpeda will download and install the package for you.
