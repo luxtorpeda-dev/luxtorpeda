@@ -566,7 +566,7 @@ pub fn start_egui_window(
 
     println!("using dpi scaling of {}", dpi_scaling);
 
-    let shader_ver = ShaderVersion::Adaptive;
+    let shader_ver = ShaderVersion::Default;
     let (painter, egui_state) = egui_backend::with_sdl2(&window, shader_ver, DpiScaling::Custom(dpi_scaling));
     let start_time = Instant::now();
     Ok((
