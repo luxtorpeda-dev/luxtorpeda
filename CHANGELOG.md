@@ -5,6 +5,7 @@
 ### 51.0 (2022-03-11)
 
 * Add options to disable default engine confirmation dialog. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.
+* Upgraded egui to 0.16.1, along with egui_sdl2_gl 0.16 fork to address the DPI issue with gamescope.
 
 ### 50.0 (2022-02-28)
 
