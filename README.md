@@ -80,7 +80,7 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 
 ## User Packages Override
 
-A ```~/.config/luxtorpeda/user-packages.json``` file can be created, which will allow custom package information without having to change the normal packages.json file. This file should have the same format as packages.json, but can have either new games, or overrides to existing games. See https://github.com/luxtorpeda-dev/luxtorpeda/issues/65 for more information.
+A ```~/.config/luxtorpeda/user-packages.json``` file can be created, which will allow custom package information without having to change the normal packages.json file. This file should have the same format as packages.json, but can have either new games or overrides to existing games. See https://github.com/luxtorpeda-dev/luxtorpeda/issues/65 for more information.
 
 ## User Interface
 
@@ -108,7 +108,7 @@ When a prompt appears from the client, it will accept input from controllers, ke
 
 ### Steam Deck
 
-* Thanks to LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
+* Thanks to help with testing from LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
 * The steam deck's controller does not function in the luxtorpeda UI, but you can use the trackpad as a mouse for selections. https://github.com/luxtorpeda-dev/luxtorpeda/issues/130 is to track fixing that in the future.
 
 ## Supported titles
