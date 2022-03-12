@@ -274,8 +274,8 @@ fn pick_engine_choice(
         let config_parsed = json::parse(&config_json_str).unwrap();
 
         if !config_parsed["disable_default_confirm"].is_null() {
-            let should_do_update = &config_parsed["disable_default_confirm"];
-            if should_do_update == true {
+            let disable_default_confirm = &config_parsed["disable_default_confirm"];
+            if disable_default_confirm == true {
                 println!("show choice. disabling default confirm because of config");
                 should_show_confirm = false;
             }
