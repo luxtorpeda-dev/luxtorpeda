@@ -76,6 +76,11 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
 - use_controller - If this parameter is set to true, then attempts to access controllers through SDL2. Defaults to true.
 - use_steam_controller - If this parameter is set to true, then attempts to connect to steam controller through USB interface. Defaults to true. If false, can interact with UI through normal steam controller desktop emulation.
+- disable_default_confirm - Disables default engine confirmation dialog. Defaults to false. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.
+
+## User Packages Override
+
+A ```~/.config/luxtorpeda/user-packages.json``` file can be created, which will allow custom package information without having to change the normal packages.json file. This file should have the same format as packages.json, but can have either new games or overrides to existing games. See https://github.com/luxtorpeda-dev/luxtorpeda/issues/65 for more information.
 
 ## User Interface
 
@@ -103,7 +108,7 @@ When a prompt appears from the client, it will accept input from controllers, ke
 
 ### Steam Deck
 
-* Thanks to LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
+* Thanks to help with testing from LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
 * The steam deck's controller does not function in the luxtorpeda UI, but you can use the trackpad as a mouse for selections. https://github.com/luxtorpeda-dev/luxtorpeda/issues/130 is to track fixing that in the future.
 
 ## Supported titles

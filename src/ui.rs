@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
-use egui_backend::{sdl2::event::Event, sdl2::event::EventType, DpiScaling};
+use egui_backend::{sdl2::event::Event, sdl2::event::EventType, DpiScaling, ShaderVersion};
 use egui_sdl2_gl as egui_backend;
 use sdl2::video::{GLContext, SwapInterval};
 
@@ -178,7 +178,7 @@ impl EguiWindowInstance {
                 break;
             }
 
-            self.egui_state.process_output(&egui_output);
+            self.egui_state.process_output(&self.window, &egui_output);
 
             let paint_jobs = egui_ctx.tessellate(paint_cmds);
 
@@ -187,7 +187,7 @@ impl EguiWindowInstance {
             }
 
             self.painter
-                .paint_jobs(None, paint_jobs, &egui_ctx.texture());
+                .paint_jobs(None, paint_jobs, &egui_ctx.font_image());
             self.window.gl_swap_window();
 
             if !egui_output.needs_repaint {
@@ -566,7 +566,9 @@ pub fn start_egui_window(
 
     println!("using dpi scaling of {}", dpi_scaling);
 
-    let (painter, egui_state) = egui_backend::with_sdl2(&window, DpiScaling::Custom(dpi_scaling));
+    let shader_ver = ShaderVersion::Default;
+    let (painter, egui_state) =
+        egui_backend::with_sdl2(&window, shader_ver, DpiScaling::Custom(dpi_scaling));
     let start_time = Instant::now();
     Ok((
         EguiWindowInstance {
