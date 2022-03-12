@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 use std::cmp::min;
 use std::collections::HashMap;
+use std::env;
 use std::ffi::OsStr;
 use std::fs;
 use std::fs::File;
@@ -35,6 +36,8 @@ use crate::user_env;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
+
+static LUX_DISABLE_DEFAULT_CONFIRM: &str = "LUX_DISABLE_DEFAULT_CONFIRM";
 
 fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
@@ -264,26 +267,54 @@ fn pick_engine_choice(
             default_engine_choice_str
         );
 
-        let mut use_default = true;
-        let default_confirmation_context = context.clone();
-        if let Some(()) = default_choice_confirmation_prompt(
-            "Default Choice Confirmation",
-            &std::format!("{0}", default_engine_choice_str),
-            default_confirmation_context,
-        ) {
-            use_default = false;
+        let mut should_show_confirm = true;
 
-            let config_path = path_to_config();
-            let folder_path = config_path.join(&app_id);
-            match fs::remove_dir_all(folder_path) {
-                Ok(()) => {
-                    println!("clear config done");
-                }
-                Err(err) => {
-                    println!("clear config. err: {:?}", err);
+        let config_json_file = user_env::tool_dir().join("config.json");
+        let config_json_str = fs::read_to_string(config_json_file)?;
+        let config_parsed = json::parse(&config_json_str).unwrap();
+
+        if !config_parsed["disable_default_confirm"].is_null() {
+            let should_do_update = &config_parsed["disable_default_confirm"];
+            if should_do_update == true {
+                println!("show choice. disabling default confirm because of config");
+                should_show_confirm = false;
+            }
+        }
+
+        match env::var(LUX_DISABLE_DEFAULT_CONFIRM) {
+            Ok(val) => {
+                if val == "1" {
+                    println!("show choice. disabling default confirm because of env");
+                    should_show_confirm = false;
                 }
             }
-        };
+            Err(err) => {
+                println!("LUX_DISABLE_DEFAULT_CONFIRM not found: {}", err);
+            }
+        }
+
+        let mut use_default = true;
+        let default_confirmation_context = context.clone();
+        if should_show_confirm {
+            if let Some(()) = default_choice_confirmation_prompt(
+                "Default Choice Confirmation",
+                &std::format!("{0}", default_engine_choice_str),
+                default_confirmation_context,
+            ) {
+                use_default = false;
+
+                let config_path = path_to_config();
+                let folder_path = config_path.join(&app_id);
+                match fs::remove_dir_all(folder_path) {
+                    Ok(()) => {
+                        println!("clear config done");
+                    }
+                    Err(err) => {
+                        println!("clear config. err: {:?}", err);
+                    }
+                }
+            };
+        }
 
         if use_default {
             return Ok(default_engine_choice_str);
