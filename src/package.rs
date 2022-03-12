@@ -283,9 +283,13 @@ fn pick_engine_choice(
 
         match env::var(LUX_DISABLE_DEFAULT_CONFIRM) {
             Ok(val) => {
+                println!("ASDASDASD: {}", val);
                 if val == "1" {
                     println!("show choice. disabling default confirm because of env");
                     should_show_confirm = false;
+                } else if val == "0" {
+                    println!("show choice. enabling default confirm because of env");
+                    should_show_confirm = true;
                 }
             }
             Err(err) => {
