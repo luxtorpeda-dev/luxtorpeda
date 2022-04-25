@@ -394,17 +394,17 @@ fn pick_engine_choice(
                 choice_info
                     .notices
                     .push("Game Does Not Have Cloud Saves".to_string());
-            } else if game_info["clouldAvailable"] == true
+            } else if game_info["cloudAvailable"] == true
                 && (game_info["cloudSupported"].is_null() || game_info["cloudSupported"] != true)
             {
                 choice_info
                     .notices
                     .push("Game Has Cloud Saves But Unknown Status".to_string());
-            } else if game_info["clouldAvailable"] == true && game_info["cloudSupported"] == true {
+            } else if game_info["cloudAvailable"] == true && game_info["cloudSupported"] == true {
                 choice_info
                     .notices
                     .push("Cloud Saves Supported".to_string());
-            } else if game_info["clouldAvailable"] == true && game_info["cloudIssue"] == true {
+            } else if game_info["cloudAvailable"] == true && game_info["cloudIssue"] == true {
                 choice_info
                     .notices
                     .push("Cloud Saves Not Supported".to_string());
