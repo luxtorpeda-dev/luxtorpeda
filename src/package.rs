@@ -379,7 +379,10 @@ fn pick_engine_choice(
                         "Engine Has Native Controller Support But Needs Manual In-Game Settings"
                             .to_string(),
                     );
-                } else if controller_supported && game_info["controllerSteamDefault"] != true {
+                } else if controller_supported
+                    && (game_info["controllerSteamDefault"].is_null()
+                        || game_info["controllerSteamDefault"] != true)
+                {
                     choice_info.notices.push(
                         "Engine Has Native Controller Support But Needs Manual Steam Settings"
                             .to_string(),
@@ -391,7 +394,9 @@ fn pick_engine_choice(
                 choice_info
                     .notices
                     .push("Game Does Not Have Cloud Saves".to_string());
-            } else if game_info["clouldAvailable"] == true && game_info["cloudSupported"] != true {
+            } else if game_info["clouldAvailable"] == true
+                && (game_info["cloudSupported"].is_null() || game_info["cloudSupported"] != true)
+            {
                 choice_info
                     .notices
                     .push("Game Has Cloud Saves But Unknown Status".to_string());
