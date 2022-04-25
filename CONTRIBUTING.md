@@ -4,7 +4,7 @@ Thank you for considering contributing to luxtorpeda-dev. These guidelines apply
 
 ### What should I know to get started?
 
-luxtorpeda-dev consists of two main parts which are also respositories:
+luxtorpeda-dev consists of two main parts which are also repositories:
 
 * [luxtorpeda](https://github.com/luxtorpeda-dev/luxtorpeda) - The client that runs on your machine that downloads the engines, provides you with options on what engine to pick from, and launches the engine inside the steam environment. This is built using the rust language.
 * [packages](https://github.com/luxtorpeda-dev/packages) - Build scripts for all the engines that luxtorpeda-dev supports and the support to trigger builds of those engines. This is built primarily with bash scripts.

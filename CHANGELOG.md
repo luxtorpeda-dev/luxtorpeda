@@ -67,7 +67,7 @@ Full release of egui UI. All features listed below are in this new release.
 * Support w and s for keyboard navigation of choices.
 
 **New in 42 (2021-10-23)**
-* Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for futher information.
+* Moved progress bar implementation from zenity to egui - See https://github.com/luxtorpeda-dev/luxtorpeda/pull/103 for further information.
 * Improved choices list to support controller friendly UI, using dpad to select items and buttons with controller icons. Keyboard navigation is also supported and will show icons for keyboard if no controller found. Arrow keys or w & s can be used to select items or can always use the mouse.
 * Improved other UIs like progress, error & question prompts, and license agreements to have controller support
 * Client-side decoration for title bar and SDL2 flags to make it more seamless
