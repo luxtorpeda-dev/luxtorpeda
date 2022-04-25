@@ -1,9 +1,9 @@
 use crate::user_env;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::fs;
 use std::io::{Error, ErrorKind};
 use std::time::{Duration, Instant};
-use std::fmt::Display;
-use std::fmt::Formatter;
 
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
@@ -56,11 +56,11 @@ impl Display for ControllerType {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             ControllerType::Xbox => {
-               write!(f, "Xbox")
+                write!(f, "Xbox")
             }
             ControllerType::DualShock => {
                 write!(f, "DualShock")
-            },
+            }
             ControllerType::Switch => {
                 write!(f, "Switch")
             }
@@ -583,9 +583,9 @@ pub fn start_egui_window(
     }
 
     if attached_to_controller {
-         user_env::set_controller_var(&controller_type.to_string());
+        user_env::set_controller_var(&controller_type.to_string());
     } else {
-         user_env::set_controller_var("");
+        user_env::set_controller_var("");
     }
 
     println!("using dpi scaling of {}", dpi_scaling);
