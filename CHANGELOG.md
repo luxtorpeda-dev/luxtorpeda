@@ -2,6 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 52.0 (2022-04-25)
+
+* Add ```LUX_CONTROLLER``` environment variable, set in the client, for use in the future by engines if controller-specific configurations will be required.
+* Show cloud and controller information in notices section, when engine picker is shown.
+
 ### 51.0 (2022-03-11)
 
 * Add options to disable default engine confirmation dialog. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.

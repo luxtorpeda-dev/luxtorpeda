@@ -346,6 +346,10 @@ fn pick_engine_choice(
         if let Some((ref engines, ref notice_map)) = engines_option {
             if !engines[engine_name_clone].is_null() {
                 let engine_name_clone_clone = engine_name.clone();
+                let engine_name_clone_clone_two = engine_name.clone();
+                let engine_name_clone_clone_three = engine_name.clone();
+                let engine_name_clone_clone_four = engine_name.clone();
+
                 if !engines[engine_name_clone_clone]["notices"].is_null() {
                     for entry in engines[engine_name]["notices"].members() {
                         choice_info
@@ -353,6 +357,52 @@ fn pick_engine_choice(
                             .push(convert_notice_to_str(entry, notice_map));
                     }
                 }
+
+                let controller_not_supported =
+                    engines[engine_name_clone_clone_two]["controllerNotSupported"] == true;
+                let controller_supported =
+                    engines[engine_name_clone_clone_three]["controllerSupported"] == true;
+                let controller_supported_manual =
+                    engines[engine_name_clone_clone_four]["controllerSupportedManualGame"] == true;
+
+                if controller_not_supported {
+                    choice_info
+                        .notices
+                        .push("Engine Does Not Have Native Controller Support".to_string());
+                } else if controller_supported && game_info["controllerSteamDefault"] == true {
+                    choice_info.notices.push(
+                        "Engine Has Native Controller Support And Works Out of the Box".to_string(),
+                    );
+                } else if controller_supported_manual && game_info["controllerSteamDefault"] == true
+                {
+                    choice_info.notices.push(
+                        "Engine Has Native Controller Support But Needs Manual In-Game Settings"
+                            .to_string(),
+                    );
+                } else if controller_supported && game_info["controllerSteamDefault"] != true {
+                    choice_info.notices.push(
+                        "Engine Has Native Controller Support But Needs Manual Steam Settings"
+                            .to_string(),
+                    );
+                }
+            }
+
+            if game_info["cloudNotAvailable"] == true {
+                choice_info
+                    .notices
+                    .push("Game Does Not Have Cloud Saves".to_string());
+            } else if game_info["clouldAvailable"] == true && game_info["cloudSupported"] != true {
+                choice_info
+                    .notices
+                    .push("Game Has Cloud Saves But Unknown Status".to_string());
+            } else if game_info["clouldAvailable"] == true && game_info["cloudSupported"] == true {
+                choice_info
+                    .notices
+                    .push("Cloud Saves Supported".to_string());
+            } else if game_info["clouldAvailable"] == true && game_info["cloudIssue"] == true {
+                choice_info
+                    .notices
+                    .push("Cloud Saves Not Supported".to_string());
             }
 
             if !game_info["notices"].is_null() {
