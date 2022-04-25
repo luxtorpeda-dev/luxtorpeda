@@ -106,6 +106,8 @@ When a prompt appears from the client, it will accept input from controllers, ke
         * This is best done inside Steam Big Picture mode, as the client uses the existence of the "Steam Virtual Gamepad" controller to detect if a steam controller is there.
         * When using the steam controller, the client is taking over control of the controller for the short time the client is running. Once the client is finished, it will release control and Steam should then re-connect to it.
 
+For using controllers in the engine itself, ensure that Steam Input is enabled, that a gamepad profile has been set, and that the Steam Input controller-specific option has been enabled, such as for Xbox or Playstation controllers.
+
 ### Steam Deck
 
 * Thanks to help with testing from LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
