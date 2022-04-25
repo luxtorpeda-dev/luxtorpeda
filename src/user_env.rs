@@ -12,6 +12,7 @@ use users::get_current_uid;
 static XDG_RUNTIME_DIR: &str = "XDG_RUNTIME_DIR";
 static LUX_TOOL_DIR: &str = "LUX_TOOL_DIR";
 static STEAM_APPID: &str = "SteamAppId";
+static LUX_CONTROLLER: &str = "LUX_CONTROLLER";
 
 /// Assure, that XDG_RUNTIME_DIR is set with correct access mode.
 ///
@@ -57,4 +58,8 @@ pub fn tool_dir() -> PathBuf {
 
 pub fn set_env_var(key: &str, value: &str) {
     env::set_var(&key, &value);
+}
+
+pub fn set_controller_var(value: &str) {
+    set_env_var(LUX_CONTROLLER, &value);
 }
