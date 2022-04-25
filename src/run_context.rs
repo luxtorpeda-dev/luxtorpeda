@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 
 use crate::ui::RequestedAction;
 use crate::ui::AXIS_DEAD_ZONE;
+use crate::user_env;
 
 #[derive(Debug, Copy, Clone)]
 pub enum ThreadCommand {
@@ -81,6 +82,8 @@ pub fn setup_run_context() -> (
                             )
                             .unwrap();
                             let mut controller_already_closed = false;
+
+                            user_env::set_controller_var("Xbox");
 
                             while !term.load(Ordering::Relaxed) {
                                 let controller_guard = thread_arc.lock().unwrap();

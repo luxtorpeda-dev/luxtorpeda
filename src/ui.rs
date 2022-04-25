@@ -2,6 +2,8 @@ use crate::user_env;
 use std::fs;
 use std::io::{Error, ErrorKind};
 use std::time::{Duration, Instant};
+use std::fmt::Display;
+use std::fmt::Formatter;
 
 use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
@@ -48,6 +50,22 @@ pub enum RequestedAction {
     Back,
     CustomAction,
     SecondCustomAction,
+}
+
+impl Display for ControllerType {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            ControllerType::Xbox => {
+               write!(f, "Xbox")
+            }
+            ControllerType::DualShock => {
+                write!(f, "DualShock")
+            },
+            ControllerType::Switch => {
+                write!(f, "Switch")
+            }
+        }
+    }
 }
 
 #[derive(PartialEq, Copy, Clone)]
@@ -562,6 +580,12 @@ pub fn start_egui_window(
         Err(err) => {
             println!("error getting display index: {:?}", err);
         }
+    }
+
+    if attached_to_controller {
+         user_env::set_controller_var(&controller_type.to_string());
+    } else {
+         user_env::set_controller_var("");
     }
 
     println!("using dpi scaling of {}", dpi_scaling);
