@@ -2,6 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 53.0 (???)
+
+* [striezel] - misc - fix typos
+* [striezel] - Update dependencies to fix vulnerabilities
+
 ### 52.0 (2022-04-25)
 
 * Add ```LUX_CONTROLLER``` environment variable, set in the client, for use in the future by engines if controller-specific configurations will be required.
