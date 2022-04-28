@@ -6,6 +6,7 @@
 
 * [striezel] - misc - fix typos
 * [striezel] - Update dependencies to fix vulnerabilities
+* Add ```cargo audit``` checks for pull request tests
 
 ### 52.0 (2022-04-25)
 
