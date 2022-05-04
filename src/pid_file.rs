@@ -51,9 +51,8 @@ pub fn new() -> io::Result<PidFile> {
 impl Drop for PidFile {
     fn drop(&mut self) {
         println!("dropping: {:?}", &self.path);
-        match fs::remove_file(&self.path) {
-            Err(e) => println!("err: {:?}", e),
-            Ok(()) => {}
+        if let Err(e) = fs::remove_file(&self.path) {
+            println!("err: {:?}", e)
         }
     }
 }

@@ -61,5 +61,5 @@ pub fn set_env_var(key: &str, value: &str) {
 }
 
 pub fn set_controller_var(value: &str) {
-    set_env_var(LUX_CONTROLLER, &value);
+    set_env_var(LUX_CONTROLLER, value);
 }

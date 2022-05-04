@@ -301,7 +301,7 @@ fn pick_engine_choice(
         if should_show_confirm {
             if let Some(()) = default_choice_confirmation_prompt(
                 "Default Choice Confirmation",
-                &std::format!("{0}", default_engine_choice_str),
+                &default_engine_choice_str,
                 default_confirmation_context,
             ) {
                 use_default = false;
@@ -710,7 +710,7 @@ pub fn download_all(
             .join()
             .expect("The download thread has panicked");
         if !guard.error_str.is_empty() {
-            show_error(&"Download Error".to_string(), &guard.error_str, context).unwrap();
+            show_error("Download Error", &guard.error_str, context).unwrap();
         }
         return Err(Error::new(ErrorKind::Other, "Download failed"));
     }
@@ -983,7 +983,7 @@ pub fn install(
                         Ok(()) => {}
                         Err(err) => {
                             show_error(
-                                &"Unpack Error".to_string(),
+                                "Unpack Error",
                                 &std::format!("Error unpacking {}: {}", &file, &err),
                                 context,
                             )?;
@@ -993,11 +993,7 @@ pub fn install(
                 }
             }
             None => {
-                show_error(
-                    &"Run Error".to_string(),
-                    &"Package file not found".to_string(),
-                    context,
-                )?;
+                show_error("Run Error", "Package file not found", context)?;
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
             }
         }
@@ -1035,7 +1031,7 @@ pub fn get_game_info(
                 Err(err) => {
                     let error_message = std::format!("user-packages.json read err: {:?}", err);
                     println!("{:?}", error_message);
-                    match show_error(&"User Packages Error".to_string(), &error_message, context) {
+                    match show_error("User Packages Error", &error_message, context) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }
@@ -1048,7 +1044,7 @@ pub fn get_game_info(
                 Err(err) => {
                     let error_message = std::format!("user-packages.json parsing err: {:?}", err);
                     println!("{:?}", error_message);
-                    match show_error(&"User Packages Error".to_string(), &error_message, context) {
+                    match show_error("User Packages Error", &error_message, context) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }

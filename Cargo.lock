@@ -63,12 +63,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.44"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61604a8f862e1d5c3229fdd78f8b02c68dcf73a4c4b05fd636d12240aaa242c1"
-
-[[package]]
 name = "async-compression"
 version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1696,14 +1690,12 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "steamlocate"
-version = "0.1.5"
-source = "git+https://github.com/luxtorpeda-dev/steamlocate-rs?tag=0.1.5#db8ad81c6d2759793104b5602cd79d9aabf74c75"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c438a363b5fc999d8aaf3ea15ceef0b382a6004ee9b3ea582b46fe52cfd5f224"
 dependencies = [
- "anyhow",
  "dirs",
  "keyvalues-parser",
- "lazy_static",
- "regex",
  "steamy-vdf",
  "winreg",
 ]

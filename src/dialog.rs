@@ -32,12 +32,12 @@ pub fn show_error(
     match egui_with_prompts(
         true,
         false,
-        &"Ok".to_string(),
-        &"".to_string(),
+        "Ok",
+        "",
         title,
         error_message,
         0,
-        &"".to_string(),
+        "",
         false,
         0,
         context,
@@ -235,7 +235,7 @@ pub fn show_choices(
             ui.with_layout(layout, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     for (d_idx, d) in choices.iter().enumerate() {
-                        let mut label = std::format!("{}", d.name);
+                        let mut label = d.name.to_string();
                         if d.name == default_choice {
                             label = std::format!("{} (Default)", d.name);
                         }
@@ -291,12 +291,12 @@ pub fn show_file_with_confirm(
     match egui_with_prompts(
         true,
         true,
-        &"Ok".to_string(),
-        &"Cancel".to_string(),
-        &title.to_string(),
-        &file_str_milk.to_string(),
+        "Ok",
+        "Cancel",
+        title,
+        file_str_milk,
         600,
-        &"By clicking Ok below, you are agreeing to the above.".to_string(),
+        "By clicking Ok below, you are agreeing to the above.",
         true,
         0,
         context,
@@ -318,17 +318,7 @@ pub fn show_question(
     context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> Option<()> {
     match egui_with_prompts(
-        true,
-        true,
-        &"Yes".to_string(),
-        &"No".to_string(),
-        &title.to_string(),
-        &text.to_string(),
-        0,
-        &"".to_string(),
-        false,
-        0,
-        context,
+        true, true, "Yes", "No", title, text, 0, "", false, 0, context,
     ) {
         Ok((yes, ..)) => {
             if yes {
@@ -439,12 +429,12 @@ pub fn default_choice_confirmation_prompt(
     match egui_with_prompts(
         false,
         true,
-        &"".to_string(),
-        &"Clear Default".to_string(),
-        &title.to_string(),
-        &text.to_string(),
+        "",
+        "Clear Default",
+        title,
+        text,
         0,
-        &"".to_string(),
+        "",
         false,
         4,
         context,
