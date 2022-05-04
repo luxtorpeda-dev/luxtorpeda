@@ -130,11 +130,7 @@ fn run_setup(
             .expect("failed to execute process");
 
         if !setup_cmd.success() {
-            dialog::show_error(
-                &"Setup Error".to_string(),
-                &"Setup failed to complete".to_string(),
-                context,
-            )?;
+            dialog::show_error("Setup Error", "Setup failed to complete", context)?;
             return Err(Error::new(ErrorKind::Other, "setup failed"));
         }
 
