@@ -5,10 +5,12 @@ use std::fs;
 use std::io::{Error, ErrorKind};
 use std::time::{Duration, Instant};
 
-use egui_backend::sdl2::video::GLProfile;
-use egui_backend::{egui, sdl2};
-use egui_backend::{sdl2::event::Event, sdl2::event::EventType, DpiScaling, ShaderVersion};
-use egui_sdl2_gl as egui_backend;
+use egui;
+use egui_glow::glow;
+use egui_extras::RetainedImage;
+use glutin::platform::run_return::EventLoopExtRunReturn;
+use sdl2::event::{Event, EventType};
+use sdl2::video::GLProfile;
 use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
@@ -76,12 +78,18 @@ pub enum ControllerType {
 }
 
 pub struct EguiWindowInstance {
-    pub painter: egui_sdl2_gl::painter::Painter,
-    window: egui_sdl2_gl::sdl2::video::Window,
-    _ctx: GLContext,
+    egui_glow: egui_glow::EguiGlow,
+    gl_window: glutin::WindowedContext<glutin::PossiblyCurrent>,
+    gl: std::rc::Rc<glow::Context>,
     event_pump: sdl2::EventPump,
+    event_loop: glutin::event_loop::EventLoop<()>,
     sdl2_controller: std::option::Option<sdl2::controller::GameController>,
-    egui_state: egui_sdl2_gl::EguiStateHandler,
+    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
+    video_subsystem: sdl2::VideoSubsystem,
+    pub window_data: EguiWindowInstanceData,
+}
+
+pub struct EguiWindowInstanceData {
     start_time: std::time::Instant,
     should_close: bool,
     pub from_exit: bool,
@@ -92,89 +100,109 @@ pub struct EguiWindowInstance {
     pub attached_to_controller: bool,
     pub last_requested_action: Option<RequestedAction>,
     pub controller_type: ControllerType,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-    video_subsystem: egui_sdl2_gl::sdl2::VideoSubsystem,
+}
+
+impl EguiWindowInstanceData {
+    pub fn close(&mut self) {
+        self.should_close = true;
+    }
 }
 
 impl EguiWindowInstance {
-    pub fn start_egui_loop<F>(&mut self, mut egui_ctx: egui::CtxRef, mut f: F)
+    pub fn start_egui_loop<F>(&mut self, mut egui_ctx: egui::Context, mut f: F)
     where
-        F: FnMut((&mut EguiWindowInstance, &egui::CtxRef)),
+        F: FnMut((&mut EguiWindowInstanceData, &egui::Context)),
     {
         let mut last_axis_value = 0;
         let mut last_axis_timestamp = Instant::now();
         let mut last_input_timestamp = Instant::now();
-        'running: loop {
-            self.window
-                .subsystem()
-                .gl_set_swap_interval(SwapInterval::VSync)
-                .unwrap();
-            self.egui_state.input.time = Some(self.start_time.elapsed().as_secs_f64());
 
+        let mut clear_color = [0.1, 0.1, 0.1];
+
+        let Self {
+            gl_window,
+            gl,
+            egui_glow,
+            event_pump,
+            window_data,
+            sdl2_controller,
+            context,
+            ..
+        } = self;
+
+        let title = &window_data.title.to_owned();
+
+        self.event_loop.run_return(move |event, _, control_flow| {
             let mut exit = false;
-            let (egui_output, paint_cmds) =
-                egui_ctx.run(self.egui_state.input.take(), |egui_ctx| {
-                    let title = &self.title;
 
-                    if self.sdl2_controller.is_none() {
-                        let context_check = self.context.clone();
-                        if let Some(context) = context_check {
-                            let mut guard = context.lock().unwrap();
-                            if let Some(event) = guard.event {
-                                match event {
-                                    SteamControllerEvent::Connected => {
-                                        self.attached_to_controller = true;
-                                    }
-                                    SteamControllerEvent::Disconnected => {
-                                        self.attached_to_controller = false;
-                                    }
-                                    SteamControllerEvent::RequestedAction(action) => {
-                                        self.last_requested_action = Some(action);
-                                    }
-                                    SteamControllerEvent::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
-                                        }
-                                    }
-                                    SteamControllerEvent::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
-                                        }
-                                    }
+            if sdl2_controller.is_none() {
+                let context_check = context.clone();
+                if let Some(context) = context_check {
+                    let mut guard = context.lock().unwrap();
+                    if let Some(event) = guard.event {
+                        match event {
+                            SteamControllerEvent::Connected => {
+                                window_data.attached_to_controller = true;
+                                gl_window.window().request_redraw();
+                            }
+                            SteamControllerEvent::Disconnected => {
+                                window_data.attached_to_controller = false;
+                                gl_window.window().request_redraw();
+                            }
+                            SteamControllerEvent::RequestedAction(action) => {
+                                window_data.last_requested_action = Some(action);
+                                gl_window.window().request_redraw();
+                            }
+                            SteamControllerEvent::Up => {
+                                if window_data.enable_nav {
+                                    window_data.nav_counter_up += 1;
+                                    gl_window.window().request_redraw();
                                 }
-                                guard.event = None;
                             }
-                            std::mem::drop(guard);
-                        }
-                    } else if self.enable_nav {
-                        let controller = self.sdl2_controller.as_ref().unwrap();
-                        let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
-                        if axis_value == last_axis_value {
-                            last_axis_timestamp = Instant::now();
-                        } else if last_axis_timestamp.elapsed().as_millis() >= 300
-                            && last_input_timestamp.elapsed().as_millis() >= 300
-                            && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
-                        {
-                            last_axis_timestamp = Instant::now();
-                            last_input_timestamp = Instant::now();
-                            last_axis_value = axis_value;
-
-                            if axis_value < 0 {
-                                self.nav_counter_up += 1;
-                            } else {
-                                self.nav_counter_down += 1;
+                            SteamControllerEvent::Down => {
+                                if window_data.enable_nav {
+                                    window_data.nav_counter_down += 1;
+                                    gl_window.window().request_redraw();
+                                }
                             }
                         }
+                        guard.event = None;
                     }
+                    std::mem::drop(guard);
+                }
+            } else if window_data.enable_nav {
+                let controller = sdl2_controller.as_ref().unwrap();
+                let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
+                if axis_value == last_axis_value {
+                    last_axis_timestamp = Instant::now();
+                } else if last_axis_timestamp.elapsed().as_millis() >= 300
+                    && last_input_timestamp.elapsed().as_millis() >= 300
+                    && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
+                {
+                    last_axis_timestamp = Instant::now();
+                    last_input_timestamp = Instant::now();
+                    last_axis_value = axis_value;
 
-                    if let Some(last_requested_action) = self.last_requested_action {
-                        if last_requested_action == RequestedAction::Back {
-                            exit = true;
-                            self.from_exit = true;
-                            self.last_requested_action = None;
-                        }
+                    if axis_value < 0 {
+                        window_data.nav_counter_up += 1;
+                        gl_window.window().request_redraw();
+                    } else {
+                        window_data.nav_counter_down += 1;
+                        gl_window.window().request_redraw();
                     }
+                }
+            }
 
+            if let Some(last_requested_action) = window_data.last_requested_action {
+                if last_requested_action == RequestedAction::Back {
+                    exit = true;
+                    window_data.from_exit = true;
+                    window_data.last_requested_action = None;
+                }
+            }
+
+            let mut redraw = || {
+                let needs_repaint = egui_glow.run(gl_window.window(), |egui_ctx| {
                     egui::TopBottomPanel::top("title_bar")
                         .frame(default_panel_frame())
                         .resizable(false)
@@ -189,213 +217,148 @@ impl EguiWindowInstance {
                             });
                         });
 
-                    f((self, egui_ctx));
+                    f((window_data, egui_ctx));
                 });
 
-            if exit {
-                break;
-            }
+                if needs_repaint {
+                    gl_window.window().request_redraw();
+                    glutin::event_loop::ControlFlow::Poll
+                } else {
+                    glutin::event_loop::ControlFlow::Wait
+                };
 
-            self.egui_state.process_output(&self.window, &egui_output);
+                {
+                    unsafe {
+                        use glow::HasContext as _;
+                        gl.clear_color(clear_color[0], clear_color[1], clear_color[2], 1.0);
+                        gl.clear(glow::COLOR_BUFFER_BIT);
+                    }
 
-            let paint_jobs = egui_ctx.tessellate(paint_cmds);
+                    // draw things behind egui here
 
-            if !egui_output.needs_repaint {
-                std::thread::sleep(Duration::from_millis(10))
-            }
+                    egui_glow.paint(gl_window.window());
 
-            self.painter
-                .paint_jobs(None, paint_jobs, &egui_ctx.font_image());
-            self.window.gl_swap_window();
+                    // draw things on top of egui here
 
-            if !egui_output.needs_repaint {
-                if let Some(event) = self.event_pump.wait_event_timeout(5) {
-                    match event {
-                        Event::Quit { .. } => break 'running,
-                        Event::ControllerButtonUp { button, .. } => {
-                            if last_input_timestamp.elapsed().as_millis() >= 300 {
-                                last_input_timestamp = Instant::now();
-                                if button == sdl2::controller::Button::DPadUp {
-                                    if self.enable_nav {
-                                        self.nav_counter_up += 1;
+                    gl_window.swap_buffers().unwrap();
+                }
+            };
+
+            match event {
+                // Platform-dependent event handlers to workaround a winit bug
+                // See: https://github.com/rust-windowing/winit/issues/987
+                // See: https://github.com/rust-windowing/winit/issues/1619
+                glutin::event::Event::RedrawEventsCleared if cfg!(windows) => redraw(),
+                glutin::event::Event::RedrawRequested(_) if !cfg!(windows) => redraw(),
+                glutin::event::Event::WindowEvent { event, .. } => match event {
+                    glutin::event::WindowEvent::KeyboardInput {
+                        input:
+                            glutin::event::KeyboardInput {
+                                virtual_keycode: Some(virtual_code),
+                                state,
+                                ..
+                            },
+                        ..
+                    } => {
+                        if last_input_timestamp.elapsed().as_millis() >= 300 {
+                            last_input_timestamp = Instant::now();
+                            match (virtual_code, state) {
+                                (
+                                    glutin::event::VirtualKeyCode::Down,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    if window_data.enable_nav {
+                                        window_data.nav_counter_down += 1;
+                                        gl_window.window().request_redraw();
                                     }
-                                } else if button == sdl2::controller::Button::DPadDown {
-                                    if self.enable_nav {
-                                        self.nav_counter_down += 1;
+                                }
+                                (
+                                    glutin::event::VirtualKeyCode::Up,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    if window_data.enable_nav {
+                                        window_data.nav_counter_up += 1;
+                                        gl_window.window().request_redraw();
                                     }
-                                } else if button == sdl2::controller::Button::A {
-                                    self.last_requested_action = Some(RequestedAction::Confirm);
-                                } else if button == sdl2::controller::Button::B {
-                                    self.last_requested_action = Some(RequestedAction::Back);
-                                } else if button == sdl2::controller::Button::Y {
-                                    self.last_requested_action =
+                                }
+                                (
+                                    glutin::event::VirtualKeyCode::S,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    if window_data.enable_nav {
+                                        window_data.nav_counter_down += 1;
+                                        gl_window.window().request_redraw();
+                                    }
+                                }
+                                (
+                                    glutin::event::VirtualKeyCode::W,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    if window_data.enable_nav {
+                                        window_data.nav_counter_up += 1;
+                                        gl_window.window().request_redraw();
+                                    }
+                                }
+                                (
+                                    glutin::event::VirtualKeyCode::Return,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    window_data.last_requested_action =
+                                        Some(RequestedAction::Confirm);
+                                    gl_window.window().request_redraw();
+                                }
+                                (
+                                    glutin::event::VirtualKeyCode::Escape,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    window_data.last_requested_action = Some(RequestedAction::Back);
+                                    gl_window.window().request_redraw();
+                                }
+                                (
+                                    glutin::event::VirtualKeyCode::Space,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    window_data.last_requested_action =
                                         Some(RequestedAction::CustomAction);
-                                } else if button == sdl2::controller::Button::X {
-                                    self.last_requested_action =
+                                    gl_window.window().request_redraw();
+                                }
+                                (
+                                    glutin::event::VirtualKeyCode::LControl,
+                                    glutin::event::ElementState::Pressed,
+                                ) => {
+                                    window_data.last_requested_action =
                                         Some(RequestedAction::SecondCustomAction);
+                                    gl_window.window().request_redraw();
                                 }
+                                _ => (),
                             }
-                        }
-                        Event::KeyDown { keycode, .. } => {
-                            if let Some(keycode) = keycode {
-                                if last_input_timestamp.elapsed().as_millis() >= 300 {
-                                    last_input_timestamp = Instant::now();
-                                    match keycode {
-                                        sdl2::keyboard::Keycode::Down => {
-                                            if self.enable_nav {
-                                                self.nav_counter_down += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::Up => {
-                                            if self.enable_nav {
-                                                self.nav_counter_up += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::S => {
-                                            if self.enable_nav {
-                                                self.nav_counter_down += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::W => {
-                                            if self.enable_nav {
-                                                self.nav_counter_up += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::Return => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::Confirm);
-                                        }
-                                        sdl2::keyboard::Keycode::Escape => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::Back);
-                                        }
-                                        sdl2::keyboard::Keycode::Space => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::CustomAction);
-                                        }
-                                        sdl2::keyboard::Keycode::LCtrl => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::SecondCustomAction);
-                                        }
-                                        _ => {
-                                            self.egui_state.process_input(
-                                                &self.window,
-                                                event,
-                                                &mut self.painter,
-                                            );
-                                        }
-                                    };
-                                }
-                            }
-                        }
-                        Event::ControllerDeviceRemoved { .. } => {
-                            self.attached_to_controller = false;
-                        }
-                        _ => {
-                            self.egui_state
-                                .process_input(&self.window, event, &mut self.painter);
                         }
                     }
-                }
-            } else {
-                for event in self.event_pump.poll_iter() {
-                    match event {
-                        Event::Quit { .. } => break 'running,
-                        Event::ControllerButtonUp { button, .. } => {
-                            if last_input_timestamp.elapsed().as_millis() >= 300 {
-                                last_input_timestamp = Instant::now();
-                                if button == sdl2::controller::Button::DPadUp {
-                                    if self.enable_nav {
-                                        self.nav_counter_up += 1;
-                                    }
-                                } else if button == sdl2::controller::Button::DPadDown {
-                                    if self.enable_nav {
-                                        self.nav_counter_down += 1;
-                                    }
-                                } else if button == sdl2::controller::Button::A {
-                                    self.last_requested_action = Some(RequestedAction::Confirm);
-                                } else if button == sdl2::controller::Button::B {
-                                    self.last_requested_action = Some(RequestedAction::Back);
-                                } else if button == sdl2::controller::Button::Y {
-                                    self.last_requested_action =
-                                        Some(RequestedAction::CustomAction);
-                                } else if button == sdl2::controller::Button::X {
-                                    self.last_requested_action =
-                                        Some(RequestedAction::SecondCustomAction);
-                                }
-                            }
+                    _ => {
+                        use glutin::event::WindowEvent;
+                        if matches!(event, WindowEvent::CloseRequested | WindowEvent::Destroyed) {
+                            *control_flow = glutin::event_loop::ControlFlow::Exit;
                         }
-                        Event::KeyDown { keycode, .. } => {
-                            if let Some(keycode) = keycode {
-                                if last_input_timestamp.elapsed().as_millis() >= 300 {
-                                    last_input_timestamp = Instant::now();
-                                    match keycode {
-                                        sdl2::keyboard::Keycode::Down => {
-                                            if self.enable_nav {
-                                                self.nav_counter_down += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::Up => {
-                                            if self.enable_nav {
-                                                self.nav_counter_up += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::S => {
-                                            if self.enable_nav {
-                                                self.nav_counter_down += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::W => {
-                                            if self.enable_nav {
-                                                self.nav_counter_up += 1;
-                                            }
-                                        }
-                                        sdl2::keyboard::Keycode::Return => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::Confirm);
-                                        }
-                                        sdl2::keyboard::Keycode::Escape => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::Back);
-                                        }
-                                        sdl2::keyboard::Keycode::Space => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::CustomAction);
-                                        }
-                                        sdl2::keyboard::Keycode::LCtrl => {
-                                            self.last_requested_action =
-                                                Some(RequestedAction::SecondCustomAction);
-                                        }
-                                        _ => {
-                                            self.egui_state.process_input(
-                                                &self.window,
-                                                event,
-                                                &mut self.painter,
-                                            );
-                                        }
-                                    };
-                                }
-                            }
+
+                        if let glutin::event::WindowEvent::Resized(physical_size) = event {
+                            gl_window.resize(physical_size);
                         }
-                        Event::ControllerDeviceRemoved { .. } => {
-                            self.attached_to_controller = false;
-                        }
-                        _ => {
-                            self.egui_state
-                                .process_input(&self.window, event, &mut self.painter);
-                        }
+
+                        egui_glow.on_event(&event);
+
+                        gl_window.window().request_redraw(); // TODO: ask egui if the events warrants a repaint instead
                     }
+                },
+                glutin::event::Event::LoopDestroyed => {
+                    egui_glow.destroy();
                 }
+                _ => (),
             }
 
-            if self.should_close {
-                break;
+            if exit || window_data.should_close {
+                *control_flow = glutin::event_loop::ControlFlow::Exit;
             }
-        }
-    }
-
-    pub fn close(&mut self) {
-        self.should_close = true;
+        });
     }
 
     pub fn get_clipboard_contents(&mut self) -> Result<String, Error> {
@@ -412,7 +375,7 @@ pub fn start_egui_window(
     window_title: &str,
     enable_nav: bool,
     context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> Result<(EguiWindowInstance, egui::CtxRef), Error> {
+) -> Result<(EguiWindowInstance, egui::Context), Error> {
     sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
 
     let sdl_context = sdl2::init().unwrap();
@@ -422,26 +385,26 @@ pub fn start_egui_window(
     gl_attr.set_context_version(3, 2);
 
     let mut window_flags: u32 = 0;
-    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
+    /*window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
-    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
+    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;*/
 
-    let mut window = video_subsystem
+    /* let mut window = video_subsystem
         .window(window_title, window_width, window_height)
         .set_window_flags(window_flags)
         .opengl()
-        .borderless()
+        //.borderless()
         .build()
         .unwrap();
 
-    window.raise();
+    window.raise();*/
 
-    let _ctx = window.gl_create_context().unwrap();
+    /*let _ctx = window.gl_create_context().unwrap();
     debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
-    debug_assert_eq!(gl_attr.context_version(), (3, 2));
+    debug_assert_eq!(gl_attr.context_version(), (3, 2));*/
 
-    let egui_ctx = egui::CtxRef::default();
+    let egui_ctx = egui::Context::default();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     event_pump.disable_event(EventType::JoyAxisMotion);
@@ -561,59 +524,76 @@ pub fn start_egui_window(
         std::mem::drop(guard);
     }
 
-    let mut dpi_scaling = 1.1;
-
-    match window.display_index() {
-        Ok(display_index) => {
-            println!("window is on display_index: {:?}", display_index);
-
-            match video_subsystem.display_dpi(display_index) {
-                Ok(dpi) => {
-                    println!("found dpi: {:?}", dpi);
-                    dpi_scaling = 1.25 / (96_f32 / dpi.0);
-                }
-                Err(err) => {
-                    println!("error getting dpi: {:?}", err);
-                }
-            }
-        }
-        Err(err) => {
-            println!("error getting display index: {:?}", err);
-        }
-    }
-
     if attached_to_controller {
         user_env::set_controller_var(&controller_type.to_string());
     } else {
         user_env::set_controller_var("");
     }
 
-    println!("using dpi scaling of {}", dpi_scaling);
+    let event_loop: glutin::event_loop::EventLoop<()> =
+        glutin::event_loop::EventLoop::with_user_event();
+    let window_builder = glutin::window::WindowBuilder::new()
+        .with_resizable(false)
+        .with_inner_size(glutin::dpi::LogicalSize {
+            width: window_width,
+            height: window_height,
+        })
+        .with_decorations(false)
+        .with_always_on_top(true)
+        .with_title(window_title);
 
-    let shader_ver = ShaderVersion::Default;
-    let (painter, egui_state) =
-        egui_backend::with_sdl2(&window, shader_ver, DpiScaling::Custom(dpi_scaling));
+    let gl_window = unsafe {
+        glutin::ContextBuilder::new()
+            .with_depth_buffer(0)
+            .with_srgb(true)
+            .with_stencil_buffer(0)
+            .with_vsync(true)
+            .build_windowed(window_builder, &event_loop)
+            .unwrap()
+            .make_current()
+            .unwrap()
+    };
+
+    let gl = unsafe {
+        glow::Context::from_loader_function(|s| gl_window.get_proc_address(s) as *const _)
+    };
+    let gl = std::rc::Rc::new(gl);
+
+    unsafe {
+        use glow::HasContext as _;
+        gl.enable(glow::FRAMEBUFFER_SRGB);
+    }
+
+    let mut egui_glow = egui_glow::EguiGlow::new(gl_window.window(), gl.clone());
+    //let painter = egui_glow.painter;
+
     let start_time = Instant::now();
+    let window_data = EguiWindowInstanceData {
+        start_time,
+        should_close: false,
+        title: window_title.to_string(),
+        from_exit: false,
+        enable_nav,
+        nav_counter_down: 0,
+        nav_counter_up: 0,
+        attached_to_controller,
+        last_requested_action: None,
+        controller_type,
+    };
     Ok((
         EguiWindowInstance {
-            window,
-            _ctx,
+            //window,
+            //_ctx,
+            event_loop,
             event_pump,
             sdl2_controller,
-            painter,
-            egui_state,
-            start_time,
-            should_close: false,
-            title: window_title.to_string(),
-            from_exit: false,
-            enable_nav,
-            nav_counter_down: 0,
-            nav_counter_up: 0,
-            attached_to_controller,
-            last_requested_action: None,
-            controller_type,
+            egui_glow,
+            gl,
+            gl_window,
+            // painter,
             context,
             video_subsystem,
+            window_data,
         },
         egui_ctx,
     ))
@@ -639,17 +619,15 @@ pub fn egui_with_prompts(
         start_egui_window(DEFAULT_WINDOW_W, window_height, title, true, context)?;
     let mut no = false;
     let mut yes = false;
-    let mut last_attached_state = window.attached_to_controller;
+    let mut last_attached_state = window.window_data.attached_to_controller;
 
     let mut last_current_scroll = 0 as f32;
     let mut last_max_scroll = 0 as f32;
 
-    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window)
-        .unwrap()
-        .0;
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
-        .unwrap()
-        .0;
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data)
+        .unwrap();
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
+        .unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -665,11 +643,9 @@ pub fn egui_with_prompts(
         {
             println!("Detected controller change, reloading prompts");
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
-                .unwrap()
-                .0;
+                .unwrap();
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-                .unwrap()
-                .0;
+                .unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
@@ -699,37 +675,37 @@ pub fn egui_with_prompts(
                     ui.separator();
                 });
 
-                egui::SidePanel::right("Right Panel")
-                    .frame(egui::Frame::none())
-                    .resizable(false)
-                    .show_inside(ui, |ui| {
-                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                        ui.with_layout(layout, |ui| {
-                            if no_button
-                                && ui
-                                    .add(egui::Button::image_and_text(
-                                        texture_back,
-                                        prompt_vec,
-                                        no_text,
-                                    ))
-                                    .clicked()
-                            {
-                                no = true;
-                            }
+                /* egui::SidePanel::right("Right Panel")
+                .frame(egui::Frame::none())
+                .resizable(false)
+                .show_inside(ui, |ui| {
+                    let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                    ui.with_layout(layout, |ui| {
+                        if no_button
+                            && ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back,
+                                    prompt_vec,
+                                    no_text,
+                                ))
+                                .clicked()
+                        {
+                            no = true;
+                        }
 
-                            if yes_button
-                                && ui
-                                    .add(egui::Button::image_and_text(
-                                        texture_confirm,
-                                        prompt_vec,
-                                        yes_text,
-                                    ))
-                                    .clicked()
-                            {
-                                yes = true;
-                            }
-                        });
+                        if yes_button
+                            && ui
+                                .add(egui::Button::image_and_text(
+                                    texture_confirm,
+                                    prompt_vec,
+                                    yes_text,
+                                ))
+                                .clicked()
+                        {
+                            yes = true;
+                        }
                     });
+                });*/
             });
 
         let mut seconds_left = 0 as f64;
@@ -754,7 +730,10 @@ pub fn egui_with_prompts(
                 }
             }
 
-            let (current_scroll, max_scroll) = scroll_area.show(ui, |ui| {
+            let mut current_scroll = 0_f32;
+            let mut max_scroll = 0_f32;
+
+            scroll_area.show(ui, |ui| {
                 ui.vertical_centered(|ui| {
                     if timeout_in_seconds == 0 {
                         ui.label(&message.to_string());
@@ -768,9 +747,8 @@ pub fn egui_with_prompts(
                 });
 
                 let margin = ui.visuals().clip_rect_margin;
-                let current_scroll = ui.clip_rect().top() - ui.min_rect().top() + margin;
-                let max_scroll = ui.min_rect().height() - ui.clip_rect().height() + 2.0 * margin;
-                (current_scroll, max_scroll)
+                current_scroll = ui.clip_rect().top() - ui.min_rect().top() + margin;
+                max_scroll = ui.min_rect().height() - ui.clip_rect().height() + 2.0 * margin;
             });
 
             last_current_scroll = current_scroll;
@@ -786,7 +764,7 @@ pub fn egui_with_prompts(
         }
     });
 
-    if window.from_exit {
+    if window.window_data.from_exit {
         no = true;
     }
 
@@ -807,30 +785,18 @@ pub fn default_panel_frame() -> egui::Frame {
 }
 
 fn image_as_texture(
-    image_data: &[u8],
-    window_instance: &mut EguiWindowInstance,
-) -> (egui::TextureId, usize, usize) {
-    let image = image::load_from_memory(image_data).expect("Failed to load image");
-    let image_buffer = image.to_rgba8();
-
-    let pixels = image_buffer.into_vec();
-    let pixels: Vec<_> = pixels
-        .chunks_exact(4)
-        .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-        .collect();
-    let texture_id = window_instance.painter.new_user_texture(
-        (image.width() as usize, image.height() as usize),
-        &pixels,
-        false,
-    );
-
-    (texture_id, image.width() as usize, image.height() as usize)
+    image_data: &[u8]
+) -> RetainedImage {
+    RetainedImage::from_image_bytes(
+        "rust-logo-256x256.png",
+        image_data
+    ).unwrap()
 }
 
 pub fn prompt_image_for_action(
     action: RequestedAction,
-    window_instance: &mut EguiWindowInstance,
-) -> Result<(egui::TextureId, usize, usize), Error> {
+    window_instance: &mut EguiWindowInstanceData,
+) -> Result<RetainedImage, Error> {
     let image;
     match action {
         RequestedAction::Confirm => {
@@ -887,5 +853,5 @@ pub fn prompt_image_for_action(
         }
     };
 
-    Ok(image_as_texture(image, window_instance))
+    Ok(image_as_texture(image))
 }
