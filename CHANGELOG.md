@@ -7,6 +7,7 @@
 * [striezel] - misc - fix typos
 * [striezel] - Update dependencies to fix vulnerabilities
 * Add ```cargo audit``` checks for pull request tests
+* Update to rust 1.60
 
 ### 52.0 (2022-04-25)
 
