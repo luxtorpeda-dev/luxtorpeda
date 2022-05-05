@@ -263,7 +263,7 @@ pub fn run_mgmt() -> Result<(), Error> {
         .show(egui_ctx, |ui| {
             ui.separator();
 
-            /*egui::SidePanel::left("Left Panel")
+            egui::SidePanel::left("Left Panel")
                 .frame(egui::Frame::none())
                 .resizable(false)
                 .show_inside(ui, |ui| {
@@ -275,7 +275,7 @@ pub fn run_mgmt() -> Result<(), Error> {
                             |ui| {
                                 if ui
                                     .add(egui::Button::image_and_text(
-                                        texture_second_custom_action,
+                                        texture_second_custom_action.texture_id(egui_ctx),
                                         prompt_vec,
                                         "Clear Cache",
                                     ))
@@ -292,7 +292,7 @@ pub fn run_mgmt() -> Result<(), Error> {
                             |ui| {
                                 if ui
                                     .add(egui::Button::image_and_text(
-                                        texture_custom_action,
+                                        texture_custom_action.texture_id(egui_ctx),
                                         prompt_vec,
                                         "Clear Config",
                                     ))
@@ -303,7 +303,7 @@ pub fn run_mgmt() -> Result<(), Error> {
                             },
                         );
                     });
-                });*/
+                });
 
             egui::SidePanel::right("Right Panel")
                 .frame(egui::Frame::none())

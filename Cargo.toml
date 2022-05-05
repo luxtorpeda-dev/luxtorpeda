@@ -25,10 +25,9 @@ bzip2 = "0.4.1"
 zip = "0.6.2"
 flate2 = "1.0.16"
 futures-util = "0.3.14"
-tokio = { version = "1", default-features = false, features = ["full"] }
+tokio = { version = "1.18.1", default-features = false, features = ["full"] }
 which = "4.2.2"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
-image = "0.23.14"
 steamy-controller = { git = "https://github.com/luxtorpeda-dev/steamy", rev = "3e4055f" }
 signal-hook = "0.3.10"
 sdl2 = "0.35.2"
@@ -36,6 +35,7 @@ egui = "0.18.1"
 egui_glow = { version = "0.18.0", features = ["winit"] }
 glutin = "0.28.0"
 egui_extras = { version = "0.18.0", features = ["image"] }
+image = "0.24"
 
 [patch.crates-io]
 bit-set = { git = "https://github.com/luxtorpeda-dev/bit-set.git", rev = "7e7460d" }

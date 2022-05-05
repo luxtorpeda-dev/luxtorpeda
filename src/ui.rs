@@ -13,9 +13,6 @@ use sdl2::event::{Event, EventType};
 use sdl2::video::GLProfile;
 use sdl2::video::{GLContext, SwapInterval};
 
-extern crate image;
-use image::GenericImageView;
-
 use crate::run_context::RunContext;
 use crate::run_context::SteamControllerEvent;
 use crate::run_context::ThreadCommand;
@@ -773,8 +770,19 @@ pub fn egui_with_prompts(
 
 pub fn default_panel_frame() -> egui::Frame {
     egui::Frame {
-        margin: egui::Vec2::new(8.0, 2.0),
-        corner_radius: 0.0,
+        inner_margin: egui::style::Margin {
+            left: 8.0,
+            right: 8.0,
+            top: 2.0,
+            bottom: 2.0
+        },
+        rounding: egui::Rounding::none(),
+        outer_margin: egui::style::Margin {
+            left: 0.0,
+            right: 0.0,
+            top: 0.0,
+            bottom: 0.0
+        },
         fill: egui::Color32::from_gray(27),
         stroke: egui::Stroke::new(0.0, egui::Color32::from_gray(60)),
         shadow: egui::epaint::Shadow {
@@ -788,7 +796,7 @@ fn image_as_texture(
     image_data: &[u8]
 ) -> RetainedImage {
     RetainedImage::from_image_bytes(
-        "rust-logo-256x256.png",
+        "image.png",
         image_data
     ).unwrap()
 }
