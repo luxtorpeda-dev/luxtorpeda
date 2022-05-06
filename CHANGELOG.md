@@ -4,7 +4,7 @@
 
 ### 53.0 (Unreleased)
 
-* Upgrade egui to 0.18 and replace sdl2 windowing with glow.
+* Upgrade egui to 0.18 and replaced sdl2 windowing with egui_glow.
 * Replace sdl2 controller support with gilrs. Should act the same as previously.
 * Update to rust 1.60.
 * [striezel] - misc - fix typos.
