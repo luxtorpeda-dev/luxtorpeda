@@ -94,6 +94,7 @@ pub struct EguiWindowInstanceData {
     pub attached_to_controller: bool,
     pub last_requested_action: Option<RequestedAction>,
     pub controller_type: ControllerType,
+    pub reload_requested: bool,
 }
 
 impl EguiWindowInstance {
@@ -131,26 +132,26 @@ impl EguiWindowInstance {
                         match event {
                             SteamControllerEvent::Connected => {
                                 window_data.attached_to_controller = true;
-                                gl_window.window().request_redraw();
+                                window_data.reload_requested = true;
                             }
                             SteamControllerEvent::Disconnected => {
                                 window_data.attached_to_controller = false;
-                                gl_window.window().request_redraw();
+                                window_data.reload_requested = true;
                             }
                             SteamControllerEvent::RequestedAction(action) => {
                                 window_data.last_requested_action = Some(action);
-                                gl_window.window().request_redraw();
+                                window_data.reload_requested = true;
                             }
                             SteamControllerEvent::Up => {
                                 if window_data.enable_nav {
                                     window_data.nav_counter_up += 1;
-                                    gl_window.window().request_redraw();
+                                    window_data.reload_requested = true;
                                 }
                             }
                             SteamControllerEvent::Down => {
                                 if window_data.enable_nav {
                                     window_data.nav_counter_down += 1;
-                                    gl_window.window().request_redraw();
+                                    window_data.reload_requested = true;
                                 }
                             }
                         }
@@ -174,38 +175,38 @@ impl EguiWindowInstance {
                                             gilrs::ev::Button::South => {
                                                 window_data.last_requested_action =
                                                     Some(RequestedAction::Confirm);
-                                                gl_window.window().request_redraw();
+                                                window_data.reload_requested = true;
                                                 event_used = true;
                                             }
                                             gilrs::ev::Button::North => {
                                                 window_data.last_requested_action =
                                                     Some(RequestedAction::CustomAction);
-                                                gl_window.window().request_redraw();
+                                                window_data.reload_requested = true;
                                                 event_used = true;
                                             }
                                             gilrs::ev::Button::East => {
                                                 window_data.last_requested_action =
                                                     Some(RequestedAction::Back);
-                                                gl_window.window().request_redraw();
+                                                window_data.reload_requested = true;
                                                 event_used = true;
                                             }
                                             gilrs::ev::Button::West => {
                                                 window_data.last_requested_action =
                                                     Some(RequestedAction::SecondCustomAction);
-                                                gl_window.window().request_redraw();
+                                                window_data.reload_requested = true;
                                                 event_used = true;
                                             }
                                             gilrs::ev::Button::DPadDown => {
                                                 if window_data.enable_nav {
                                                     window_data.nav_counter_down += 1;
-                                                    gl_window.window().request_redraw();
+                                                    window_data.reload_requested = true;
                                                     event_used = true;
                                                 }
                                             }
                                             gilrs::ev::Button::DPadUp => {
                                                 if window_data.enable_nav {
                                                     window_data.nav_counter_up += 1;
-                                                    gl_window.window().request_redraw();
+                                                    window_data.reload_requested = true;
                                                     event_used = true;
                                                 }
                                             }
@@ -234,10 +235,10 @@ impl EguiWindowInstance {
 
                                                 if axis_value > 0.0 {
                                                     window_data.nav_counter_up += 1;
-                                                    gl_window.window().request_redraw();
+                                                    window_data.reload_requested = true;
                                                 } else {
                                                     window_data.nav_counter_down += 1;
-                                                    gl_window.window().request_redraw();
+                                                    window_data.reload_requested = true;
                                                 }
                                             }
                                         }
@@ -320,7 +321,7 @@ impl EguiWindowInstance {
                                 ) => {
                                     if window_data.enable_nav {
                                         window_data.nav_counter_down += 1;
-                                        gl_window.window().request_redraw();
+                                        window_data.reload_requested = true;
                                     }
                                 }
                                 (
@@ -329,7 +330,7 @@ impl EguiWindowInstance {
                                 ) => {
                                     if window_data.enable_nav {
                                         window_data.nav_counter_up += 1;
-                                        gl_window.window().request_redraw();
+                                        window_data.reload_requested = true;
                                     }
                                 }
                                 (
@@ -338,7 +339,7 @@ impl EguiWindowInstance {
                                 ) => {
                                     if window_data.enable_nav {
                                         window_data.nav_counter_down += 1;
-                                        gl_window.window().request_redraw();
+                                        window_data.reload_requested = true;
                                     }
                                 }
                                 (
@@ -347,7 +348,7 @@ impl EguiWindowInstance {
                                 ) => {
                                     if window_data.enable_nav {
                                         window_data.nav_counter_up += 1;
-                                        gl_window.window().request_redraw();
+                                        window_data.reload_requested = true;
                                     }
                                 }
                                 (
@@ -356,14 +357,14 @@ impl EguiWindowInstance {
                                 ) => {
                                     window_data.last_requested_action =
                                         Some(RequestedAction::Confirm);
-                                    gl_window.window().request_redraw();
+                                    window_data.reload_requested = true;
                                 }
                                 (
                                     glutin::event::VirtualKeyCode::Escape,
                                     glutin::event::ElementState::Pressed,
                                 ) => {
                                     window_data.last_requested_action = Some(RequestedAction::Back);
-                                    gl_window.window().request_redraw();
+                                    window_data.reload_requested = true;
                                 }
                                 (
                                     glutin::event::VirtualKeyCode::Space,
@@ -371,7 +372,7 @@ impl EguiWindowInstance {
                                 ) => {
                                     window_data.last_requested_action =
                                         Some(RequestedAction::CustomAction);
-                                    gl_window.window().request_redraw();
+                                    window_data.reload_requested = true;
                                 }
                                 (
                                     glutin::event::VirtualKeyCode::LControl,
@@ -379,7 +380,7 @@ impl EguiWindowInstance {
                                 ) => {
                                     window_data.last_requested_action =
                                         Some(RequestedAction::SecondCustomAction);
-                                    gl_window.window().request_redraw();
+                                    window_data.reload_requested = true;
                                 }
                                 _ => (),
                             }
@@ -396,8 +397,7 @@ impl EguiWindowInstance {
                         }
 
                         egui_glow.on_event(&event);
-
-                        gl_window.window().request_redraw(); // TODO: ask egui if the events warrants a repaint instead
+                        gl_window.window().request_redraw();
                     }
                 },
                 glutin::event::Event::LoopDestroyed => {
@@ -408,6 +408,11 @@ impl EguiWindowInstance {
 
             if exit || window_data.should_close {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
+            }
+
+            if window_data.reload_requested {
+                window_data.reload_requested = false;
+                gl_window.window().request_redraw();
             }
         });
     }
@@ -571,6 +576,7 @@ pub fn start_egui_window(
         attached_to_controller,
         last_requested_action: None,
         controller_type,
+        reload_requested: false,
     };
     Ok((
         EguiWindowInstance {

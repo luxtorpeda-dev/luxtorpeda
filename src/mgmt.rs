@@ -215,6 +215,7 @@ pub fn run_mgmt() -> Result<(), Error> {
                 }
             };
             reload_needed = false;
+            window_instance.reload_requested = true;
         }
 
         let mut guard = arc.lock().unwrap();
