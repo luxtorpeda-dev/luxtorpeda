@@ -8,7 +8,7 @@ use crate::package::ChoiceInfo;
 use crate::run_context::RunContext;
 use crate::ui::default_panel_frame;
 use crate::ui::egui_with_prompts;
-//use crate::ui::prompt_image_for_action;
+use crate::ui::prompt_image_for_action;
 use crate::ui::start_egui_window;
 use crate::ui::RequestedAction;
 use crate::ui::DEFAULT_PROMPT_SIZE;
@@ -69,16 +69,13 @@ pub fn show_choices(
     let mut scroll_to_choice_index = 0;
     let mut last_attached_state = window.window_data.attached_to_controller;
 
-    /* let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window)
-        .unwrap()
-        .0;
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
-        .unwrap()
-        .0;
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data)
+        .unwrap();
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
+        .unwrap();
     let mut texture_custom_action =
-        prompt_image_for_action(RequestedAction::CustomAction, &mut window)
-            .unwrap()
-            .0;*/
+        prompt_image_for_action(RequestedAction::CustomAction, &mut window.window_data)
+            .unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -129,20 +126,17 @@ pub fn show_choices(
             || (window_instance.attached_to_controller && !last_attached_state)
         {
             println!("Detected controller change, reloading prompts");
-            /*texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
-                .unwrap()
-                .0;
+            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
+                .unwrap();
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-                .unwrap()
-                .0;
+                .unwrap();
             texture_custom_action =
                 prompt_image_for_action(RequestedAction::CustomAction, window_instance)
-                    .unwrap()
-                    .0;*/
+                    .unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
-        /*egui::TopBottomPanel::bottom("bottom_panel")
+        egui::TopBottomPanel::bottom("bottom_panel")
         .frame(default_panel_frame())
         .resizable(false)
         .show(egui_ctx, |ui| {
@@ -160,7 +154,7 @@ pub fn show_choices(
 
                         if ui
                             .add(egui::Button::image_and_text(
-                                texture_custom_action,
+                                texture_custom_action.texture_id(egui_ctx),
                                 prompt_vec,
                                 button_text,
                             ))
@@ -183,7 +177,7 @@ pub fn show_choices(
                     ui.with_layout(layout, |ui| {
                         if ui
                             .add(egui::Button::image_and_text(
-                                texture_back,
+                                texture_back.texture_id(egui_ctx),
                                 prompt_vec,
                                 "Cancel",
                             ))
@@ -195,7 +189,7 @@ pub fn show_choices(
                         ui.add_enabled_ui(!choice.is_empty(), |ui| {
                             if ui
                                 .add(egui::Button::image_and_text(
-                                    texture_confirm,
+                                    texture_confirm.texture_id(egui_ctx),
                                     prompt_vec,
                                     "Ok",
                                 ))
@@ -206,7 +200,7 @@ pub fn show_choices(
                         });
                     });
                 });
-        });*/
+        });
 
         if !choice_notices.is_empty() {
             egui::SidePanel::right("Detail Panel")
@@ -348,9 +342,8 @@ pub fn start_progress(
     .unwrap();
     let mut last_attached_state = window.window_data.attached_to_controller;
 
-    /*let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
-    .unwrap()
-    .0;*/
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
+    .unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -358,9 +351,8 @@ pub fn start_progress(
             || (window_instance.attached_to_controller && !last_attached_state)
         {
             println!("Detected controller change, reloading prompts");
-            /*texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-            .unwrap()
-            .0;*/
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
+            .unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
@@ -375,7 +367,7 @@ pub fn start_progress(
                     ui.separator();
                 });
 
-                /* egui::SidePanel::right("Right Panel")
+                egui::SidePanel::right("Right Panel")
                 .frame(egui::Frame::none())
                 .resizable(false)
                 .show_inside(ui, |ui| {
@@ -383,7 +375,7 @@ pub fn start_progress(
                     ui.with_layout(layout, |ui| {
                         if ui
                             .add(egui::Button::image_and_text(
-                                texture_back,
+                                texture_back.texture_id(egui_ctx),
                                 prompt_vec,
                                 "Cancel",
                             ))
@@ -392,7 +384,7 @@ pub fn start_progress(
                             guard.close = true;
                         }
                     });
-                });*/
+                });
             });
 
         egui::CentralPanel::default().show(egui_ctx, |ui| {
@@ -466,16 +458,13 @@ pub fn text_input(
     let mut text_input = String::new();
     let mut last_attached_state = window.window_data.attached_to_controller;
 
-    /* let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window)
-        .unwrap()
-        .0;
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
-        .unwrap()
-        .0;
+    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data)
+        .unwrap();
+    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
+        .unwrap();
     let mut texture_custom_action =
-        prompt_image_for_action(RequestedAction::CustomAction, &mut window)
-            .unwrap()
-            .0;*/
+        prompt_image_for_action(RequestedAction::CustomAction, &mut window.window_data)
+            .unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -499,22 +488,19 @@ pub fn text_input(
             || (window_instance.attached_to_controller && !last_attached_state)
         {
             println!("Detected controller change, reloading prompts");
-            /* texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
-                .unwrap()
-                .0;
+            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
+                .unwrap();
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-                .unwrap()
-                .0;
+                .unwrap();
             texture_custom_action =
                 prompt_image_for_action(RequestedAction::CustomAction, window_instance)
-                    .unwrap()
-                    .0;*/
+                    .unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
         let mut paste_clicked = false;
 
-        /*egui::TopBottomPanel::bottom("bottom_panel")
+        egui::TopBottomPanel::bottom("bottom_panel")
         .frame(default_panel_frame())
         .resizable(false)
         .show(egui_ctx, |ui| {
@@ -526,7 +512,7 @@ pub fn text_input(
                 .show_inside(ui, |ui| {
                     if ui
                         .add(egui::Button::image_and_text(
-                            texture_custom_action,
+                            texture_custom_action.texture_id(egui_ctx),
                             prompt_vec,
                             "Paste",
                         ))
@@ -544,7 +530,7 @@ pub fn text_input(
                     ui.with_layout(layout, |ui| {
                         if ui
                             .add(egui::Button::image_and_text(
-                                texture_back,
+                                texture_back.texture_id(egui_ctx),
                                 prompt_vec,
                                 "Cancel",
                             ))
@@ -556,7 +542,7 @@ pub fn text_input(
                         ui.add_enabled_ui(!text_input.is_empty(), |ui| {
                             if ui
                                 .add(egui::Button::image_and_text(
-                                    texture_confirm,
+                                    texture_confirm.texture_id(egui_ctx),
                                     prompt_vec,
                                     "Ok",
                                 ))
@@ -567,7 +553,7 @@ pub fn text_input(
                         });
                     });
                 });
-        });*/
+        });
 
         egui::CentralPanel::default().show(egui_ctx, |ui| {
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);

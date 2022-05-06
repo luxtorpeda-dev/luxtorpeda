@@ -231,20 +231,12 @@ impl EguiWindowInstance {
                         gl.clear(glow::COLOR_BUFFER_BIT);
                     }
 
-                    // draw things behind egui here
-
                     egui_glow.paint(gl_window.window());
-
-                    // draw things on top of egui here
-
                     gl_window.swap_buffers().unwrap();
                 }
             };
 
             match event {
-                // Platform-dependent event handlers to workaround a winit bug
-                // See: https://github.com/rust-windowing/winit/issues/987
-                // See: https://github.com/rust-windowing/winit/issues/1619
                 glutin::event::Event::RedrawEventsCleared if cfg!(windows) => redraw(),
                 glutin::event::Event::RedrawRequested(_) if !cfg!(windows) => redraw(),
                 glutin::event::Event::WindowEvent { event, .. } => match event {
@@ -380,26 +372,6 @@ pub fn start_egui_window(
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(GLProfile::Core);
     gl_attr.set_context_version(3, 2);
-
-    let mut window_flags: u32 = 0;
-    /*window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
-    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
-    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
-    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;*/
-
-    /* let mut window = video_subsystem
-        .window(window_title, window_width, window_height)
-        .set_window_flags(window_flags)
-        .opengl()
-        //.borderless()
-        .build()
-        .unwrap();
-
-    window.raise();*/
-
-    /*let _ctx = window.gl_create_context().unwrap();
-    debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
-    debug_assert_eq!(gl_attr.context_version(), (3, 2));*/
 
     let egui_ctx = egui::Context::default();
 
@@ -562,7 +534,6 @@ pub fn start_egui_window(
     }
 
     let mut egui_glow = egui_glow::EguiGlow::new(gl_window.window(), gl.clone());
-    //let painter = egui_glow.painter;
 
     let start_time = Instant::now();
     let window_data = EguiWindowInstanceData {
@@ -579,15 +550,12 @@ pub fn start_egui_window(
     };
     Ok((
         EguiWindowInstance {
-            //window,
-            //_ctx,
             event_loop,
             event_pump,
             sdl2_controller,
             egui_glow,
             gl,
             gl_window,
-            // painter,
             context,
             video_subsystem,
             window_data,
@@ -672,7 +640,7 @@ pub fn egui_with_prompts(
                     ui.separator();
                 });
 
-                /* egui::SidePanel::right("Right Panel")
+                egui::SidePanel::right("Right Panel")
                 .frame(egui::Frame::none())
                 .resizable(false)
                 .show_inside(ui, |ui| {
@@ -681,7 +649,7 @@ pub fn egui_with_prompts(
                         if no_button
                             && ui
                                 .add(egui::Button::image_and_text(
-                                    texture_back,
+                                    texture_back.texture_id(egui_ctx),
                                     prompt_vec,
                                     no_text,
                                 ))
@@ -693,7 +661,7 @@ pub fn egui_with_prompts(
                         if yes_button
                             && ui
                                 .add(egui::Button::image_and_text(
-                                    texture_confirm,
+                                    texture_confirm.texture_id(egui_ctx),
                                     prompt_vec,
                                     yes_text,
                                 ))
@@ -702,7 +670,7 @@ pub fn egui_with_prompts(
                             yes = true;
                         }
                     });
-                });*/
+                });
             });
 
         let mut seconds_left = 0 as f64;
