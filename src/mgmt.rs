@@ -191,13 +191,15 @@ pub fn run_mgmt() -> Result<(), Error> {
 
     let title = &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION"));
     let (mut window, egui_ctx) = start_egui_window(1024, 768, title, true, None)?;
-    let texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data).unwrap();
+    let texture_back =
+        prompt_image_for_action(RequestedAction::Back, &mut window.window_data).unwrap();
     let texture_confirm =
         prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data).unwrap();
     let texture_custom_action =
         prompt_image_for_action(RequestedAction::CustomAction, &mut window.window_data).unwrap();
     let texture_second_custom_action =
-        prompt_image_for_action(RequestedAction::SecondCustomAction, &mut window.window_data).unwrap();
+        prompt_image_for_action(RequestedAction::SecondCustomAction, &mut window.window_data)
+            .unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -258,83 +260,83 @@ pub fn run_mgmt() -> Result<(), Error> {
         }
 
         egui::TopBottomPanel::bottom("bottom_panel")
-        .frame(default_panel_frame())
-        .resizable(false)
-        .show(egui_ctx, |ui| {
-            ui.separator();
+            .frame(default_panel_frame())
+            .resizable(false)
+            .show(egui_ctx, |ui| {
+                ui.separator();
 
-            egui::SidePanel::left("Left Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::left_to_right().with_cross_justify(true);
-                    ui.with_layout(layout, |ui| {
-                        ui.add_enabled_ui(
-                            current_choice_index != 0
-                                && guard.items[current_choice_index - 1].has_cache,
-                            |ui| {
-                                if ui
-                                    .add(egui::Button::image_and_text(
-                                        texture_second_custom_action.texture_id(egui_ctx),
-                                        prompt_vec,
-                                        "Clear Cache",
-                                    ))
-                                    .clicked()
-                                {
-                                    clear_cache(&mut guard.items[current_choice_index - 1]);
-                                }
-                            },
-                        );
+                egui::SidePanel::left("Left Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::left_to_right().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            ui.add_enabled_ui(
+                                current_choice_index != 0
+                                    && guard.items[current_choice_index - 1].has_cache,
+                                |ui| {
+                                    if ui
+                                        .add(egui::Button::image_and_text(
+                                            texture_second_custom_action.texture_id(egui_ctx),
+                                            prompt_vec,
+                                            "Clear Cache",
+                                        ))
+                                        .clicked()
+                                    {
+                                        clear_cache(&mut guard.items[current_choice_index - 1]);
+                                    }
+                                },
+                            );
 
-                        ui.add_enabled_ui(
-                            current_choice_index != 0
-                                && guard.items[current_choice_index - 1].has_config,
-                            |ui| {
-                                if ui
-                                    .add(egui::Button::image_and_text(
-                                        texture_custom_action.texture_id(egui_ctx),
-                                        prompt_vec,
-                                        "Clear Config",
-                                    ))
-                                    .clicked()
-                                {
-                                    clear_config(&mut guard.items[current_choice_index - 1]);
-                                }
-                            },
-                        );
+                            ui.add_enabled_ui(
+                                current_choice_index != 0
+                                    && guard.items[current_choice_index - 1].has_config,
+                                |ui| {
+                                    if ui
+                                        .add(egui::Button::image_and_text(
+                                            texture_custom_action.texture_id(egui_ctx),
+                                            prompt_vec,
+                                            "Clear Config",
+                                        ))
+                                        .clicked()
+                                    {
+                                        clear_config(&mut guard.items[current_choice_index - 1]);
+                                    }
+                                },
+                            );
+                        });
                     });
-                });
 
-            egui::SidePanel::right("Right Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                    ui.with_layout(layout, |ui| {
-                        if ui
-                            .add(egui::Button::image_and_text(
-                                texture_back.texture_id(egui_ctx),
-                                prompt_vec,
-                                "Exit",
-                            ))
-                            .clicked()
-                        {
-                            guard.close = true;
-                        }
+                egui::SidePanel::right("Right Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back.texture_id(egui_ctx),
+                                    prompt_vec,
+                                    "Exit",
+                                ))
+                                .clicked()
+                            {
+                                guard.close = true;
+                            }
 
-                        if ui
-                            .add(egui::Button::image_and_text(
-                                texture_confirm.texture_id(egui_ctx),
-                                prompt_vec,
-                                "Refresh",
-                            ))
-                            .clicked()
-                        {
-                            reload_needed = true;
-                        }
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_confirm.texture_id(egui_ctx),
+                                    prompt_vec,
+                                    "Refresh",
+                                ))
+                                .clicked()
+                            {
+                                reload_needed = true;
+                            }
+                        });
                     });
-                });
-        });
+            });
 
         egui::CentralPanel::default().show(egui_ctx, |ui| {
             ui.label("Items");

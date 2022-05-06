@@ -6,8 +6,8 @@ use std::io::{Error, ErrorKind};
 use std::time::{Duration, Instant};
 
 use egui;
-use egui_glow::glow;
 use egui_extras::RetainedImage;
+use egui_glow::glow;
 use glutin::platform::run_return::EventLoopExtRunReturn;
 use sdl2::event::{Event, EventType};
 use sdl2::video::GLProfile;
@@ -589,10 +589,10 @@ pub fn egui_with_prompts(
     let mut last_current_scroll = 0 as f32;
     let mut last_max_scroll = 0 as f32;
 
-    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data)
-        .unwrap();
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
-        .unwrap();
+    let mut texture_confirm =
+        prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data).unwrap();
+    let mut texture_back =
+        prompt_image_for_action(RequestedAction::Back, &mut window.window_data).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -607,10 +607,9 @@ pub fn egui_with_prompts(
             || (window_instance.attached_to_controller && !last_attached_state)
         {
             println!("Detected controller change, reloading prompts");
-            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
-                .unwrap();
-            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-                .unwrap();
+            texture_confirm =
+                prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap();
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
@@ -641,36 +640,36 @@ pub fn egui_with_prompts(
                 });
 
                 egui::SidePanel::right("Right Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                    ui.with_layout(layout, |ui| {
-                        if no_button
-                            && ui
-                                .add(egui::Button::image_and_text(
-                                    texture_back.texture_id(egui_ctx),
-                                    prompt_vec,
-                                    no_text,
-                                ))
-                                .clicked()
-                        {
-                            no = true;
-                        }
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if no_button
+                                && ui
+                                    .add(egui::Button::image_and_text(
+                                        texture_back.texture_id(egui_ctx),
+                                        prompt_vec,
+                                        no_text,
+                                    ))
+                                    .clicked()
+                            {
+                                no = true;
+                            }
 
-                        if yes_button
-                            && ui
-                                .add(egui::Button::image_and_text(
-                                    texture_confirm.texture_id(egui_ctx),
-                                    prompt_vec,
-                                    yes_text,
-                                ))
-                                .clicked()
-                        {
-                            yes = true;
-                        }
+                            if yes_button
+                                && ui
+                                    .add(egui::Button::image_and_text(
+                                        texture_confirm.texture_id(egui_ctx),
+                                        prompt_vec,
+                                        yes_text,
+                                    ))
+                                    .clicked()
+                            {
+                                yes = true;
+                            }
+                        });
                     });
-                });
             });
 
         let mut seconds_left = 0 as f64;
@@ -742,14 +741,14 @@ pub fn default_panel_frame() -> egui::Frame {
             left: 8.0,
             right: 8.0,
             top: 2.0,
-            bottom: 2.0
+            bottom: 2.0,
         },
         rounding: egui::Rounding::none(),
         outer_margin: egui::style::Margin {
             left: 0.0,
             right: 0.0,
             top: 0.0,
-            bottom: 0.0
+            bottom: 0.0,
         },
         fill: egui::Color32::from_gray(27),
         stroke: egui::Stroke::new(0.0, egui::Color32::from_gray(60)),
@@ -760,13 +759,8 @@ pub fn default_panel_frame() -> egui::Frame {
     }
 }
 
-fn image_as_texture(
-    image_data: &[u8]
-) -> RetainedImage {
-    RetainedImage::from_image_bytes(
-        "image.png",
-        image_data
-    ).unwrap()
+fn image_as_texture(image_data: &[u8]) -> RetainedImage {
+    RetainedImage::from_image_bytes("image.png", image_data).unwrap()
 }
 
 pub fn prompt_image_for_action(

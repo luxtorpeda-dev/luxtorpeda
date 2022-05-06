@@ -69,13 +69,12 @@ pub fn show_choices(
     let mut scroll_to_choice_index = 0;
     let mut last_attached_state = window.window_data.attached_to_controller;
 
-    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data)
-        .unwrap();
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
-        .unwrap();
+    let mut texture_confirm =
+        prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data).unwrap();
+    let mut texture_back =
+        prompt_image_for_action(RequestedAction::Back, &mut window.window_data).unwrap();
     let mut texture_custom_action =
-        prompt_image_for_action(RequestedAction::CustomAction, &mut window.window_data)
-            .unwrap();
+        prompt_image_for_action(RequestedAction::CustomAction, &mut window.window_data).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -126,81 +125,79 @@ pub fn show_choices(
             || (window_instance.attached_to_controller && !last_attached_state)
         {
             println!("Detected controller change, reloading prompts");
-            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
-                .unwrap();
-            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-                .unwrap();
+            texture_confirm =
+                prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap();
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap();
             texture_custom_action =
-                prompt_image_for_action(RequestedAction::CustomAction, window_instance)
-                    .unwrap();
+                prompt_image_for_action(RequestedAction::CustomAction, window_instance).unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
         egui::TopBottomPanel::bottom("bottom_panel")
-        .frame(default_panel_frame())
-        .resizable(false)
-        .show(egui_ctx, |ui| {
-            ui.separator();
+            .frame(default_panel_frame())
+            .resizable(false)
+            .show(egui_ctx, |ui| {
+                ui.separator();
 
-            egui::SidePanel::left("Left Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    ui.add_enabled_ui(!choice.is_empty(), |ui| {
-                        let mut button_text = "Set as default";
-                        if default_choice == choice && !default_choice.is_empty() {
-                            button_text = "Unset as default"
-                        }
-
-                        if ui
-                            .add(egui::Button::image_and_text(
-                                texture_custom_action.texture_id(egui_ctx),
-                                prompt_vec,
-                                button_text,
-                            ))
-                            .clicked()
-                        {
-                            if default_choice != choice {
-                                default_choice = choice;
-                            } else {
-                                default_choice = "";
-                            }
-                        }
-                    });
-                });
-
-            egui::SidePanel::right("Right Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                    ui.with_layout(layout, |ui| {
-                        if ui
-                            .add(egui::Button::image_and_text(
-                                texture_back.texture_id(egui_ctx),
-                                prompt_vec,
-                                "Cancel",
-                            ))
-                            .clicked()
-                        {
-                            cancel = true;
-                        }
-
+                egui::SidePanel::left("Left Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
                         ui.add_enabled_ui(!choice.is_empty(), |ui| {
+                            let mut button_text = "Set as default";
+                            if default_choice == choice && !default_choice.is_empty() {
+                                button_text = "Unset as default"
+                            }
+
                             if ui
                                 .add(egui::Button::image_and_text(
-                                    texture_confirm.texture_id(egui_ctx),
+                                    texture_custom_action.texture_id(egui_ctx),
                                     prompt_vec,
-                                    "Ok",
+                                    button_text,
                                 ))
                                 .clicked()
                             {
-                                ok = true;
+                                if default_choice != choice {
+                                    default_choice = choice;
+                                } else {
+                                    default_choice = "";
+                                }
                             }
                         });
                     });
-                });
-        });
+
+                egui::SidePanel::right("Right Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back.texture_id(egui_ctx),
+                                    prompt_vec,
+                                    "Cancel",
+                                ))
+                                .clicked()
+                            {
+                                cancel = true;
+                            }
+
+                            ui.add_enabled_ui(!choice.is_empty(), |ui| {
+                                if ui
+                                    .add(egui::Button::image_and_text(
+                                        texture_confirm.texture_id(egui_ctx),
+                                        prompt_vec,
+                                        "Ok",
+                                    ))
+                                    .clicked()
+                                {
+                                    ok = true;
+                                }
+                            });
+                        });
+                    });
+            });
 
         if !choice_notices.is_empty() {
             egui::SidePanel::right("Detail Panel")
@@ -342,8 +339,8 @@ pub fn start_progress(
     .unwrap();
     let mut last_attached_state = window.window_data.attached_to_controller;
 
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
-    .unwrap();
+    let mut texture_back =
+        prompt_image_for_action(RequestedAction::Back, &mut window.window_data).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -351,8 +348,7 @@ pub fn start_progress(
             || (window_instance.attached_to_controller && !last_attached_state)
         {
             println!("Detected controller change, reloading prompts");
-            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-            .unwrap();
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
@@ -368,23 +364,23 @@ pub fn start_progress(
                 });
 
                 egui::SidePanel::right("Right Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                    ui.with_layout(layout, |ui| {
-                        if ui
-                            .add(egui::Button::image_and_text(
-                                texture_back.texture_id(egui_ctx),
-                                prompt_vec,
-                                "Cancel",
-                            ))
-                            .clicked()
-                        {
-                            guard.close = true;
-                        }
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
+                            if ui
+                                .add(egui::Button::image_and_text(
+                                    texture_back.texture_id(egui_ctx),
+                                    prompt_vec,
+                                    "Cancel",
+                                ))
+                                .clicked()
+                            {
+                                guard.close = true;
+                            }
+                        });
                     });
-                });
             });
 
         egui::CentralPanel::default().show(egui_ctx, |ui| {
@@ -458,13 +454,12 @@ pub fn text_input(
     let mut text_input = String::new();
     let mut last_attached_state = window.window_data.attached_to_controller;
 
-    let mut texture_confirm = prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data)
-        .unwrap();
-    let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window.window_data)
-        .unwrap();
+    let mut texture_confirm =
+        prompt_image_for_action(RequestedAction::Confirm, &mut window.window_data).unwrap();
+    let mut texture_back =
+        prompt_image_for_action(RequestedAction::Back, &mut window.window_data).unwrap();
     let mut texture_custom_action =
-        prompt_image_for_action(RequestedAction::CustomAction, &mut window.window_data)
-            .unwrap();
+        prompt_image_for_action(RequestedAction::CustomAction, &mut window.window_data).unwrap();
     let prompt_vec = egui::vec2(DEFAULT_PROMPT_SIZE, DEFAULT_PROMPT_SIZE);
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
@@ -488,72 +483,70 @@ pub fn text_input(
             || (window_instance.attached_to_controller && !last_attached_state)
         {
             println!("Detected controller change, reloading prompts");
-            texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
-                .unwrap();
-            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
-                .unwrap();
+            texture_confirm =
+                prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap();
+            texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap();
             texture_custom_action =
-                prompt_image_for_action(RequestedAction::CustomAction, window_instance)
-                    .unwrap();
+                prompt_image_for_action(RequestedAction::CustomAction, window_instance).unwrap();
             last_attached_state = window_instance.attached_to_controller;
         }
 
         let mut paste_clicked = false;
 
         egui::TopBottomPanel::bottom("bottom_panel")
-        .frame(default_panel_frame())
-        .resizable(false)
-        .show(egui_ctx, |ui| {
-            ui.separator();
+            .frame(default_panel_frame())
+            .resizable(false)
+            .show(egui_ctx, |ui| {
+                ui.separator();
 
-            egui::SidePanel::left("Left Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    if ui
-                        .add(egui::Button::image_and_text(
-                            texture_custom_action.texture_id(egui_ctx),
-                            prompt_vec,
-                            "Paste",
-                        ))
-                        .clicked()
-                    {
-                        paste_clicked = true;
-                    };
-                });
-
-            egui::SidePanel::right("Right Panel")
-                .frame(egui::Frame::none())
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    let layout = egui::Layout::right_to_left().with_cross_justify(true);
-                    ui.with_layout(layout, |ui| {
+                egui::SidePanel::left("Left Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
                         if ui
                             .add(egui::Button::image_and_text(
-                                texture_back.texture_id(egui_ctx),
+                                texture_custom_action.texture_id(egui_ctx),
                                 prompt_vec,
-                                "Cancel",
+                                "Paste",
                             ))
                             .clicked()
                         {
-                            cancel = true;
-                        }
+                            paste_clicked = true;
+                        };
+                    });
 
-                        ui.add_enabled_ui(!text_input.is_empty(), |ui| {
+                egui::SidePanel::right("Right Panel")
+                    .frame(egui::Frame::none())
+                    .resizable(false)
+                    .show_inside(ui, |ui| {
+                        let layout = egui::Layout::right_to_left().with_cross_justify(true);
+                        ui.with_layout(layout, |ui| {
                             if ui
                                 .add(egui::Button::image_and_text(
-                                    texture_confirm.texture_id(egui_ctx),
+                                    texture_back.texture_id(egui_ctx),
                                     prompt_vec,
-                                    "Ok",
+                                    "Cancel",
                                 ))
                                 .clicked()
                             {
-                                ok = true;
+                                cancel = true;
                             }
+
+                            ui.add_enabled_ui(!text_input.is_empty(), |ui| {
+                                if ui
+                                    .add(egui::Button::image_and_text(
+                                        texture_confirm.texture_id(egui_ctx),
+                                        prompt_vec,
+                                        "Ok",
+                                    ))
+                                    .clicked()
+                                {
+                                    ok = true;
+                                }
+                            });
                         });
                     });
-                });
-        });
+            });
 
         egui::CentralPanel::default().show(egui_ctx, |ui| {
             let layout = egui::Layout::top_down(egui::Align::Min).with_cross_justify(true);
