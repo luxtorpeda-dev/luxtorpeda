@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "52.0.0"
+version = "53.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2021"
 
@@ -30,12 +30,13 @@ which = "4.2.2"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
 steamy-controller = { git = "https://github.com/luxtorpeda-dev/steamy", rev = "3e4055f" }
 signal-hook = "0.3.10"
-sdl2 = "0.35.2"
 egui = "0.18.1"
 egui_glow = { version = "0.18.0", features = ["winit"] }
 glutin = "0.28.0"
 egui_extras = { version = "0.18.0", features = ["image"] }
 image = "0.24"
+arboard = "2.1.0"
+gilrs = "0.8.2"
 
 [patch.crates-io]
 bit-set = { git = "https://github.com/luxtorpeda-dev/bit-set.git", rev = "7e7460d" }

@@ -4,10 +4,12 @@
 
 ### 53.0 (Unreleased)
 
-* [striezel] - misc - fix typos
-* [striezel] - Update dependencies to fix vulnerabilities
-* Add ```cargo audit``` checks for pull request tests
-* Update to rust 1.60
+* [striezel] - misc - fix typos.
+* [striezel] - Update dependencies to fix vulnerabilities.
+* Add ```cargo audit``` checks for pull request tests.
+* Update to rust 1.60.
+* Upgrade egui to 0.18 and replace sdl2 windowing with glow.
+* Replace sdl2 controller support with gilrs. Should act the same as previously.
 
 ### 52.0 (2022-04-25)
 

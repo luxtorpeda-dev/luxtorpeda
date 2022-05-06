@@ -467,14 +467,14 @@ pub fn text_input(
             if last_requested_action == RequestedAction::Confirm && !text_input.is_empty() {
                 ok = true;
             } else if last_requested_action == RequestedAction::CustomAction {
-                /*match window_instance.get_clipboard_contents() {
+                match window_instance.get_clipboard_contents() {
                     Ok(s) => {
                         text_input = s;
                     }
                     Err(err) => {
                         println!("get_clipboard_contents error: {:?}", err);
                     }
-                }*/
+                }
             }
             window_instance.last_requested_action = None;
         }

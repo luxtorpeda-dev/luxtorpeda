@@ -74,7 +74,7 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
-- use_controller - If this parameter is set to true, then attempts to access controllers through SDL2. Defaults to true.
+- use_controller - If this parameter is set to true, then attempts to access controllers through gilrs using the SDL_GameControllerDB. Defaults to true.
 - use_steam_controller - If this parameter is set to true, then attempts to connect to steam controller through USB interface. Defaults to true. If false, can interact with UI through normal steam controller desktop emulation.
 - disable_default_confirm - Disables default engine confirmation dialog. Defaults to false. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.
 
@@ -93,7 +93,7 @@ When a prompt appears from the client, it will accept input from controllers, ke
 
 ### Controllers
 
-* SDL2's SDL_GameController is used to detect and accept inputs from controllers, other than the steam controller, so any controller that supports that interface should work.
+* gilrs, using the SDL_GameControllerDB, is used to detect and accept inputs from controllers, other than the steam controller, so any controller that supports that interface should work.
 * Controller icons will appear in the buttons if a controller is detected.
     * Icons are only available for controllers in the testing list below, with it falling back to the Xbox controller icons if an unknown controller is detected.
     * Input with that controller should still work but the icons may be incorrect. If additional controller support is wanted, feel free to open an issue.
