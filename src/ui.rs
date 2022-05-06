@@ -408,6 +408,7 @@ impl EguiWindowInstance {
 
             if exit || window_data.should_close {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
+                egui_glow.destroy();
             }
 
             if window_data.reload_requested {
