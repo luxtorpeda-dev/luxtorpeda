@@ -569,8 +569,17 @@ pub fn start_egui_window(
 
             match video_subsystem.display_dpi(display_index) {
                 Ok(dpi) => {
-                    println!("found dpi: {:?}", dpi);
-                    dpi_scaling = 1.25 / (96_f32 / dpi.0);
+                    let mut using_dpi = dpi.0;
+
+                    if dpi.1 > using_dpi {
+                        using_dpi = dpi.1;
+                    }
+                     if dpi.2 > using_dpi {
+                        using_dpi = dpi.2;
+                    }
+
+                    println!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
+                    dpi_scaling = 1.25 / (96_f32 / using_dpi);
                 }
                 Err(err) => {
                     println!("error getting dpi: {:?}", err);
