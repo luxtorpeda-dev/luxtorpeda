@@ -534,7 +534,7 @@ pub fn start_egui_window(
         glutin::event_loop::EventLoop::with_user_event();
     let window_builder = glutin::window::WindowBuilder::new()
         .with_resizable(false)
-        .with_inner_size(glutin::dpi::LogicalSize {
+        .with_inner_size(glutin::dpi::PhysicalSize {
             width: window_width,
             height: window_height,
         })
@@ -565,6 +565,7 @@ pub fn start_egui_window(
     }
 
     let egui_glow = egui_glow::EguiGlow::new(gl_window.window(), gl.clone());
+    egui_glow.egui_ctx.set_pixels_per_point(1.3);
 
     let start_time = Instant::now();
     let window_data = EguiWindowInstanceData {
