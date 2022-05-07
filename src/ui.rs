@@ -574,7 +574,7 @@ pub fn start_egui_window(
                     if dpi.1 > using_dpi {
                         using_dpi = dpi.1;
                     }
-                     if dpi.2 > using_dpi {
+                    if dpi.2 > using_dpi {
                         using_dpi = dpi.2;
                     }
 
