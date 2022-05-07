@@ -565,7 +565,7 @@ pub fn start_egui_window(
     }
 
     let egui_glow = egui_glow::EguiGlow::new(gl_window.window(), gl.clone());
-    egui_glow.egui_ctx.set_pixels_per_point(1.3);
+    egui_glow.egui_ctx.set_pixels_per_point(1.2);
 
     let start_time = Instant::now();
     let window_data = EguiWindowInstanceData {
