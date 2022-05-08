@@ -452,7 +452,7 @@ pub fn start_egui_window(
             let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
 
             if scaled_width > window_width && scaled_height > window_height {
-                dpi_scaling = (scaled_width / window_width) as f32 * dpi_scaling;
+                dpi_scaling *= (scaled_width / window_width) as f32;
                 println!(
                     "using scaled_width: {:?} scaled_height: {:?}",
                     scaled_width, scaled_height
@@ -477,6 +477,11 @@ pub fn start_egui_window(
         .unwrap();
 
     window.raise();
+
+    window.set_position(
+        sdl2::video::WindowPos::Centered,
+        sdl2::video::WindowPos::Centered,
+    );
 
     let _ctx = window.gl_create_context().unwrap();
     debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
