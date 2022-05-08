@@ -40,6 +40,7 @@ const PROMPT_KEYBOARD_CTRL: &[u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark
 
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
+pub const DEFAULT_DPI: u32 = 96;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32_f32;
 pub const SCROLL_TIMES: usize = 40_usize;
 pub const AXIS_DEAD_ZONE: i16 = 10_000;
@@ -580,6 +581,21 @@ pub fn start_egui_window(
 
                     println!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
                     dpi_scaling = 1.25 / (96_f32 / using_dpi);
+
+                    let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
+                    let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
+
+                    if scaled_width > window_width && scaled_height > window_height {
+                        println!("using scaled_width: {:?} scaled_height: {:?}", scaled_width, scaled_height);
+                        match window.set_size(scaled_width, scaled_height) {
+                            Ok(()) => {
+                                println!("window.set_size success");
+                            }
+                            Err(err) => {
+                                println!("window.set_size error: {}", err);
+                            }
+                        };
+                    }
                 }
                 Err(err) => {
                     println!("error getting dpi: {:?}", err);
