@@ -4,6 +4,8 @@
 
 ### 53.0 (Unreleased)
 
+* Fix issue with dpi scaling, when dpi values of diagonal, horizontal, and vertical vary.
+* Scale dialog windows width and height based on the DPI scaling.
 * [striezel] - misc - fix typos
 * [striezel] - Update dependencies to fix vulnerabilities
 * Add ```cargo audit``` checks for pull request tests
