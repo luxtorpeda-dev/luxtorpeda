@@ -452,6 +452,7 @@ pub fn start_egui_window(
             let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
 
             if scaled_width > window_width && scaled_height > window_height {
+                dpi_scaling = (scaled_width / window_width) as f32 * dpi_scaling;
                 println!(
                     "using scaled_width: {:?} scaled_height: {:?}",
                     scaled_width, scaled_height
