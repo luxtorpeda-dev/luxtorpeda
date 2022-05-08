@@ -586,10 +586,14 @@ pub fn start_egui_window(
                     let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
 
                     if scaled_width > window_width && scaled_height > window_height {
-                        println!("using scaled_width: {:?} scaled_height: {:?}", scaled_width, scaled_height);
+                        println!(
+                            "using scaled_width: {:?} scaled_height: {:?}",
+                            scaled_width, scaled_height
+                        );
                         match window.set_size(scaled_width, scaled_height) {
                             Ok(()) => {
                                 println!("window.set_size success");
+                                window.set_position(sdl2::video::WindowPos::Centered, sdl2::video::WindowPos::Centered);
                             }
                             Err(err) => {
                                 println!("window.set_size error: {}", err);
