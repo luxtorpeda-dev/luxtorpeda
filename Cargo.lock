@@ -63,12 +63,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.57"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08f9b8508dccb7687a1d6c4ce66b2b0ecef467c94667de27d8d7fe1f8d2a9cdc"
-
-[[package]]
 name = "async-compression"
 version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -108,7 +102,8 @@ checksum = "8a32fd6af2b5827bce66c29053ba0e7c42b9dcab01835835058558c10851a46b"
 [[package]]
 name = "bit-set"
 version = "0.2.0"
-source = "git+https://github.com/luxtorpeda-dev/bit-set.git?rev=7e7460d#7e7460dd0aa7d985299b6ec8b5a22240fa894c83"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6e1e6fb1c9e3d6fcdec57216a74eaa03e41f52a22f13a16438251d8e88b89da"
 dependencies = [
  "bit-vec",
 ]
@@ -1696,14 +1691,12 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "steamlocate"
-version = "0.1.5"
-source = "git+https://github.com/luxtorpeda-dev/steamlocate-rs?tag=0.1.5#db8ad81c6d2759793104b5602cd79d9aabf74c75"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c438a363b5fc999d8aaf3ea15ceef0b382a6004ee9b3ea582b46fe52cfd5f224"
 dependencies = [
- "anyhow",
  "dirs",
  "keyvalues-parser",
- "lazy_static",
- "regex",
  "steamy-vdf",
  "winreg",
 ]
