@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 53.0 (Unreleased)
+### 53.0 (2022-05-09)
 
 * Fix issue with dpi scaling, when dpi values of diagonal, horizontal, and vertical vary.
 * Scale dialog windows width and height based on the DPI scaling.
