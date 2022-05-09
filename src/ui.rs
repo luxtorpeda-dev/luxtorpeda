@@ -40,6 +40,7 @@ const PROMPT_KEYBOARD_CTRL: &[u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark
 
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
+pub const DEFAULT_DPI: u32 = 120;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32_f32;
 pub const SCROLL_TIMES: usize = 40_usize;
 pub const AXIS_DEAD_ZONE: i16 = 10_000;
@@ -415,6 +416,11 @@ pub fn start_egui_window(
 ) -> Result<(EguiWindowInstance, egui::CtxRef), Error> {
     sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
 
+    let mut dpi_scaling = 1.1;
+    let display_index = 0;
+    let mut final_width = window_width;
+    let mut final_height = window_height;
+
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
@@ -427,8 +433,43 @@ pub fn start_egui_window(
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
 
+    println!("window is on display_index: {:?}", display_index);
+    match video_subsystem.display_dpi(display_index) {
+        Ok(dpi) => {
+            let mut using_dpi = dpi.0;
+
+            if dpi.1 > using_dpi {
+                using_dpi = dpi.1;
+            }
+            if dpi.2 > using_dpi {
+                using_dpi = dpi.2;
+            }
+
+            println!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
+            dpi_scaling = 1.25 / (96_f32 / using_dpi);
+
+            let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
+            let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
+
+            if scaled_width > window_width && scaled_height > window_height {
+                dpi_scaling *= (scaled_width / window_width) as f32;
+                println!(
+                    "using scaled_width: {:?} scaled_height: {:?}",
+                    scaled_width, scaled_height
+                );
+                final_width = scaled_width;
+                final_height = scaled_height;
+            }
+        }
+        Err(err) => {
+            println!("error getting dpi: {:?}", err);
+        }
+    }
+
+    println!("using dpi scaling of {}", dpi_scaling);
+
     let mut window = video_subsystem
-        .window(window_title, window_width, window_height)
+        .window(window_title, final_width, final_height)
         .set_window_flags(window_flags)
         .opengl()
         .borderless()
@@ -436,6 +477,11 @@ pub fn start_egui_window(
         .unwrap();
 
     window.raise();
+
+    window.set_position(
+        sdl2::video::WindowPos::Centered,
+        sdl2::video::WindowPos::Centered,
+    );
 
     let _ctx = window.gl_create_context().unwrap();
     debug_assert_eq!(gl_attr.context_profile(), GLProfile::Core);
@@ -561,34 +607,11 @@ pub fn start_egui_window(
         std::mem::drop(guard);
     }
 
-    let mut dpi_scaling = 1.1;
-
-    match window.display_index() {
-        Ok(display_index) => {
-            println!("window is on display_index: {:?}", display_index);
-
-            match video_subsystem.display_dpi(display_index) {
-                Ok(dpi) => {
-                    println!("found dpi: {:?}", dpi);
-                    dpi_scaling = 1.25 / (96_f32 / dpi.0);
-                }
-                Err(err) => {
-                    println!("error getting dpi: {:?}", err);
-                }
-            }
-        }
-        Err(err) => {
-            println!("error getting display index: {:?}", err);
-        }
-    }
-
     if attached_to_controller {
         user_env::set_controller_var(&controller_type.to_string());
     } else {
         user_env::set_controller_var("");
     }
-
-    println!("using dpi scaling of {}", dpi_scaling);
 
     let shader_ver = ShaderVersion::Default;
     let (painter, egui_state) =
