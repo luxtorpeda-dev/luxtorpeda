@@ -12,7 +12,6 @@ use egui_sdl2_gl as egui_backend;
 use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
-use image::GenericImageView;
 
 use crate::run_context::RunContext;
 use crate::run_context::SteamControllerEvent;

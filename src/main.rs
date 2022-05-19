@@ -14,7 +14,6 @@ use std::process::Command;
 mod dialog;
 mod mgmt;
 mod package;
-mod pid_file;
 mod run_context;
 mod ui;
 mod user_env;
@@ -173,7 +172,6 @@ fn run(
 
     package::update_packages_json().unwrap();
 
-    let _pid_file = pid_file::new()?;
     let app_id = user_env::steam_app_id();
 
     println!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
@@ -414,14 +412,8 @@ fn main() -> io::Result<()> {
 
     match cmd {
         "run" => run_wrapper(cmd_args),
-        "wait-before-run" => {
-            pid_file::wait_while_exists();
-            run_wrapper(cmd_args)
-        }
-        "waitforexitandrun" => {
-            pid_file::wait_while_exists();
-            run_wrapper(cmd_args)
-        }
+        "wait-before-run" => run_wrapper(cmd_args),
+        "waitforexitandrun" => run_wrapper(cmd_args),
         "manual-download" => manual_download(cmd_args),
         "mgmt" => {
             package::update_packages_json().unwrap();
