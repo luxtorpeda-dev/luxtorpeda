@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 54.0 (?)
+
+* Upgrade dependencies and code cleanup.
+
 ### 53.0 (2022-05-09)
 
 * Fix issue with dpi scaling, when dpi values of diagonal, horizontal, and vertical vary.
