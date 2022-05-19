@@ -31,3 +31,5 @@ egui_sdl2_gl =  { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", "r
 image = "0.24.2"
 steamy-controller = { git = "https://github.com/luxtorpeda-dev/steamy", rev = "3e4055f" }
 signal-hook = "0.3.14"
+log = "0.4.17"
+simplelog = "0.12.0"

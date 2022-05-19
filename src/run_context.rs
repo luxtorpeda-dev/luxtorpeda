@@ -1,4 +1,5 @@
 extern crate steamy_controller;
+use log::{error, info};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -90,10 +91,10 @@ pub fn setup_run_context() -> (
                                 if let Some(ThreadCommand::Stop) = controller_guard.thread_command {
                                     match controller.close() {
                                         Ok(()) => {
-                                            println!("steam_controller controller closed from stop request");
+                                            info!("steam_controller controller closed from stop request");
                                         }
                                         Err(err) => {
-                                            println!(
+                                            error!(
                                                 "steamy_controller controller close error: {:?}",
                                                 err
                                             );
@@ -191,7 +192,7 @@ pub fn setup_run_context() -> (
                                         }
                                     }
                                     Err(err) => {
-                                        println!(
+                                        error!(
                                             "steamy_controller controller state error: {:?}",
                                             err
                                         );
@@ -211,27 +212,27 @@ pub fn setup_run_context() -> (
                             if !controller_already_closed {
                                 match controller.close() {
                                     Ok(()) => {
-                                        println!("steam_controller controller closed");
+                                        info!("steam_controller controller closed");
                                     }
                                     Err(err) => {
-                                        println!(
+                                        error!(
                                             "steamy_controller controller close error: {:?}",
                                             err
                                         );
                                     }
                                 }
                             } else {
-                                println!("steam_controller controller loop ended, already closed");
+                                info!("steam_controller controller loop ended, already closed");
                             }
                         }
                         Err(err) => {
-                            println!("steamy_controller controller error: {:?}", err);
+                            error!("steamy_controller controller error: {:?}", err);
                             std::thread::sleep(Duration::from_millis(2000))
                         }
                     };
                 }
                 Err(err) => {
-                    println!("steamy_controller manager error: {:?}", err);
+                    error!("steamy_controller manager error: {:?}", err);
                     std::thread::sleep(Duration::from_millis(2000))
                 }
             };

@@ -1,4 +1,5 @@
 use crate::user_env;
+use log::{error, info};
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs;
@@ -432,7 +433,7 @@ pub fn start_egui_window(
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
 
-    println!("window is on display_index: {:?}", display_index);
+    info!("window is on display_index: {:?}", display_index);
     match video_subsystem.display_dpi(display_index) {
         Ok(dpi) => {
             let mut using_dpi = dpi.0;
@@ -444,7 +445,7 @@ pub fn start_egui_window(
                 using_dpi = dpi.2;
             }
 
-            println!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
+            info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
             dpi_scaling = 1.25 / (96_f32 / using_dpi);
 
             let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
@@ -452,7 +453,7 @@ pub fn start_egui_window(
 
             if scaled_width > window_width && scaled_height > window_height {
                 dpi_scaling *= (scaled_width / window_width) as f32;
-                println!(
+                info!(
                     "using scaled_width: {:?} scaled_height: {:?}",
                     scaled_width, scaled_height
                 );
@@ -461,11 +462,11 @@ pub fn start_egui_window(
             }
         }
         Err(err) => {
-            println!("error getting dpi: {:?}", err);
+            error!("error getting dpi: {:?}", err);
         }
     }
 
-    println!("using dpi scaling of {}", dpi_scaling);
+    info!("using dpi scaling of {}", dpi_scaling);
 
     let mut window = video_subsystem
         .window(window_title, final_width, final_height)
@@ -514,7 +515,7 @@ pub fn start_egui_window(
     if use_controller {
         match game_controller_subsystem.num_joysticks() {
             Ok(available) => {
-                println!("{} joysticks available", available);
+                info!("{} joysticks available", available);
 
                 if available == 0 {
                     let controller_context = context.clone();
@@ -529,21 +530,21 @@ pub fn start_egui_window(
 
                 if let Some(found_controller) = (0..available).find_map(|id| {
                     if !game_controller_subsystem.is_game_controller(id) {
-                        println!("{} is not a game controller", id);
+                        error!("{} is not a game controller", id);
                         return None;
                     }
 
-                    println!("Attempting to open controller {}", id);
+                    info!("Attempting to open controller {}", id);
 
                     match game_controller_subsystem.name_for_index(id) {
                         Ok(name) => {
-                            println!("controller name is {}", name);
+                            info!("controller name is {}", name);
                             if name == "Steam Virtual Gamepad" {
                                 try_steam_controller = true;
                             }
                         }
                         Err(err) => {
-                            println!("controller name request failed: {:?}", err);
+                            error!("controller name request failed: {:?}", err);
                         }
                     };
 
@@ -553,16 +554,16 @@ pub fn start_egui_window(
 
                     match game_controller_subsystem.open(id) {
                         Ok(c) => {
-                            println!("Success: opened \"{}\"", c.name());
+                            info!("Success: opened \"{}\"", c.name());
                             Some(c)
                         }
                         Err(e) => {
-                            println!("failed: {:?}", e);
+                            error!("failed: {:?}", e);
                             None
                         }
                     }
                 }) {
-                    println!(
+                    info!(
                         "Controller connected mapping: {}",
                         found_controller.mapping()
                     );
@@ -571,13 +572,13 @@ pub fn start_egui_window(
                         || found_controller.name().contains("PS4")
                         || found_controller.name().contains("PS5")
                     {
-                        println!("controller assumed to be dualshock");
+                        info!("controller assumed to be dualshock");
                         controller_type = ControllerType::DualShock;
                     } else if found_controller.name().contains("Pro") {
-                        println!("controller assumed to be switch");
+                        info!("controller assumed to be switch");
                         controller_type = ControllerType::Switch;
                     } else {
-                        println!("controller assumed to be xbox");
+                        info!("controller assumed to be xbox");
                     }
 
                     sdl2_controller = Some(found_controller);
@@ -585,11 +586,11 @@ pub fn start_egui_window(
                 }
             }
             Err(err) => {
-                println!("num_joysticks error {}", err);
+                error!("num_joysticks error {}", err);
             }
         }
     } else {
-        println!("controller support disabled");
+        error!("controller support disabled");
     }
 
     let controller_context = context.clone();
@@ -600,7 +601,7 @@ pub fn start_egui_window(
         } else if sdl2_controller.is_some() || !use_controller || !use_steam_controller {
             guard.thread_command = Some(ThreadCommand::Stop);
             if !use_steam_controller {
-                println!("steam controller support disabled");
+                info!("steam controller support disabled");
             }
         }
         std::mem::drop(guard);
@@ -685,7 +686,7 @@ pub fn egui_with_prompts(
         if (!window_instance.attached_to_controller && last_attached_state)
             || (window_instance.attached_to_controller && !last_attached_state)
         {
-            println!("Detected controller change, reloading prompts");
+            info!("Detected controller change, reloading prompts");
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
                 .unwrap()
                 .0;

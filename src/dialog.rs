@@ -1,3 +1,4 @@
+use log::{error, info};
 use std::env;
 use std::fs::File;
 use std::io;
@@ -42,14 +43,8 @@ pub fn show_error(
         0,
         context,
     ) {
-        Ok((yes, no)) => {
-            println!("{} {}", yes, no);
-            Ok(())
-        }
-        Err(err) => {
-            println!("{:?}", err);
-            Err(err)
-        }
+        Ok((_yes, _no)) => Ok(()),
+        Err(err) => Err(err),
     }
 }
 
@@ -128,7 +123,7 @@ pub fn show_choices(
         if (!window_instance.attached_to_controller && last_attached_state)
             || (window_instance.attached_to_controller && !last_attached_state)
         {
-            println!("Detected controller change, reloading prompts");
+            info!("Detected controller change, reloading prompts");
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
                 .unwrap()
                 .0;
@@ -328,7 +323,7 @@ pub fn show_question(
             }
         }
         Err(err) => {
-            println!("show_question err: {:?}", err);
+            error!("show_question err: {:?}", err);
             None
         }
     }
@@ -357,7 +352,7 @@ pub fn start_progress(
         if (!window_instance.attached_to_controller && last_attached_state)
             || (window_instance.attached_to_controller && !last_attached_state)
         {
-            println!("Detected controller change, reloading prompts");
+            info!("Detected controller change, reloading prompts");
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance)
                 .unwrap()
                 .0;
@@ -447,7 +442,7 @@ pub fn default_choice_confirmation_prompt(
             }
         }
         Err(err) => {
-            println!("default_choice_confirmation_prompt err: {:?}", err);
+            error!("default_choice_confirmation_prompt err: {:?}", err);
             None
         }
     }
@@ -488,7 +483,7 @@ pub fn text_input(
                         text_input = s;
                     }
                     Err(err) => {
-                        println!("get_clipboard_contents error: {:?}", err);
+                        error!("get_clipboard_contents error: {:?}", err);
                     }
                 }
             }
@@ -498,7 +493,7 @@ pub fn text_input(
         if (!window_instance.attached_to_controller && last_attached_state)
             || (window_instance.attached_to_controller && !last_attached_state)
         {
-            println!("Detected controller change, reloading prompts");
+            info!("Detected controller change, reloading prompts");
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
                 .unwrap()
                 .0;
