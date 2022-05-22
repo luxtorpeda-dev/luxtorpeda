@@ -6,6 +6,7 @@
 
 * Upgrade dependencies and code cleanup.
 * Add logging to file if ```LUX_WRITE_LOGGING=1``` is set. The log will be written to ```~/.local/state/luxtorpeda/luxtorpeda.log```.
+* Remove steam controller direct connection logic, relying on steam input settings instead.
 
 ### 53.0 (2022-05-09)
 
