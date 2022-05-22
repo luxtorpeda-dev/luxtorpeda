@@ -23,14 +23,14 @@ extern crate simplelog;
 use log::{error, info};
 use simplelog::*;
 
-static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
-static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
+static STEAM_DECK_ENV: &str = "SteamDeck";
 static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
 static LD_PRELOAD: &str = "LD_PRELOAD";
 static LUX_ERRORS_SUPPORTED: &str = "LUX_ERRORS_SUPPORTED";
 static LUX_ORIGINAL_EXE: &str = "LUX_ORIGINAL_EXE";
 static LUX_ORIGINAL_EXE_FILE: &str = "LUX_ORIGINAL_EXE_FILE";
 static LUX_WRITE_LOGGING: &str = "LUX_WRITE_LOGGING";
+static LUX_STEAM_DECK: &str = "LUX_STEAM_DECK";
 
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -139,31 +139,6 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
 }
 
 fn run(args: &[&str]) -> io::Result<json::JsonValue> {
-    let mut allow_virtual_gamepad = false;
-    let mut ignore_devices = "".to_string();
-    match env::var(SDL_VIRTUAL_GAMEPAD) {
-        Ok(val) => {
-            if val == "1" {
-                info!("turning virtual gamepad off");
-                env::remove_var(SDL_VIRTUAL_GAMEPAD);
-                allow_virtual_gamepad = true;
-
-                match env::var(SDL_IGNORE_DEVICES) {
-                    Ok(val) => {
-                        ignore_devices = val;
-                        env::remove_var(SDL_IGNORE_DEVICES);
-                    }
-                    Err(err) => {
-                        info!("SDL_IGNORE_DEVICES not found: {}", err);
-                    }
-                };
-            }
-        }
-        Err(err) => {
-            info!("virtual gamepad setting not found: {}", err);
-        }
-    }
-
     env::set_var(LUX_ERRORS_SUPPORTED, "1");
 
     package::update_packages_json().unwrap();
@@ -175,6 +150,18 @@ fn run(args: &[&str]) -> io::Result<json::JsonValue> {
     info!("original command: {:?}", args);
     info!("working dir: {:?}", env::current_dir());
     info!("tool dir: {:?}", user_env::tool_dir());
+
+    match env::var(STEAM_DECK_ENV) {
+        Ok(val) => {
+            if val == "1" {
+                info!("detected running on steam deck");
+                env::set_var(LUX_STEAM_DECK, "1");
+            }
+        }
+        Err(err) => {
+            println!("SteamDeck env not found: {}", err);
+        }
+    }
 
     let mut game_info = package::get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
@@ -229,11 +216,6 @@ fn run(args: &[&str]) -> io::Result<json::JsonValue> {
                 return Err(err);
             }
         }
-    }
-
-    if allow_virtual_gamepad {
-        env::set_var(SDL_VIRTUAL_GAMEPAD, "1");
-        env::set_var(SDL_IGNORE_DEVICES, ignore_devices);
     }
 
     match env::var(ORIGINAL_LD_PRELOAD) {
@@ -322,27 +304,6 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
 }
 
 fn show_error_after_run(title: &str, error_message: &str) -> io::Result<()> {
-    match env::var(SDL_VIRTUAL_GAMEPAD) {
-        Ok(val) => {
-            if val == "1" {
-                info!("turning virtual gamepad off");
-                env::remove_var(SDL_VIRTUAL_GAMEPAD);
-
-                match env::var(SDL_IGNORE_DEVICES) {
-                    Ok(_val) => {
-                        env::remove_var(SDL_IGNORE_DEVICES);
-                    }
-                    Err(err) => {
-                        info!("SDL_IGNORE_DEVICES not found: {}", err);
-                    }
-                };
-            }
-        }
-        Err(err) => {
-            info!("virtual gamepad setting not found: {}", err);
-        }
-    };
-
     match dialog::show_error(title, error_message) {
         Ok(()) => {}
         Err(err) => {
