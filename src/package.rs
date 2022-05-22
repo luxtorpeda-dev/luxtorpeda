@@ -32,7 +32,6 @@ use crate::dialog::show_error;
 use crate::dialog::show_question;
 use crate::dialog::start_progress;
 use crate::dialog::ProgressState;
-use crate::run_context::RunContext;
 use crate::user_env;
 
 extern crate steamlocate;
@@ -260,11 +259,7 @@ fn convert_notice_to_str(notice_item: &json::JsonValue, notice_map: &json::JsonV
     notice
 }
 
-fn pick_engine_choice(
-    app_id: &str,
-    game_info: &json::JsonValue,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<String> {
+fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<String> {
     let check_default_choice_file_path = place_config_file(app_id, "default_engine_choice.txt")?;
     if check_default_choice_file_path.exists() {
         info!("show choice. found default choice.");
@@ -304,12 +299,10 @@ fn pick_engine_choice(
         }
 
         let mut use_default = true;
-        let default_confirmation_context = context.clone();
         if should_show_confirm {
             if let Some(()) = default_choice_confirmation_prompt(
                 "Default Choice Confirmation",
                 &default_engine_choice_str,
-                default_confirmation_context,
             ) {
                 use_default = false;
 
@@ -430,7 +423,7 @@ fn pick_engine_choice(
     }
 
     let (choice_name, default_choice) =
-        match show_choices("Pick the engine below", "Select Engine", &choices, context) {
+        match show_choices("Pick the engine below", "Select Engine", &choices) {
             Ok(s) => s,
             Err(_) => {
                 error!("show choice. dialog was rejected");
@@ -538,12 +531,8 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(
-    app_id: String,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<String> {
-    let game_info_context = context.clone();
-    let mut game_info = get_game_info(app_id.as_str(), game_info_context)
+pub fn download_all(app_id: String) -> io::Result<String> {
+    let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let mut engine_choice = String::new();
@@ -551,9 +540,7 @@ pub fn download_all(
     if !game_info["choices"].is_null() {
         info!("showing engine choices");
 
-        let engine_choice_context = context.clone();
-        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info, engine_choice_context)
-        {
+        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
             Ok(s) => s,
             Err(err) => {
                 return Err(err);
@@ -606,8 +593,7 @@ pub fn download_all(
     }
 
     if !dialog_message.is_empty() {
-        let question_context = context.clone();
-        match show_question("License Warning", &dialog_message, question_context) {
+        match show_question("License Warning", &dialog_message) {
             Some(_) => {
                 info!("show license warning. dialog was accepted");
             }
@@ -702,8 +688,7 @@ pub fn download_all(
         std::mem::drop(guard);
     });
 
-    let start_progress_context = context.clone();
-    match start_progress(progress_arc, start_progress_context) {
+    match start_progress(progress_arc) {
         Ok(()) => {}
         Err(_) => {
             error!("download_all. warning: progress not started");
@@ -717,7 +702,7 @@ pub fn download_all(
             .join()
             .expect("The download thread has panicked");
         if !guard.error_str.is_empty() {
-            show_error("Download Error", &guard.error_str, context).unwrap();
+            show_error("Download Error", &guard.error_str).unwrap();
         }
         return Err(Error::new(ErrorKind::Other, "Download failed"));
     }
@@ -943,10 +928,7 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     setup_complete
 }
 
-pub fn install(
-    game_info: &json::JsonValue,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<()> {
+pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"].members();
@@ -992,7 +974,6 @@ pub fn install(
                             show_error(
                                 "Unpack Error",
                                 &std::format!("Error unpacking {}: {}", &file, &err),
-                                context,
                             )?;
                             return Err(err);
                         }
@@ -1000,7 +981,7 @@ pub fn install(
                 }
             }
             None => {
-                show_error("Run Error", "Package file not found", context)?;
+                show_error("Run Error", "Package file not found")?;
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
             }
         }
@@ -1008,10 +989,7 @@ pub fn install(
     Ok(())
 }
 
-pub fn get_game_info(
-    app_id: &str,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> Option<json::JsonValue> {
+pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
     let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
@@ -1038,7 +1016,7 @@ pub fn get_game_info(
                 Err(err) => {
                     let error_message = std::format!("user-packages.json read err: {:?}", err);
                     error!("{:?}", error_message);
-                    match show_error("User Packages Error", &error_message, context) {
+                    match show_error("User Packages Error", &error_message) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }
@@ -1051,7 +1029,7 @@ pub fn get_game_info(
                 Err(err) => {
                     let error_message = std::format!("user-packages.json parsing err: {:?}", err);
                     error!("{:?}", error_message);
-                    match show_error("User Packages Error", &error_message, context) {
+                    match show_error("User Packages Error", &error_message) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }

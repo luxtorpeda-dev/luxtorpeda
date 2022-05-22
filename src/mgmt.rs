@@ -191,7 +191,7 @@ pub fn run_mgmt() -> Result<(), Error> {
     };
 
     let title = &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION"));
-    let (mut window, egui_ctx) = start_egui_window(1024, 768, title, true, None)?;
+    let (mut window, egui_ctx) = start_egui_window(1024, 768, title, true)?;
     let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
     let (texture_confirm, ..) =
         prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();

@@ -14,10 +14,6 @@ use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
 
-use crate::run_context::RunContext;
-use crate::run_context::SteamControllerEvent;
-use crate::run_context::ThreadCommand;
-
 const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
 const PROMPT_CONTROLLER_X: &[u8] = include_bytes!("../res/prompts/Steam_X.png");
@@ -93,7 +89,6 @@ pub struct EguiWindowInstance {
     pub attached_to_controller: bool,
     pub last_requested_action: Option<RequestedAction>,
     pub controller_type: ControllerType,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
     video_subsystem: egui_sdl2_gl::sdl2::VideoSubsystem,
 }
 
@@ -117,37 +112,7 @@ impl EguiWindowInstance {
                 egui_ctx.run(self.egui_state.input.take(), |egui_ctx| {
                     let title = &self.title;
 
-                    if self.sdl2_controller.is_none() {
-                        let context_check = self.context.clone();
-                        if let Some(context) = context_check {
-                            let mut guard = context.lock().unwrap();
-                            if let Some(event) = guard.event {
-                                match event {
-                                    SteamControllerEvent::Connected => {
-                                        self.attached_to_controller = true;
-                                    }
-                                    SteamControllerEvent::Disconnected => {
-                                        self.attached_to_controller = false;
-                                    }
-                                    SteamControllerEvent::RequestedAction(action) => {
-                                        self.last_requested_action = Some(action);
-                                    }
-                                    SteamControllerEvent::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
-                                        }
-                                    }
-                                    SteamControllerEvent::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
-                                        }
-                                    }
-                                }
-                                guard.event = None;
-                            }
-                            std::mem::drop(guard);
-                        }
-                    } else if self.enable_nav {
+                    if self.sdl2_controller.is_some() && self.enable_nav {
                         let controller = self.sdl2_controller.as_ref().unwrap();
                         let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
                         if axis_value == last_axis_value {
@@ -412,7 +377,6 @@ pub fn start_egui_window(
     window_height: u32,
     window_title: &str,
     enable_nav: bool,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> Result<(EguiWindowInstance, egui::CtxRef), Error> {
     sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
 
@@ -494,7 +458,6 @@ pub fn start_egui_window(
     event_pump.disable_event(EventType::ControllerAxisMotion);
 
     let mut attached_to_controller = false;
-    let mut try_steam_controller = false;
     let mut controller_type = ControllerType::Xbox;
     let game_controller_subsystem = sdl_context.game_controller().unwrap();
     let mut sdl2_controller = None; //needed for controller connection to stay alive
@@ -504,29 +467,14 @@ pub fn start_egui_window(
     let config_parsed = json::parse(&config_json_str).unwrap();
 
     let mut use_controller = true;
-    let mut use_steam_controller = true;
     if !config_parsed["use_controller"].is_null() {
         use_controller = config_parsed["use_controller"] == true;
-    }
-    if !config_parsed["use_steam_controller"].is_null() {
-        use_steam_controller = config_parsed["use_steam_controller"] == true;
     }
 
     if use_controller {
         match game_controller_subsystem.num_joysticks() {
             Ok(available) => {
                 info!("{} joysticks available", available);
-
-                if available == 0 {
-                    let controller_context = context.clone();
-                    if let Some(controller_context) = controller_context {
-                        let guard = controller_context.lock().unwrap();
-                        if let Some(SteamControllerEvent::Connected) = guard.last_connected_event {
-                            attached_to_controller = true;
-                        }
-                        std::mem::drop(guard);
-                    }
-                }
 
                 if let Some(found_controller) = (0..available).find_map(|id| {
                     if !game_controller_subsystem.is_game_controller(id) {
@@ -539,18 +487,11 @@ pub fn start_egui_window(
                     match game_controller_subsystem.name_for_index(id) {
                         Ok(name) => {
                             info!("controller name is {}", name);
-                            if name == "Steam Virtual Gamepad" {
-                                try_steam_controller = true;
-                            }
                         }
                         Err(err) => {
                             error!("controller name request failed: {:?}", err);
                         }
                     };
-
-                    if try_steam_controller {
-                        return None;
-                    }
 
                     match game_controller_subsystem.open(id) {
                         Ok(c) => {
@@ -593,20 +534,6 @@ pub fn start_egui_window(
         error!("controller support disabled");
     }
 
-    let controller_context = context.clone();
-    if let Some(controller_context) = controller_context {
-        let mut guard = controller_context.lock().unwrap();
-        if try_steam_controller && !attached_to_controller && use_steam_controller {
-            guard.thread_command = Some(ThreadCommand::Connect);
-        } else if sdl2_controller.is_some() || !use_controller || !use_steam_controller {
-            guard.thread_command = Some(ThreadCommand::Stop);
-            if !use_steam_controller {
-                info!("steam controller support disabled");
-            }
-        }
-        std::mem::drop(guard);
-    }
-
     if attached_to_controller {
         user_env::set_controller_var(&controller_type.to_string());
     } else {
@@ -635,7 +562,6 @@ pub fn start_egui_window(
             attached_to_controller,
             last_requested_action: None,
             controller_type,
-            context,
             video_subsystem,
         },
         egui_ctx,
@@ -653,13 +579,11 @@ pub fn egui_with_prompts(
     button_text: &str,
     button_message: bool,
     timeout_in_seconds: i8,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> Result<(bool, bool), Error> {
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let (mut window, egui_ctx) =
-        start_egui_window(DEFAULT_WINDOW_W, window_height, title, true, context)?;
+    let (mut window, egui_ctx) = start_egui_window(DEFAULT_WINDOW_W, window_height, title, true)?;
     let mut no = false;
     let mut yes = false;
     let mut last_attached_state = window.attached_to_controller;

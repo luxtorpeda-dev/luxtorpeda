@@ -6,7 +6,6 @@ use std::io::Read;
 use std::io::{Error, ErrorKind};
 
 use crate::package::ChoiceInfo;
-use crate::run_context::RunContext;
 use crate::ui::default_panel_frame;
 use crate::ui::egui_with_prompts;
 use crate::ui::prompt_image_for_action;
@@ -25,24 +24,8 @@ pub struct ProgressState {
     pub error_str: String,
 }
 
-pub fn show_error(
-    title: &str,
-    error_message: &str,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<()> {
-    match egui_with_prompts(
-        true,
-        false,
-        "Ok",
-        "",
-        title,
-        error_message,
-        0,
-        "",
-        false,
-        0,
-        context,
-    ) {
+pub fn show_error(title: &str, error_message: &str) -> io::Result<()> {
+    match egui_with_prompts(true, false, "Ok", "", title, error_message, 0, "", false, 0) {
         Ok((_yes, _no)) => Ok(()),
         Err(err) => Err(err),
     }
@@ -52,9 +35,8 @@ pub fn show_choices(
     title: &str,
     column: &str,
     choices: &[ChoiceInfo],
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> io::Result<(String, String)> {
-    let (mut window, egui_ctx) = start_egui_window(DEFAULT_WINDOW_W, 400, title, true, context)?;
+    let (mut window, egui_ctx) = start_egui_window(DEFAULT_WINDOW_W, 400, title, true)?;
     let mut cancel = false;
     let mut ok = false;
     let mut choice = "";
@@ -272,11 +254,7 @@ pub fn show_choices(
     Ok((choice.to_string(), default_choice.to_string()))
 }
 
-pub fn show_file_with_confirm(
-    title: &str,
-    file_path: &str,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<()> {
+pub fn show_file_with_confirm(title: &str, file_path: &str) -> io::Result<()> {
     let mut file = File::open(&file_path)?;
     let mut file_buf = vec![];
     file.read_to_end(&mut file_buf)?;
@@ -294,7 +272,6 @@ pub fn show_file_with_confirm(
         "By clicking Ok below, you are agreeing to the above.",
         true,
         0,
-        context,
     ) {
         Ok((yes, ..)) => {
             if yes {
@@ -307,14 +284,8 @@ pub fn show_file_with_confirm(
     }
 }
 
-pub fn show_question(
-    title: &str,
-    text: &str,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> Option<()> {
-    match egui_with_prompts(
-        true, true, "Yes", "No", title, text, 0, "", false, 0, context,
-    ) {
+pub fn show_question(title: &str, text: &str) -> Option<()> {
+    match egui_with_prompts(true, true, "Yes", "No", title, text, 0, "", false, 0) {
         Ok((yes, ..)) => {
             if yes {
                 Some(())
@@ -329,18 +300,9 @@ pub fn show_question(
     }
 }
 
-pub fn start_progress(
-    arc: std::sync::Arc<std::sync::Mutex<ProgressState>>,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> Result<(), Error> {
-    let (mut window, egui_ctx) = start_egui_window(
-        DEFAULT_WINDOW_W,
-        DEFAULT_WINDOW_H,
-        "Progress",
-        false,
-        context,
-    )
-    .unwrap();
+pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
+    let (mut window, egui_ctx) =
+        start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false).unwrap();
     let mut last_attached_state = window.attached_to_controller;
 
     let mut texture_back = prompt_image_for_action(RequestedAction::Back, &mut window)
@@ -416,11 +378,7 @@ pub fn start_progress(
     Ok(())
 }
 
-pub fn default_choice_confirmation_prompt(
-    title: &str,
-    text: &str,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> Option<()> {
+pub fn default_choice_confirmation_prompt(title: &str, text: &str) -> Option<()> {
     match egui_with_prompts(
         false,
         true,
@@ -432,7 +390,6 @@ pub fn default_choice_confirmation_prompt(
         "",
         false,
         4,
-        context,
     ) {
         Ok((_yes, no)) => {
             if no {
@@ -448,14 +405,9 @@ pub fn default_choice_confirmation_prompt(
     }
 }
 
-pub fn text_input(
-    title: &str,
-    label: &str,
-    key: &str,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<String> {
+pub fn text_input(title: &str, label: &str, key: &str) -> io::Result<String> {
     let (mut window, egui_ctx) =
-        start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, title, false, context)?;
+        start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, title, false)?;
     let mut cancel = false;
     let mut ok = false;
     let mut text_input = String::new();

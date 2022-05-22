@@ -14,7 +14,6 @@ use std::process::Command;
 mod dialog;
 mod mgmt;
 mod package;
-mod run_context;
 mod ui;
 mod user_env;
 use crate::package::place_state_file;
@@ -71,20 +70,15 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
-fn run_setup(
-    game_info: &json::JsonValue,
-    context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>,
-) -> io::Result<()> {
+fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
     let setup_info = &game_info["setup"];
     if !package::is_setup_complete(&game_info["setup"]) {
         if !&setup_info["license_path"].is_null()
             && Path::new(&setup_info["license_path"].to_string()).exists()
         {
-            let license_context = context.clone();
             match dialog::show_file_with_confirm(
                 "Closed Source Engine EULA",
                 &setup_info["license_path"].to_string(),
-                license_context,
             ) {
                 Ok(()) => {
                     info!("show eula. dialog was accepted");
@@ -107,13 +101,11 @@ fn run_setup(
 
         if !&setup_info["dialogs"].is_null() {
             for entry in setup_info["dialogs"].members() {
-                let dialog_context = context.clone();
                 if entry["type"] == "input" {
                     match dialog::text_input(
                         &entry["title"].to_string(),
                         &entry["label"].to_string(),
                         &entry["key"].to_string(),
-                        dialog_context,
                     ) {
                         Ok(_) => {}
                         Err(err) => {
@@ -136,7 +128,7 @@ fn run_setup(
             .expect("failed to execute process");
 
         if !setup_cmd.success() {
-            dialog::show_error("Setup Error", "Setup failed to complete", context)?;
+            dialog::show_error("Setup Error", "Setup failed to complete")?;
             return Err(Error::new(ErrorKind::Other, "setup failed"));
         }
 
@@ -146,10 +138,7 @@ fn run_setup(
     Ok(())
 }
 
-fn run(
-    args: &[&str],
-    context: Option<std::sync::Arc<std::sync::Mutex<run_context::RunContext>>>,
-) -> io::Result<json::JsonValue> {
+fn run(args: &[&str]) -> io::Result<json::JsonValue> {
     let mut allow_virtual_gamepad = false;
     let mut ignore_devices = "".to_string();
     match env::var(SDL_VIRTUAL_GAMEPAD) {
@@ -187,17 +176,15 @@ fn run(
     info!("working dir: {:?}", env::current_dir());
     info!("tool dir: {:?}", user_env::tool_dir());
 
-    let mut game_info = package::get_game_info(app_id.as_str(), context.clone())
+    let mut game_info = package::get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     if game_info.is_null() {
         return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
     }
 
-    let download_context = context.clone();
-
     if !game_info["choices"].is_null() {
-        let engine_choice = match package::download_all(app_id, download_context) {
+        let engine_choice = match package::download_all(app_id) {
             Ok(s) => s,
             Err(err) => {
                 error!("download all error: {:?}", err);
@@ -213,7 +200,7 @@ fn run(
             }
         };
     } else {
-        package::download_all(app_id, download_context)?;
+        package::download_all(app_id)?;
     }
 
     info!("json:");
@@ -230,11 +217,11 @@ fn run(
     }
 
     if !game_info["download"].is_null() {
-        package::install(&game_info, context.clone())?;
+        package::install(&game_info)?;
     }
 
     if !game_info["setup"].is_null() {
-        match run_setup(&game_info, context) {
+        match run_setup(&game_info) {
             Ok(()) => {
                 info!("setup complete");
             }
@@ -284,10 +271,8 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
 
     let mut ret: Result<(), Error> = Ok(());
     let mut game_info = None;
-    let (context, context_thread) = run_context::setup_run_context();
-    let run_context = context.clone();
 
-    match run(args, run_context) {
+    match run(args) {
         Ok(g) => {
             game_info = Some(g);
         }
@@ -295,15 +280,6 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
             ret = Err(err);
         }
     }
-
-    if let Some(close_context) = context {
-        info!("sending close to run context thread");
-        let mut guard = close_context.lock().unwrap();
-        guard.thread_command = Some(run_context::ThreadCommand::Stop);
-        std::mem::drop(guard);
-    }
-
-    context_thread.join().unwrap();
 
     if let Some(game_info) = game_info {
         match find_game_command(&game_info, args) {
@@ -346,9 +322,6 @@ fn run_wrapper(args: &[&str]) -> io::Result<()> {
 }
 
 fn show_error_after_run(title: &str, error_message: &str) -> io::Result<()> {
-    let (context, context_thread) = run_context::setup_run_context();
-    let close_context = context.clone();
-
     match env::var(SDL_VIRTUAL_GAMEPAD) {
         Ok(val) => {
             if val == "1" {
@@ -370,21 +343,12 @@ fn show_error_after_run(title: &str, error_message: &str) -> io::Result<()> {
         }
     };
 
-    match dialog::show_error(title, error_message, context) {
+    match dialog::show_error(title, error_message) {
         Ok(()) => {}
         Err(err) => {
             error!("error showing show_error: {:?}", err);
         }
     };
-
-    if let Some(close_context) = close_context {
-        info!("sending close to run context thread");
-        let mut guard = close_context.lock().unwrap();
-        guard.thread_command = Some(run_context::ThreadCommand::Stop);
-        std::mem::drop(guard);
-    }
-
-    context_thread.join().unwrap();
 
     Ok(())
 }
@@ -397,7 +361,7 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
 
     let app_id = args[0];
     package::update_packages_json().unwrap();
-    package::download_all(app_id.to_string(), None)?;
+    package::download_all(app_id.to_string())?;
 
     Ok(())
 }
