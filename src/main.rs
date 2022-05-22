@@ -159,7 +159,7 @@ fn run(args: &[&str]) -> io::Result<json::JsonValue> {
             }
         }
         Err(err) => {
-            println!("SteamDeck env not found: {}", err);
+            debug!("SteamDeck env not found: {}", err);
         }
     }
 
