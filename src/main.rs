@@ -20,7 +20,7 @@ use crate::package::place_state_file;
 
 extern crate log;
 extern crate simplelog;
-use log::{error, info};
+use log::{debug, error, info};
 use simplelog::*;
 
 static STEAM_DECK_ENV: &str = "SteamDeck";

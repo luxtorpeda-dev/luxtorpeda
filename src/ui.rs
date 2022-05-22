@@ -1,5 +1,6 @@
 use crate::user_env;
-use log::{error, info};
+use log::{debug, error, info};
+use std::env;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs;
@@ -13,6 +14,7 @@ use egui_sdl2_gl as egui_backend;
 use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
+use crate::LUX_STEAM_DECK;
 
 const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
