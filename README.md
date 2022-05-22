@@ -110,14 +110,14 @@ When a prompt appears from the client, it will accept input from controllers, ke
     * Xbox One Controller
     * PS4 Controller (PS5 Controller should work and use PS4 icons)
     * Switch Pro Controller (Will show icons)
-    * Steam Controller - Relies on the steam input settings. If gamepad is set, then will show controller icons and work as a controller. Otherwise, will act as a keyboard and mouse.
+    * Steam Controller - Relies on the steam input settings. If steam input for the game is set as a gamepad, then will show controller icons and work as a controller. Otherwise, the steam controller will act as a keyboard and mouse.
 
 For using controllers in the engine itself, ensure that Steam Input is enabled, that a gamepad profile has been set, and that the Steam Input controller-specific option has been enabled, such as for Xbox or Playstation controllers.
 
 ### Steam Deck
 
 * Thanks to help with testing from LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
-* The steam deck's controller does not function in the luxtorpeda UI, but you can use the trackpad as a mouse for selections. https://github.com/luxtorpeda-dev/luxtorpeda/issues/130 is to track fixing that in the future.
+* Gamepad support relies on the steam input settings. If steam input for the game is set as a gamepad, then will show controller icons and work as a controller. Otherwise, can use the touchscreen as a mouse.
 
 ## Supported titles
 

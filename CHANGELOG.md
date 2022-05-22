@@ -6,7 +6,8 @@
 
 * Upgrade dependencies and code cleanup.
 * Add logging to file if ```LUX_WRITE_LOGGING=1``` is set. The log will be written to ```~/.local/state/luxtorpeda/luxtorpeda.log```.
-* Remove steam controller direct connection logic, relying on steam input settings instead.
+* Remove steam controller direct connection logic, relying on steam input settings instead. As part of this, supports Steam Deck gamepad controls if gamepad is set for steam input.
+* Detect if running on steam deck and set ```LUX_STEAM_DECK=1``` environment variable.
 
 ### 53.0 (2022-05-09)
 
