@@ -85,7 +85,7 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 - use_controller - If this parameter is set to true, then attempts to access controllers through SDL2. Defaults to true.
 - disable_default_confirm - Disables default engine confirmation dialog. Defaults to false. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.
 
-Logs will be written to file if ```LUX_WRITE_LOGGING=1``` is set. The log file will be located at ```~/.local/cache/luxtorpeda/luxtorpeda.log```.
+Logs will be written to file if ```LUX_WRITE_LOGGING=1``` is set. The log file will be located at ```~/.local/state/luxtorpeda/luxtorpeda.log```.
 
 ## User Packages Override
 

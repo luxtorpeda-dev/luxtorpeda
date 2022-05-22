@@ -16,7 +16,7 @@ mod mgmt;
 mod package;
 mod ui;
 mod user_env;
-use crate::package::place_log_file;
+use crate::package::place_state_file;
 
 extern crate log;
 extern crate simplelog;
@@ -416,7 +416,7 @@ fn main() -> io::Result<()> {
     match env::var(LUX_WRITE_LOGGING) {
         Ok(val) => {
             if val == "1" {
-                match place_log_file("luxtorpeda.log") {
+                match place_state_file("luxtorpeda.log") {
                     Ok(path) => {
                         println!("writing log to {:?}", path);
                         match File::create(path) {
