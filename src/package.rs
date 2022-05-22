@@ -87,10 +87,10 @@ pub fn find_user_packages_file() -> Option<PathBuf> {
     xdg_dirs.find_config_file(path_str)
 }
 
-pub fn place_state_file(file: &str) -> io::Result<PathBuf> {
+pub fn place_log_file(file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}", file);
-    xdg_dirs.place_state_file(path_str)
+    xdg_dirs.place_cache_file(path_str)
 }
 
 #[derive(Serialize, Deserialize, Debug)]
