@@ -151,18 +151,6 @@ fn run(args: &[&str]) -> io::Result<json::JsonValue> {
     info!("working dir: {:?}", env::current_dir());
     info!("tool dir: {:?}", user_env::tool_dir());
 
-    match env::var(STEAM_DECK_ENV) {
-        Ok(val) => {
-            if val == "1" {
-                info!("detected running on steam deck");
-                env::set_var(LUX_STEAM_DECK, "1");
-            }
-        }
-        Err(err) => {
-            debug!("SteamDeck env not found: {}", err);
-        }
-    }
-
     let mut game_info = package::get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
@@ -400,6 +388,18 @@ fn main() -> io::Result<()> {
         }
         Err(_err) => {
             setup_logging(None);
+        }
+    }
+
+    match env::var(STEAM_DECK_ENV) {
+        Ok(val) => {
+            if val == "1" {
+                info!("detected running on steam deck");
+                env::set_var(LUX_STEAM_DECK, "1");
+            }
+        }
+        Err(err) => {
+            debug!("SteamDeck env not found: {}", err);
         }
     }
 
