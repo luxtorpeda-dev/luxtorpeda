@@ -1,4 +1,6 @@
 use crate::user_env;
+use log::{debug, error, info};
+use std::env;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs;
@@ -12,11 +14,7 @@ use egui_sdl2_gl as egui_backend;
 use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
-use image::GenericImageView;
-
-use crate::run_context::RunContext;
-use crate::run_context::SteamControllerEvent;
-use crate::run_context::ThreadCommand;
+use crate::LUX_STEAM_DECK;
 
 const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
@@ -93,7 +91,6 @@ pub struct EguiWindowInstance {
     pub attached_to_controller: bool,
     pub last_requested_action: Option<RequestedAction>,
     pub controller_type: ControllerType,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
     video_subsystem: egui_sdl2_gl::sdl2::VideoSubsystem,
 }
 
@@ -117,37 +114,7 @@ impl EguiWindowInstance {
                 egui_ctx.run(self.egui_state.input.take(), |egui_ctx| {
                     let title = &self.title;
 
-                    if self.sdl2_controller.is_none() {
-                        let context_check = self.context.clone();
-                        if let Some(context) = context_check {
-                            let mut guard = context.lock().unwrap();
-                            if let Some(event) = guard.event {
-                                match event {
-                                    SteamControllerEvent::Connected => {
-                                        self.attached_to_controller = true;
-                                    }
-                                    SteamControllerEvent::Disconnected => {
-                                        self.attached_to_controller = false;
-                                    }
-                                    SteamControllerEvent::RequestedAction(action) => {
-                                        self.last_requested_action = Some(action);
-                                    }
-                                    SteamControllerEvent::Up => {
-                                        if self.enable_nav {
-                                            self.nav_counter_up += 1;
-                                        }
-                                    }
-                                    SteamControllerEvent::Down => {
-                                        if self.enable_nav {
-                                            self.nav_counter_down += 1;
-                                        }
-                                    }
-                                }
-                                guard.event = None;
-                            }
-                            std::mem::drop(guard);
-                        }
-                    } else if self.enable_nav {
+                    if self.sdl2_controller.is_some() && self.enable_nav {
                         let controller = self.sdl2_controller.as_ref().unwrap();
                         let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
                         if axis_value == last_axis_value {
@@ -412,7 +379,6 @@ pub fn start_egui_window(
     window_height: u32,
     window_title: &str,
     enable_nav: bool,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> Result<(EguiWindowInstance, egui::CtxRef), Error> {
     sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
 
@@ -433,40 +399,54 @@ pub fn start_egui_window(
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
 
-    println!("window is on display_index: {:?}", display_index);
-    match video_subsystem.display_dpi(display_index) {
-        Ok(dpi) => {
-            let mut using_dpi = dpi.0;
-
-            if dpi.1 > using_dpi {
-                using_dpi = dpi.1;
-            }
-            if dpi.2 > using_dpi {
-                using_dpi = dpi.2;
-            }
-
-            println!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
-            dpi_scaling = 1.25 / (96_f32 / using_dpi);
-
-            let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
-            let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
-
-            if scaled_width > window_width && scaled_height > window_height {
-                dpi_scaling *= (scaled_width / window_width) as f32;
-                println!(
-                    "using scaled_width: {:?} scaled_height: {:?}",
-                    scaled_width, scaled_height
-                );
-                final_width = scaled_width;
-                final_height = scaled_height;
+    let mut on_steam_deck = false;
+    match env::var(LUX_STEAM_DECK) {
+        Ok(val) => {
+            if val == "1" {
+                on_steam_deck = true;
             }
         }
         Err(err) => {
-            println!("error getting dpi: {:?}", err);
+            debug!("SteamDeck env not found: {}", err);
         }
     }
 
-    println!("using dpi scaling of {}", dpi_scaling);
+    if !on_steam_deck {
+        info!("window is on display_index: {:?}", display_index);
+        match video_subsystem.display_dpi(display_index) {
+            Ok(dpi) => {
+                let mut using_dpi = dpi.0;
+
+                if dpi.1 > using_dpi {
+                    using_dpi = dpi.1;
+                }
+                if dpi.2 > using_dpi {
+                    using_dpi = dpi.2;
+                }
+
+                info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
+                dpi_scaling = 1.25 / (96_f32 / using_dpi);
+
+                let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
+                let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
+
+                if scaled_width > window_width && scaled_height > window_height {
+                    dpi_scaling *= (scaled_width / window_width) as f32;
+                    info!(
+                        "using scaled_width: {:?} scaled_height: {:?}",
+                        scaled_width, scaled_height
+                    );
+                    final_width = scaled_width;
+                    final_height = scaled_height;
+                }
+            }
+            Err(err) => {
+                error!("error getting dpi: {:?}", err);
+            }
+        }
+    }
+
+    info!("using dpi scaling of {}", dpi_scaling);
 
     let mut window = video_subsystem
         .window(window_title, final_width, final_height)
@@ -494,7 +474,6 @@ pub fn start_egui_window(
     event_pump.disable_event(EventType::ControllerAxisMotion);
 
     let mut attached_to_controller = false;
-    let mut try_steam_controller = false;
     let mut controller_type = ControllerType::Xbox;
     let game_controller_subsystem = sdl_context.game_controller().unwrap();
     let mut sdl2_controller = None; //needed for controller connection to stay alive
@@ -504,66 +483,54 @@ pub fn start_egui_window(
     let config_parsed = json::parse(&config_json_str).unwrap();
 
     let mut use_controller = true;
-    let mut use_steam_controller = true;
     if !config_parsed["use_controller"].is_null() {
         use_controller = config_parsed["use_controller"] == true;
-    }
-    if !config_parsed["use_steam_controller"].is_null() {
-        use_steam_controller = config_parsed["use_steam_controller"] == true;
     }
 
     if use_controller {
         match game_controller_subsystem.num_joysticks() {
             Ok(available) => {
-                println!("{} joysticks available", available);
-
-                if available == 0 {
-                    let controller_context = context.clone();
-                    if let Some(controller_context) = controller_context {
-                        let guard = controller_context.lock().unwrap();
-                        if let Some(SteamControllerEvent::Connected) = guard.last_connected_event {
-                            attached_to_controller = true;
-                        }
-                        std::mem::drop(guard);
-                    }
-                }
+                info!("{} joysticks available", available);
 
                 if let Some(found_controller) = (0..available).find_map(|id| {
                     if !game_controller_subsystem.is_game_controller(id) {
-                        println!("{} is not a game controller", id);
+                        error!("{} is not a game controller", id);
                         return None;
                     }
 
-                    println!("Attempting to open controller {}", id);
+                    info!("Attempting to open controller {}", id);
+
+                    let mut ignore_controller = false;
 
                     match game_controller_subsystem.name_for_index(id) {
                         Ok(name) => {
-                            println!("controller name is {}", name);
-                            if name == "Steam Virtual Gamepad" {
-                                try_steam_controller = true;
+                            info!("controller name is {}", name);
+                            if name == "Steam Virtual Gamepad" && !on_steam_deck {
+                                info!("ignorning steam virtual gamepad");
+                                ignore_controller = true;
                             }
                         }
                         Err(err) => {
-                            println!("controller name request failed: {:?}", err);
+                            error!("controller name request failed: {:?}", err);
                         }
                     };
 
-                    if try_steam_controller {
+                    if ignore_controller {
                         return None;
                     }
 
                     match game_controller_subsystem.open(id) {
                         Ok(c) => {
-                            println!("Success: opened \"{}\"", c.name());
+                            info!("Success: opened \"{}\"", c.name());
                             Some(c)
                         }
                         Err(e) => {
-                            println!("failed: {:?}", e);
+                            error!("failed: {:?}", e);
                             None
                         }
                     }
                 }) {
-                    println!(
+                    info!(
                         "Controller connected mapping: {}",
                         found_controller.mapping()
                     );
@@ -572,13 +539,13 @@ pub fn start_egui_window(
                         || found_controller.name().contains("PS4")
                         || found_controller.name().contains("PS5")
                     {
-                        println!("controller assumed to be dualshock");
+                        info!("controller assumed to be dualshock");
                         controller_type = ControllerType::DualShock;
                     } else if found_controller.name().contains("Pro") {
-                        println!("controller assumed to be switch");
+                        info!("controller assumed to be switch");
                         controller_type = ControllerType::Switch;
                     } else {
-                        println!("controller assumed to be xbox");
+                        info!("controller assumed to be xbox");
                     }
 
                     sdl2_controller = Some(found_controller);
@@ -586,25 +553,11 @@ pub fn start_egui_window(
                 }
             }
             Err(err) => {
-                println!("num_joysticks error {}", err);
+                error!("num_joysticks error {}", err);
             }
         }
     } else {
-        println!("controller support disabled");
-    }
-
-    let controller_context = context.clone();
-    if let Some(controller_context) = controller_context {
-        let mut guard = controller_context.lock().unwrap();
-        if try_steam_controller && !attached_to_controller && use_steam_controller {
-            guard.thread_command = Some(ThreadCommand::Connect);
-        } else if sdl2_controller.is_some() || !use_controller || !use_steam_controller {
-            guard.thread_command = Some(ThreadCommand::Stop);
-            if !use_steam_controller {
-                println!("steam controller support disabled");
-            }
-        }
-        std::mem::drop(guard);
+        error!("controller support disabled");
     }
 
     if attached_to_controller {
@@ -635,7 +588,6 @@ pub fn start_egui_window(
             attached_to_controller,
             last_requested_action: None,
             controller_type,
-            context,
             video_subsystem,
         },
         egui_ctx,
@@ -653,13 +605,11 @@ pub fn egui_with_prompts(
     button_text: &str,
     button_message: bool,
     timeout_in_seconds: i8,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> Result<(bool, bool), Error> {
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let (mut window, egui_ctx) =
-        start_egui_window(DEFAULT_WINDOW_W, window_height, title, true, context)?;
+    let (mut window, egui_ctx) = start_egui_window(DEFAULT_WINDOW_W, window_height, title, true)?;
     let mut no = false;
     let mut yes = false;
     let mut last_attached_state = window.attached_to_controller;
@@ -686,7 +636,7 @@ pub fn egui_with_prompts(
         if (!window_instance.attached_to_controller && last_attached_state)
             || (window_instance.attached_to_controller && !last_attached_state)
         {
-            println!("Detected controller change, reloading prompts");
+            info!("Detected controller change, reloading prompts");
             texture_confirm = prompt_image_for_action(RequestedAction::Confirm, window_instance)
                 .unwrap()
                 .0;

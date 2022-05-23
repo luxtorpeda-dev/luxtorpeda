@@ -1,3 +1,4 @@
+use log::{error, info};
 use std::fs;
 use std::io::{Error, ErrorKind};
 
@@ -29,14 +30,14 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
         Err(err) => {
-            println!("read err: {:?}", err);
+            error!("read err: {:?}", err);
             return Err(Error::new(ErrorKind::Other, "read err"));
         }
     };
     let parsed = match json::parse(&json_str) {
         Ok(j) => j,
         Err(err) => {
-            println!("parsing err: {:?}", err);
+            error!("parsing err: {:?}", err);
             return Err(Error::new(ErrorKind::Other, "parsing err"));
         }
     };
@@ -135,16 +136,16 @@ fn detect_mgmt(arc: std::sync::Arc<std::sync::Mutex<MgmtState>>) -> Result<(), E
 }
 
 fn clear_config(mgmt_item: &mut MgmtItem) {
-    println!("clear_config for: {:?}", &mgmt_item);
+    info!("clear_config for: {:?}", &mgmt_item);
 
     let config_path = path_to_config();
     let folder_path = config_path.join(&mgmt_item.id);
     match fs::remove_dir_all(folder_path) {
         Ok(()) => {
-            println!("clear_config done");
+            info!("clear_config done");
         }
         Err(err) => {
-            println!("clear_config. err: {:?}", err);
+            error!("clear_config. err: {:?}", err);
         }
     }
 
@@ -152,16 +153,16 @@ fn clear_config(mgmt_item: &mut MgmtItem) {
 }
 
 fn clear_cache(mgmt_item: &mut MgmtItem) {
-    println!("clear_cache for: {:?}", &mgmt_item);
+    info!("clear_cache for: {:?}", &mgmt_item);
 
     let cache_path = path_to_cache();
     let folder_path = cache_path.join(&mgmt_item.id);
     match fs::remove_dir_all(folder_path) {
         Ok(()) => {
-            println!("clear_cache done");
+            info!("clear_cache done");
         }
         Err(err) => {
-            println!("clear_cache. err: {:?}", err);
+            error!("clear_cache. err: {:?}", err);
         }
     }
 
@@ -184,13 +185,13 @@ pub fn run_mgmt() -> Result<(), Error> {
     match detect_mgmt(detect_arc) {
         Ok(()) => {}
         Err(err) => {
-            println!("run_mgmt detect_mgmt error: {}", err);
+            error!("run_mgmt detect_mgmt error: {}", err);
             return Err(Error::new(ErrorKind::Other, "detect_mgmt failed"));
         }
     };
 
     let title = &std::format!("luxtorpeda-dev {0}", env!("CARGO_PKG_VERSION"));
-    let (mut window, egui_ctx) = start_egui_window(1024, 768, title, true, None)?;
+    let (mut window, egui_ctx) = start_egui_window(1024, 768, title, true)?;
     let (texture_back, ..) = prompt_image_for_action(RequestedAction::Back, &mut window).unwrap();
     let (texture_confirm, ..) =
         prompt_image_for_action(RequestedAction::Confirm, &mut window).unwrap();
@@ -202,14 +203,14 @@ pub fn run_mgmt() -> Result<(), Error> {
 
     window.start_egui_loop(egui_ctx, |(window_instance, egui_ctx)| {
         if reload_needed {
-            println!("run_mgmt detect_mgmt reload");
+            info!("run_mgmt detect_mgmt reload");
             let detect_loop_arc = arc.clone();
             match detect_mgmt(detect_loop_arc) {
                 Ok(()) => {
                     current_choice_index = 0;
                 }
                 Err(err) => {
-                    println!("run_mgmt detect_mgmt error: {}", err);
+                    error!("run_mgmt detect_mgmt error: {}", err);
                 }
             };
             reload_needed = false;

@@ -7,6 +7,7 @@ extern crate xz2;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use futures_util::StreamExt;
+use log::{error, info};
 use regex::Regex;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -31,7 +32,6 @@ use crate::dialog::show_error;
 use crate::dialog::show_question;
 use crate::dialog::start_progress;
 use crate::dialog::ProgressState;
-use crate::run_context::RunContext;
 use crate::user_env;
 
 extern crate steamlocate;
@@ -87,6 +87,12 @@ pub fn find_user_packages_file() -> Option<PathBuf> {
     xdg_dirs.find_config_file(path_str)
 }
 
+pub fn place_state_file(file: &str) -> io::Result<PathBuf> {
+    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
+    let path_str = format!("luxtorpeda/{}", file);
+    xdg_dirs.place_state_file(path_str)
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CmdReplacement {
     #[serde(with = "serde_regex")]
@@ -118,7 +124,7 @@ pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
     let remote_hash_response = match reqwest::blocking::get(remote_hash_url) {
         Ok(s) => s,
         Err(err) => {
-            println!("get_remote_packages_hash error in get: {:?}", err);
+            error!("get_remote_packages_hash error in get: {:?}", err);
             return None;
         }
     };
@@ -126,7 +132,7 @@ pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
     let remote_hash_str = match remote_hash_response.text() {
         Ok(s) => s,
         Err(err) => {
-            println!("get_remote_packages_hash error in text: {:?}", err);
+            error!("get_remote_packages_hash error in text: {:?}", err);
             return None;
         }
     };
@@ -165,7 +171,7 @@ pub fn update_packages_json() -> io::Result<()> {
             remote_hash_str = tmp_hash_str;
         }
         None => {
-            println!("update_packages_json in get_remote_packages_hash call. received none");
+            info!("update_packages_json in get_remote_packages_hash call. received none");
             should_download = false;
         }
     }
@@ -173,20 +179,20 @@ pub fn update_packages_json() -> io::Result<()> {
     if should_download {
         if !Path::new(&packages_json_file).exists() {
             should_download = true;
-            println!(
+            info!(
                 "update_packages_json. {:?} does not exist",
                 packages_json_file
             );
         } else {
             let hash_str = generate_hash_from_file_path(&packages_json_file)?;
-            println!("update_packages_json. found hash: {}", hash_str);
+            info!("update_packages_json. found hash: {}", hash_str);
 
-            println!(
+            info!(
                 "update_packages_json. found hash and remote hash: {0} {1}",
                 hash_str, remote_hash_str
             );
             if hash_str != remote_hash_str {
-                println!("update_packages_json. hash does not match. downloading");
+                info!("update_packages_json. hash does not match. downloading");
                 should_download = true;
             } else {
                 should_download = false;
@@ -195,7 +201,7 @@ pub fn update_packages_json() -> io::Result<()> {
     }
 
     if should_download {
-        println!("update_packages_json. downloading new {}.json", remote_path);
+        info!("update_packages_json. downloading new {}.json", remote_path);
 
         let remote_packages_url =
             std::format!("{0}/{1}.json", &config_parsed["host_url"], remote_path);
@@ -210,17 +216,17 @@ pub fn update_packages_json() -> io::Result<()> {
                 download_complete = true;
             }
             Err(err) => {
-                println!("update_packages_json. download err: {:?}", err);
+                error!("update_packages_json. download err: {:?}", err);
             }
         }
 
         if download_complete {
             let new_hash_str = generate_hash_from_file_path(&local_packages_temp_path)?;
             if new_hash_str == remote_hash_str {
-                println!("update_packages_json. new downloaded hash matches");
+                info!("update_packages_json. new downloaded hash matches");
                 fs::rename(local_packages_temp_path, packages_json_file)?;
             } else {
-                println!("update_packages_json. new downloaded hash does not match");
+                info!("update_packages_json. new downloaded hash does not match");
                 fs::remove_file(local_packages_temp_path)?;
             }
         }
@@ -253,16 +259,12 @@ fn convert_notice_to_str(notice_item: &json::JsonValue, notice_map: &json::JsonV
     notice
 }
 
-fn pick_engine_choice(
-    app_id: &str,
-    game_info: &json::JsonValue,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<String> {
+fn pick_engine_choice(app_id: &str, game_info: &json::JsonValue) -> io::Result<String> {
     let check_default_choice_file_path = place_config_file(app_id, "default_engine_choice.txt")?;
     if check_default_choice_file_path.exists() {
-        println!("show choice. found default choice.");
+        info!("show choice. found default choice.");
         let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
-        println!(
+        info!(
             "show choice. found default choice. choice is {:?}",
             default_engine_choice_str
         );
@@ -276,7 +278,7 @@ fn pick_engine_choice(
         if !config_parsed["disable_default_confirm"].is_null() {
             let disable_default_confirm = &config_parsed["disable_default_confirm"];
             if disable_default_confirm == true {
-                println!("show choice. disabling default confirm because of config");
+                info!("show choice. disabling default confirm because of config");
                 should_show_confirm = false;
             }
         }
@@ -284,25 +286,23 @@ fn pick_engine_choice(
         match env::var(LUX_DISABLE_DEFAULT_CONFIRM) {
             Ok(val) => {
                 if val == "1" {
-                    println!("show choice. disabling default confirm because of env");
+                    info!("show choice. disabling default confirm because of env");
                     should_show_confirm = false;
                 } else if val == "0" {
-                    println!("show choice. enabling default confirm because of env");
+                    info!("show choice. enabling default confirm because of env");
                     should_show_confirm = true;
                 }
             }
             Err(err) => {
-                println!("LUX_DISABLE_DEFAULT_CONFIRM not found: {}", err);
+                info!("LUX_DISABLE_DEFAULT_CONFIRM not found: {}", err);
             }
         }
 
         let mut use_default = true;
-        let default_confirmation_context = context.clone();
         if should_show_confirm {
             if let Some(()) = default_choice_confirmation_prompt(
                 "Default Choice Confirmation",
                 &default_engine_choice_str,
-                default_confirmation_context,
             ) {
                 use_default = false;
 
@@ -310,10 +310,10 @@ fn pick_engine_choice(
                 let folder_path = config_path.join(&app_id);
                 match fs::remove_dir_all(folder_path) {
                     Ok(()) => {
-                        println!("clear config done");
+                        info!("clear config done");
                     }
                     Err(err) => {
-                        println!("clear config. err: {:?}", err);
+                        error!("clear config. err: {:?}", err);
                     }
                 }
             };
@@ -423,18 +423,18 @@ fn pick_engine_choice(
     }
 
     let (choice_name, default_choice) =
-        match show_choices("Pick the engine below", "Select Engine", &choices, context) {
+        match show_choices("Pick the engine below", "Select Engine", &choices) {
             Ok(s) => s,
             Err(_) => {
-                println!("show choice. dialog was rejected");
+                error!("show choice. dialog was rejected");
                 return Err(Error::new(ErrorKind::Other, "Show choices failed"));
             }
         };
 
-    println!("engine choice: {:?}", choice_name);
+    info!("engine choice: {:?}", choice_name);
 
     if !default_choice.is_empty() {
-        println!("default engine choice requested for {}", default_choice);
+        info!("default engine choice requested for {}", default_choice);
         let default_choice_file_path = place_config_file(app_id, "default_engine_choice.txt")?;
         let mut default_choice_file = File::create(default_choice_file_path)?;
         default_choice_file.write_all(default_choice.as_bytes())?;
@@ -517,7 +517,7 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
         }
 
         if find_cached_file(cache_dir, file.as_str()).is_some() {
-            println!("{} found in cache (skip)", file);
+            info!("{} found in cache (skip)", file);
             continue;
         }
 
@@ -531,22 +531,16 @@ fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Ve
     Ok(downloads)
 }
 
-pub fn download_all(
-    app_id: String,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<String> {
-    let game_info_context = context.clone();
-    let mut game_info = get_game_info(app_id.as_str(), game_info_context)
+pub fn download_all(app_id: String) -> io::Result<String> {
+    let mut game_info = get_game_info(app_id.as_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
     let mut engine_choice = String::new();
 
     if !game_info["choices"].is_null() {
-        println!("showing engine choices");
+        info!("showing engine choices");
 
-        let engine_choice_context = context.clone();
-        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info, engine_choice_context)
-        {
+        engine_choice = match pick_engine_choice(app_id.as_str(), &game_info) {
             Ok(s) => s,
             Err(err) => {
                 return Err(err);
@@ -555,7 +549,7 @@ pub fn download_all(
 
         match convert_game_info_with_choice(engine_choice.clone(), &mut game_info) {
             Ok(()) => {
-                println!("engine choice complete");
+                info!("engine choice complete");
             }
             Err(err) => {
                 return Err(err);
@@ -566,16 +560,16 @@ pub fn download_all(
     if !game_info["app_ids_deps"].is_null() {
         match get_app_id_deps_paths(&game_info["app_ids_deps"]) {
             Some(()) => {
-                println!("download_all. get_app_id_deps_paths completed");
+                info!("download_all. get_app_id_deps_paths completed");
             }
             None => {
-                println!("download_all. warning: get_app_id_deps_paths not completed");
+                info!("download_all. warning: get_app_id_deps_paths not completed");
             }
         }
     }
 
     if game_info["download"].is_null() {
-        println!("skipping downloads (no urls defined for this package)");
+        info!("skipping downloads (no urls defined for this package)");
         return Ok(engine_choice);
     }
 
@@ -599,13 +593,12 @@ pub fn download_all(
     }
 
     if !dialog_message.is_empty() {
-        let question_context = context.clone();
-        match show_question("License Warning", &dialog_message, question_context) {
+        match show_question("License Warning", &dialog_message) {
             Some(_) => {
-                println!("show license warning. dialog was accepted");
+                info!("show license warning. dialog was accepted");
             }
             None => {
-                println!("show license warning. dialog was rejected");
+                info!("show license warning. dialog was rejected");
                 return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
             }
         };
@@ -629,7 +622,7 @@ pub fn download_all(
 
         for (i, info) in downloads.iter().enumerate() {
             let app_id = app_id.to_string();
-            println!("starting download on: {} {}", i, info.name.clone());
+            info!("starting download on: {} {}", i, info.name.clone());
 
             let status_arc = loop_arc.clone();
             let mut guard = status_arc.lock().unwrap();
@@ -652,7 +645,7 @@ pub fn download_all(
             )) {
                 Ok(_) => {}
                 Err(ref err) => {
-                    println!("download of {} error: {}", info.name.clone(), err);
+                    error!("download of {} error: {}", info.name.clone(), err);
                     let mut guard = download_err_arc.lock().unwrap();
                     guard.close = true;
                     guard.error = true;
@@ -678,9 +671,9 @@ pub fn download_all(
             let error_check_arc = loop_arc.clone();
             let guard = error_check_arc.lock().unwrap();
             if !guard.error {
-                println!("completed download on: {} {}", i, info.name.clone());
+                info!("completed download on: {} {}", i, info.name.clone());
             } else {
-                println!("failed download on: {} {}", i, info.name.clone());
+                error!("failed download on: {} {}", i, info.name.clone());
                 std::mem::drop(guard);
                 break;
             }
@@ -695,11 +688,10 @@ pub fn download_all(
         std::mem::drop(guard);
     });
 
-    let start_progress_context = context.clone();
-    match start_progress(progress_arc, start_progress_context) {
+    match start_progress(progress_arc) {
         Ok(()) => {}
         Err(_) => {
-            println!("download_all. warning: progress not started");
+            error!("download_all. warning: progress not started");
         }
     };
 
@@ -710,7 +702,7 @@ pub fn download_all(
             .join()
             .expect("The download thread has panicked");
         if !guard.error_str.is_empty() {
-            show_error("Download Error", &guard.error_str, context).unwrap();
+            show_error("Download Error", &guard.error_str).unwrap();
         }
         return Err(Error::new(ErrorKind::Other, "Download failed"));
     }
@@ -748,7 +740,7 @@ async fn download(
         cache_dir = &info.name;
     }
 
-    println!("download target: {:?}", target);
+    info!("download target: {:?}", target);
 
     let res = client.get(&target).send().await.or(Err(Error::new(
         ErrorKind::Other,
@@ -781,7 +773,7 @@ async fn download(
         let percentage = ((downloaded as f64 / total_size as f64) * 100_f64) as i64;
 
         if percentage != total_percentage {
-            println!(
+            info!(
                 "download {}%: {} out of {}",
                 percentage, downloaded, total_size
             );
@@ -814,7 +806,7 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io
         }
     };
 
-    eprintln!("installing: {}", package_name);
+    info!("installing: {}", package_name);
 
     let mut extract_location: String = String::new();
     let mut strip_prefix: String = String::new();
@@ -826,20 +818,20 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io
         let file_download_config = &game_info["download_config"][&name.to_string()];
         if !file_download_config["extract_location"].is_null() {
             extract_location = file_download_config["extract_location"].to_string();
-            println!(
+            info!(
                 "install changing extract location with config {}",
                 extract_location
             );
         }
         if !file_download_config["strip_prefix"].is_null() {
             strip_prefix = file_download_config["strip_prefix"].to_string();
-            println!("install changing prefix with config {}", strip_prefix);
+            info!("install changing prefix with config {}", strip_prefix);
         }
         if !file_download_config["decode_as_zip"].is_null()
             && file_download_config["decode_as_zip"] == true
         {
             decode_as_zip = true;
-            println!("install changing decoder to zip");
+            info!("install changing decoder to zip");
         }
     }
 
@@ -864,7 +856,7 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            println!("install: {:?}", &new_path);
+            info!("install: {:?}", &new_path);
 
             if new_path.parent().is_some() {
                 fs::create_dir_all(new_path.parent().unwrap())?;
@@ -907,7 +899,7 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            println!("install: {:?}", &new_path);
+            info!("install: {:?}", &new_path);
             if new_path.parent().is_some() {
                 fs::create_dir_all(new_path.parent().unwrap())?;
             }
@@ -925,7 +917,7 @@ fn copy_only(path: &Path) -> io::Result<()> {
         .and_then(|x| x.to_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
-    eprintln!("copying: {}", package_name);
+    info!("copying: {}", package_name);
     fs::copy(path, package_name)?;
 
     Ok(())
@@ -936,10 +928,7 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     setup_complete
 }
 
-pub fn install(
-    game_info: &json::JsonValue,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> io::Result<()> {
+pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"].members();
@@ -985,7 +974,6 @@ pub fn install(
                             show_error(
                                 "Unpack Error",
                                 &std::format!("Error unpacking {}: {}", &file, &err),
-                                context,
                             )?;
                             return Err(err);
                         }
@@ -993,7 +981,7 @@ pub fn install(
                 }
             }
             None => {
-                show_error("Run Error", "Package file not found", context)?;
+                show_error("Run Error", "Package file not found")?;
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
             }
         }
@@ -1001,22 +989,19 @@ pub fn install(
     Ok(())
 }
 
-pub fn get_game_info(
-    app_id: &str,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
-) -> Option<json::JsonValue> {
+pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
     let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
         Err(err) => {
-            println!("read err: {:?}", err);
+            info!("read err: {:?}", err);
             return None;
         }
     };
     let parsed = match json::parse(&json_str) {
         Ok(j) => j,
         Err(err) => {
-            println!("parsing err: {:?}", err);
+            info!("parsing err: {:?}", err);
             return None;
         }
     };
@@ -1024,14 +1009,14 @@ pub fn get_game_info(
 
     match find_user_packages_file() {
         Some(user_packages_file) => {
-            println!("{:?}", user_packages_file);
+            info!("{:?}", user_packages_file);
 
             let user_json_str = match fs::read_to_string(user_packages_file) {
                 Ok(s) => s,
                 Err(err) => {
                     let error_message = std::format!("user-packages.json read err: {:?}", err);
-                    println!("{:?}", error_message);
-                    match show_error("User Packages Error", &error_message, context) {
+                    error!("{:?}", error_message);
+                    match show_error("User Packages Error", &error_message) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }
@@ -1043,8 +1028,8 @@ pub fn get_game_info(
                 Ok(j) => j,
                 Err(err) => {
                     let error_message = std::format!("user-packages.json parsing err: {:?}", err);
-                    println!("{:?}", error_message);
-                    match show_error("User Packages Error", &error_message, context) {
+                    error!("{:?}", error_message);
+                    match show_error("User Packages Error", &error_message) {
                         Ok(s) => s,
                         Err(_err) => {}
                     }
@@ -1059,22 +1044,22 @@ pub fn get_game_info(
                         || (!user_parsed["override_all_with_user_default"].is_null()
                             && user_parsed["override_all_with_user_default"] == true))
                 {
-                    println!("game info using user default");
+                    info!("game info using user default");
                     return Some(user_parsed["default"].clone());
                 }
             } else {
-                println!("user_packages_file used for game_info");
+                info!("user_packages_file used for game_info");
                 return Some(user_game_info);
             }
         }
         None => {
-            println!("user_packages_file not found");
+            info!("user_packages_file not found");
         }
     };
 
     if game_info.is_null() {
         if !parsed["default"].is_null() {
-            println!("game info using default");
+            info!("game info using default");
             Some(parsed["default"].clone())
         } else {
             None
@@ -1089,14 +1074,14 @@ pub fn get_engines_info() -> Option<(json::JsonValue, json::JsonValue)> {
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
         Err(err) => {
-            println!("read err: {:?}", err);
+            error!("read err: {:?}", err);
             return None;
         }
     };
     let parsed = match json::parse(&json_str) {
         Ok(j) => j,
         Err(err) => {
-            println!("parsing err: {:?}", err);
+            error!("parsing err: {:?}", err);
             return None;
         }
     };
@@ -1116,7 +1101,7 @@ pub fn get_game_info_with_json(app_id: &str, parsed: &json::JsonValue) -> Option
             Ok(s) => s,
             Err(err) => {
                 let error_message = std::format!("user-packages.json read err: {:?}", err);
-                println!("{:?}", error_message);
+                error!("{:?}", error_message);
                 return None;
             }
         };
@@ -1125,7 +1110,7 @@ pub fn get_game_info_with_json(app_id: &str, parsed: &json::JsonValue) -> Option
             Ok(j) => j,
             Err(err) => {
                 let error_message = std::format!("user-packages.json parsing err: {:?}", err);
-                println!("{:?}", error_message);
+                error!("{:?}", error_message);
                 return None;
             }
         };
@@ -1151,7 +1136,7 @@ pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
     match SteamDir::locate() {
         Some(mut steamdir) => {
             for entry in deps.members() {
-                println!("get_app_id_deps_paths. searching for app id {}.", entry);
+                info!("get_app_id_deps_paths. searching for app id {}.", entry);
                 let app_id = entry.as_u32()?;
 
                 match steamdir.app(&app_id) {
@@ -1159,7 +1144,7 @@ pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
                         let app_location_path = app_location.path.clone();
                         let app_location_str =
                             &app_location_path.into_os_string().into_string().unwrap();
-                        println!(
+                        info!(
                             "get_app_id_deps_paths. app id {} found at {:#?}.",
                             app_id, app_location_str
                         );
@@ -1169,7 +1154,7 @@ pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
                         );
                     }
                     None => {
-                        println!("get_app_id_deps_paths. app id {} not found.", app_id);
+                        info!("get_app_id_deps_paths. app id {} not found.", app_id);
                     }
                 }
             }
@@ -1177,7 +1162,7 @@ pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
             Some(())
         }
         None => {
-            println!("get_app_id_deps_paths. steamdir not found.");
+            info!("get_app_id_deps_paths. steamdir not found.");
             None
         }
     }

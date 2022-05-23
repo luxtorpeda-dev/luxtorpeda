@@ -25,7 +25,7 @@ additional dependencies.
 3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ tar xJf luxtorpeda-53.tar.xz
+        $ tar xJf luxtorpeda-54.tar.xz
 
 4. Start Steam.
 5. In game properties window select "Force the use of a specific Steam Play
@@ -68,6 +68,14 @@ Arch
 4. In game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda&nbsp;(dev)".
 
+## Development on Steam Deck
+
+* Open desktop mode and download the luxtorpeda repo to a directory on the deck.
+* Install flatpak org.freedesktop.Sdk/21.08 (should have glibc 2.33, as of current steam deck glibc version).
+* Run the following: ```flatpak run --command=bash -d --filesystem=home --share=network org.freedesktop.Sdk//21.08```
+* Install rustup: ```curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh```
+* Go into the luxtorpeda directory and run ```cargo build```. Then copy ```target/debug/luxtorpeda``` into the correct directory.
+
 ## Configuration
 
 A configuration json file named `config.json` will be located in the luxtorpeda directory. It has the following parameters:
@@ -75,8 +83,9 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
 - use_controller - If this parameter is set to true, then attempts to access controllers through SDL2. Defaults to true.
-- use_steam_controller - If this parameter is set to true, then attempts to connect to steam controller through USB interface. Defaults to true. If false, can interact with UI through normal steam controller desktop emulation.
 - disable_default_confirm - Disables default engine confirmation dialog. Defaults to false. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.
+
+Logs will be written to file if ```LUX_WRITE_LOGGING=1``` is set. The log file will be located at ```~/.local/state/luxtorpeda/luxtorpeda.log```.
 
 ## User Packages Override
 
@@ -101,17 +110,14 @@ When a prompt appears from the client, it will accept input from controllers, ke
     * Xbox One Controller
     * PS4 Controller (PS5 Controller should work and use PS4 icons)
     * Switch Pro Controller (Will show icons)
-    * Steam Controller (Direct USB connection and through dongle)
-        * If a steam controller is detected, then a special interface is setup that connects to the steam controller directly, via the USB signals. This is because normal behavior is to emulate a keyboard and mouse and would not be possible to detect input the normal way.
-        * This is best done inside Steam Big Picture mode, as the client uses the existence of the "Steam Virtual Gamepad" controller to detect if a steam controller is there.
-        * When using the steam controller, the client is taking over control of the controller for the short time the client is running. Once the client is finished, it will release control and Steam should then re-connect to it.
+    * Steam Controller - The Steam Ccontroller will act as a keyboard and mouse, like in desktop mode.
 
 For using controllers in the engine itself, ensure that Steam Input is enabled, that a gamepad profile has been set, and that the Steam Input controller-specific option has been enabled, such as for Xbox or Playstation controllers.
 
 ### Steam Deck
 
 * Thanks to help with testing from LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
-* The steam deck's controller does not function in the luxtorpeda UI, but you can use the trackpad as a mouse for selections. https://github.com/luxtorpeda-dev/luxtorpeda/issues/130 is to track fixing that in the future.
+* Gamepad support relies on the steam input settings. If steam input for the game is set as a gamepad, then will show controller icons and work as a controller. Otherwise, can use the touchscreen as a mouse.
 
 ## Supported titles
 
