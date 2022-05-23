@@ -24,6 +24,8 @@ use log::{debug, error, info};
 use simplelog::*;
 
 static STEAM_DECK_ENV: &str = "SteamDeck";
+static USER_ENV: &str = "USER";
+static STEAM_DECK_USER: &str = "deck";
 static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
 static LD_PRELOAD: &str = "LD_PRELOAD";
 static LUX_ERRORS_SUPPORTED: &str = "LUX_ERRORS_SUPPORTED";
@@ -391,16 +393,35 @@ fn main() -> io::Result<()> {
         }
     }
 
+    let mut on_steam_deck = false;
+
     match env::var(STEAM_DECK_ENV) {
         Ok(val) => {
             if val == "1" {
-                info!("detected running on steam deck");
-                env::set_var(LUX_STEAM_DECK, "1");
+                on_steam_deck = true;
             }
         }
         Err(err) => {
             debug!("SteamDeck env not found: {}", err);
         }
+    }
+
+    if !on_steam_deck {
+        match env::var(USER_ENV) {
+            Ok(val) => {
+                if val == STEAM_DECK_USER {
+                    on_steam_deck = true;
+                }
+            }
+            Err(err) => {
+                debug!("USER env not found: {}", err);
+            }
+        }
+    }
+
+    if on_steam_deck {
+        info!("detected running on steam deck");
+        env::set_var(LUX_STEAM_DECK, "1");
     }
 
     let cmd = args[1];
