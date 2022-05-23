@@ -500,14 +500,24 @@ pub fn start_egui_window(
 
                     info!("Attempting to open controller {}", id);
 
+                    let mut ignore_controller = false;
+
                     match game_controller_subsystem.name_for_index(id) {
                         Ok(name) => {
                             info!("controller name is {}", name);
+                            if name == "Steam Virtual Gamepad" && !on_steam_deck {
+                                info!("ignorning steam virtual gamepad");
+                                ignore_controller = true;
+                            }
                         }
                         Err(err) => {
                             error!("controller name request failed: {:?}", err);
                         }
                     };
+
+                    if ignore_controller {
+                        return None;
+                    }
 
                     match game_controller_subsystem.open(id) {
                         Ok(c) => {
