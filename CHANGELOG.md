@@ -6,7 +6,8 @@
 
 * Upgrade dependencies and code cleanup.
 * Add logging to file if ```LUX_WRITE_LOGGING=1``` is set. The log will be written to ```~/.local/state/luxtorpeda/luxtorpeda.log```.
-* Remove Steam Controller direct connection logic, relying on steam input instead. Steam Controller will still work in keyboard/mouse simulation mode. As part of this, added support for Steam Deck gamepad controls if gamepad is set for steam input.
+* Remove Steam Controller direct connection logic, relying on steam input instead. Steam Controller will still work in keyboard/mouse simulation mode. This makes it easier to maintain along with the steam deck support.
+* Added support for Steam Deck gamepad controls. Gamepad support relies on the steam input settings. If steam input for the game is set as a gamepad, then will show controller icons and work as a controller. Otherwise, can use the touchscreen as a mouse.
 * Detect if running on steam deck and set ```LUX_STEAM_DECK=1``` environment variable.
 
 ### 53.0 (2022-05-09)
