@@ -110,7 +110,7 @@ When a prompt appears from the client, it will accept input from controllers, ke
     * Xbox One Controller
     * PS4 Controller (PS5 Controller should work and use PS4 icons)
     * Switch Pro Controller (Will show icons)
-    * Steam Controller - The Steam Ccontroller will act as a keyboard and mouse, like in desktop mode.
+    * Steam Controller - The Steam Controller will act as a keyboard and mouse, like in desktop mode.
 
 For using controllers in the engine itself, ensure that Steam Input is enabled, that a gamepad profile has been set, and that the Steam Input controller-specific option has been enabled, such as for Xbox or Playstation controllers.
 
