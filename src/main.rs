@@ -24,6 +24,7 @@ use log::{debug, error, info};
 use simplelog::*;
 
 static STEAM_DECK_ENV: &str = "SteamDeck";
+static STEAM_OS_ENV: &str = "SteamOS";
 static USER_ENV: &str = "USER";
 static STEAM_DECK_USER: &str = "deck";
 static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
@@ -33,6 +34,7 @@ static LUX_ORIGINAL_EXE: &str = "LUX_ORIGINAL_EXE";
 static LUX_ORIGINAL_EXE_FILE: &str = "LUX_ORIGINAL_EXE_FILE";
 static LUX_WRITE_LOGGING: &str = "LUX_WRITE_LOGGING";
 static LUX_STEAM_DECK: &str = "LUX_STEAM_DECK";
+static LUX_STEAM_DECK_GAMING_MODE: &str = "LUX_STEAM_DECK_GAMING_MODE";
 
 fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -422,6 +424,18 @@ fn main() -> io::Result<()> {
     if on_steam_deck {
         info!("detected running on steam deck");
         env::set_var(LUX_STEAM_DECK, "1");
+
+        match env::var(STEAM_OS_ENV) {
+            Ok(val) => {
+                if val == "1" {
+                    info!("detected running on steam deck gaming mode");
+                    env::set_var(LUX_STEAM_DECK_GAMING_MODE, "1");
+                }
+            }
+            Err(err) => {
+                debug!("STEAM_OS_ENV env not found: {}", err);
+            }
+        }
     }
 
     let cmd = args[1];

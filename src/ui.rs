@@ -15,7 +15,7 @@ use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
 use crate::LUX_STEAM_DECK;
-use crate::STEAM_DECK_ENV;
+use crate::LUX_STEAM_DECK_GAMING_MODE;
 
 const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
@@ -401,12 +401,11 @@ pub fn start_egui_window(
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
 
     let mut on_steam_deck = false;
-    let mut steam_deck_gaming_mode = false;
+    let mut steam_deck_gaming_mode = true;
     match env::var(LUX_STEAM_DECK) {
         Ok(val) => {
             if val == "1" {
                 on_steam_deck = true;
-                steam_deck_gaming_mode = true;
             }
         }
         Err(err) => {
@@ -414,14 +413,14 @@ pub fn start_egui_window(
         }
     }
 
-    match env::var(STEAM_DECK_ENV) {
+    match env::var(LUX_STEAM_DECK_GAMING_MODE) {
         Ok(val) => {
-            if val == "0" {
+            if val != "1" {
                 steam_deck_gaming_mode = false;
             }
         }
         Err(err) => {
-            debug!("SteamDeck env not found: {}", err);
+            debug!("LUX_STEAM_DECK_GAMING_MODE env not found: {}", err);
             steam_deck_gaming_mode = false;
         }
     }
