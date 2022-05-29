@@ -37,6 +37,11 @@ const PROMPT_KEYBOARD_ENTER: &[u8] = include_bytes!("../res/prompts/Enter_Key_Da
 const PROMPT_KEYBOARD_ESC: &[u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
 const PROMPT_KEYBOARD_CTRL: &[u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
 
+const PROMPT_CONTROLLER_STEAM_DECK_Y: &[u8] = include_bytes!("../res/prompts/SteamDeck_Y.png");
+const PROMPT_CONTROLLER_STEAM_DECK_A: &[u8] = include_bytes!("../res/prompts/SteamDeck_A.png");
+const PROMPT_CONTROLLER_STEAM_DECK_X: &[u8] = include_bytes!("../res/prompts/SteamDeck_X.png");
+const PROMPT_CONTROLLER_STEAM_DECK_B: &[u8] = include_bytes!("../res/prompts/SteamDeck_B.png");
+
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
 pub const DEFAULT_DPI: u32 = 120;
@@ -64,6 +69,9 @@ impl Display for ControllerType {
             ControllerType::Switch => {
                 write!(f, "Switch")
             }
+            ControllerType::SteamDeck => {
+                write!(f, "SteamDeck")
+            }
         }
     }
 }
@@ -73,6 +81,7 @@ pub enum ControllerType {
     Xbox,
     DualShock,
     Switch,
+    SteamDeck,
 }
 
 pub struct EguiWindowInstance {
@@ -566,6 +575,9 @@ pub fn start_egui_window(
                     } else if found_controller.name().contains("Pro") {
                         info!("controller assumed to be switch");
                         controller_type = ControllerType::Switch;
+                    } else if found_controller.name() == "Steam Virtual Gamepad" && on_steam_deck {
+                        info!("controller assumed to be steam deck");
+                        controller_type = ControllerType::SteamDeck;
                     } else {
                         info!("controller assumed to be xbox");
                     }
@@ -834,6 +846,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_A;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_A;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_A;
                 } else {
                     image = PROMPT_CONTROLLER_A;
                 }
@@ -847,6 +861,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_B;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_B;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_B;
                 } else {
                     image = PROMPT_CONTROLLER_B;
                 }
@@ -860,6 +876,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_Y;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_Y;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_Y;
                 } else {
                     image = PROMPT_CONTROLLER_Y;
                 }
@@ -873,6 +891,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_X;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_X;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_X;
                 } else {
                     image = PROMPT_CONTROLLER_X;
                 }
