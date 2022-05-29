@@ -411,38 +411,40 @@ pub fn start_egui_window(
         }
     }
 
-    if !on_steam_deck {
-        info!("window is on display_index: {:?}", display_index);
-        match video_subsystem.display_dpi(display_index) {
-            Ok(dpi) => {
-                let mut using_dpi = dpi.0;
+    info!("window is on display_index: {:?}", display_index);
+    match video_subsystem.display_dpi(display_index) {
+        Ok(dpi) => {
+            let mut using_dpi = dpi.0;
 
-                if dpi.1 > using_dpi {
-                    using_dpi = dpi.1;
-                }
-                if dpi.2 > using_dpi {
-                    using_dpi = dpi.2;
-                }
-
-                info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
-                dpi_scaling = 1.25 / (96_f32 / using_dpi);
-
-                let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
-                let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
-
-                if scaled_width > window_width && scaled_height > window_height {
-                    dpi_scaling *= (scaled_width / window_width) as f32;
-                    info!(
-                        "using scaled_width: {:?} scaled_height: {:?}",
-                        scaled_width, scaled_height
-                    );
-                    final_width = scaled_width;
-                    final_height = scaled_height;
-                }
+            if dpi.1 > using_dpi {
+                using_dpi = dpi.1;
             }
-            Err(err) => {
-                error!("error getting dpi: {:?}", err);
+            if dpi.2 > using_dpi {
+                using_dpi = dpi.2;
             }
+
+            if on_steam_deck {
+                using_dpi /= 2_f32;
+            }
+
+            info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
+            dpi_scaling = 1.25 / (96_f32 / using_dpi);
+
+            let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
+            let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
+
+            if scaled_width > window_width && scaled_height > window_height {
+                dpi_scaling *= (scaled_width / window_width) as f32;
+                info!(
+                    "using scaled_width: {:?} scaled_height: {:?}",
+                    scaled_width, scaled_height
+                );
+                final_width = scaled_width;
+                final_height = scaled_height;
+            }
+        }
+        Err(err) => {
+            error!("error getting dpi: {:?}", err);
         }
     }
 
