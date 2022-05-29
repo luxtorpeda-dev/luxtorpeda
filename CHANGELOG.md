@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 55.0 (?)
+### 55.0 (2022-05-29)
 
 * Fix for steam deck DPI on desktop mode.
 

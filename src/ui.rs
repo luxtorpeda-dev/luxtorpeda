@@ -15,6 +15,7 @@ use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
 use crate::LUX_STEAM_DECK;
+use crate::STEAM_DECK_ENV;
 
 const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
@@ -400,18 +401,35 @@ pub fn start_egui_window(
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
 
     let mut on_steam_deck = false;
+    let mut steam_deck_gaming_mode = false;
     match env::var(LUX_STEAM_DECK) {
         Ok(val) => {
             if val == "1" {
                 on_steam_deck = true;
+                steam_deck_gaming_mode = true;
+            }
+        }
+        Err(err) => {
+            debug!("LUX_STEAM_DECK env not found: {}", err);
+        }
+    }
+
+    match env::var(STEAM_DECK_ENV) {
+        Ok(val) => {
+            if val == "0" {
+                steam_deck_gaming_mode = false;
             }
         }
         Err(err) => {
             debug!("SteamDeck env not found: {}", err);
+            steam_deck_gaming_mode = false;
         }
     }
 
-    info!("window is on display_index: {:?}", display_index);
+    info!(
+        "window is on display_index: {:?} on_steam_deck: {} steam_deck_gaming_mode: {}",
+        display_index, on_steam_deck, steam_deck_gaming_mode
+    );
     match video_subsystem.display_dpi(display_index) {
         Ok(dpi) => {
             let mut using_dpi = dpi.0;
@@ -424,6 +442,7 @@ pub fn start_egui_window(
             }
 
             if on_steam_deck {
+                info!("halving dpi, since on steam deck");
                 using_dpi /= 2_f32;
             }
 
@@ -507,7 +526,9 @@ pub fn start_egui_window(
                     match game_controller_subsystem.name_for_index(id) {
                         Ok(name) => {
                             info!("controller name is {}", name);
-                            if name == "Steam Virtual Gamepad" && !on_steam_deck {
+                            if name == "Steam Virtual Gamepad"
+                                && (!on_steam_deck || !steam_deck_gaming_mode)
+                            {
                                 info!("ignorning steam virtual gamepad");
                                 ignore_controller = true;
                             }
