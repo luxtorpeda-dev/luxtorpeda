@@ -2,9 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 55.0 (?)
+### 55.0 (2022-05-29)
 
 * Fix for steam deck DPI on desktop mode.
+* Detect if running on steam deck gaming mode and set ```LUX_STEAM_DECK_GAMING_MODE=1``` environment variable. This is used currently to detect if running in desktop mode, since in desktop mode the "Steam Virtual Gamepad" should not be used as a controller.
+* Add glyphs for steam deck if running on steam deck and that is the main controller found.
 
 ### 54.0 (2022-05-22)
 

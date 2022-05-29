@@ -25,7 +25,7 @@ additional dependencies.
 3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ tar xJf luxtorpeda-54.tar.xz
+        $ tar xJf luxtorpeda-55.tar.xz
 
 4. Start Steam.
 5. In game properties window select "Force the use of a specific Steam Play
@@ -118,6 +118,7 @@ For using controllers in the engine itself, ensure that Steam Input is enabled, 
 
 * Thanks to help with testing from LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
 * Gamepad support relies on the steam input settings. If steam input for the game is set as a gamepad, then will show controller icons and work as a controller. Otherwise, can use the touchscreen as a mouse.
+* Setting a game to use luxtorpeda can be done in desktop or gaming mode, using the compatibility options.
 
 ## Supported titles
 
