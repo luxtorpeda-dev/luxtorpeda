@@ -5,6 +5,7 @@
 ### 55.0 (2022-05-29)
 
 * Fix for steam deck DPI on desktop mode.
+* Detect if running on steam deck gaming mode and set ```LUX_STEAM_DECK_GAMING_MODE=1``` environment variable. This is used currently to detect if running in desktop mode, since in desktop mode the "Steam Virtual Gamepad" should not be used as a controller.
 
 ### 54.0 (2022-05-22)
 
