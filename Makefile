@@ -83,7 +83,6 @@ $(tool_dir).tar.xz: $(tool_dir)
 		echo "$(version)" > "$(tool_dir)/version";\
 	fi
 
-
 	tar -cJf $@ $(tool_dir)
 
 install: $(tool_dir)
