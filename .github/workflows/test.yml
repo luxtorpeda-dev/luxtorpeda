@@ -17,7 +17,7 @@ jobs:
     - name: Build
       run: make release
     - name: Package
-      run: make luxtorpeda.tar.xz
+      run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz
     - name: Upload Artifacts
       uses: actions/upload-artifact@v1
       with:

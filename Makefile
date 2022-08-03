@@ -79,6 +79,10 @@ $(tool_dir): \
 	$(STRIP) luxtorpeda/luxtorpeda
 
 $(tool_dir).tar.xz: $(tool_dir)
+	@if [ "$(version)" != "" ]; then\
+		echo "$(version)" > "$(tool_dir)/version";\
+	fi
+
 	tar -cJf $@ $(tool_dir)
 
 install: $(tool_dir)

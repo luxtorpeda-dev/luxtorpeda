@@ -38,7 +38,7 @@ jobs:
     - name: Build
       run: make release
     - name: Package
-      run: make luxtorpeda.tar.xz
+      run: make version=${{ needs.setup.outputs.build_number }} luxtorpeda.tar.xz
     - name: Upload Artifacts
       uses: actions/upload-artifact@v1
       with:
