@@ -5,6 +5,7 @@
 ### 56.0 (???)
 
 * [striezel] Updated additional dependencies
+* Add version information to builds
 
 ### 55.0 (2022-05-29)
 
