@@ -1,42 +1,38 @@
 [package]
 name = "luxtorpeda"
-version = "53.0.0"
+version = "55.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-serde_regex = "0.4"
-inotify = "0.9"
-json = "0.11.14"
-psutil = "1.6.0"
-regex = "1"
-reqwest = { version = "0.11.10", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
-users = "0.9"
-xdg = "^2.1"
-tar = "0.4"
-xz2 = "0.1"
-sha-1 = "0.9.1"
-hex = "0.4.2"
-bzip2 = "0.4.1"
+serde = { version = "1.0.137", features = ["derive"] }
+serde_json = "1.0.81"
+serde_regex = "1.1"
+json = "0.12.4"
+regex = "1.5.6"
+reqwest = { version = "0.11.11", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
+users = "0.11"
+xdg = "2.4.1"
+tar = "0.4.38"
+xz2 = "0.1.7"
+sha-1 = "0.10"
+hex = "0.4.3"
+bzip2 = "0.4.3"
 zip = "0.6.2"
-flate2 = "1.0.16"
-futures-util = "0.3.14"
-tokio = { version = "1.18.1", default-features = false, features = ["full"] }
-which = "4.2.2"
-steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
-steamy-controller = { git = "https://github.com/luxtorpeda-dev/steamy", rev = "3e4055f" }
-signal-hook = "0.3.10"
 egui = "0.18.1"
 egui_glow = { version = "0.18.0", features = ["winit"] }
 glutin = "0.28.0"
 egui_extras = { version = "0.18.0", features = ["image"] }
-image = "0.24"
+image = "0.24.2"
 arboard = "2.1.0"
 gilrs = "0.8.2"
-
-[patch.crates-io]
-bit-set = { git = "https://github.com/luxtorpeda-dev/bit-set.git", rev = "7e7460d" }
+flate2 = "1.0.23"
+futures-util = "0.3.21"
+tokio = { version = "1.19.2", default-features = false, features = ["full"] }
+which = "4.2.5"
+steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
+signal-hook = "0.3.14"
+log = "0.4.17"
+simplelog = "0.12.0"

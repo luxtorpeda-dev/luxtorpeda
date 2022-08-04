@@ -35,12 +35,10 @@ jobs:
       run: apt update && apt-get install -y libgtk-3-dev
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev
-    - name: Install libusb
-      run: apt update && apt-get install -y libusb-1.0-0-dev
     - name: Build
       run: make release
     - name: Package
-      run: make luxtorpeda.tar.xz
+      run: make version=${{ needs.setup.outputs.build_number }} luxtorpeda.tar.xz
     - name: Upload Artifacts
       uses: actions/upload-artifact@v1
       with:

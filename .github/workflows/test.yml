@@ -14,12 +14,10 @@ jobs:
       uses: actions/checkout@v1
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev
-    - name: Install libusb
-      run: apt update && apt-get install -y libusb-1.0-0-dev
     - name: Build
       run: make release
     - name: Package
-      run: make luxtorpeda.tar.xz
+      run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz
     - name: Upload Artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -36,8 +34,6 @@ jobs:
       uses: actions/checkout@v1
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev
-    - name: Install libusb
-      run: apt update && apt-get install -y libusb-1.0-0-dev
     - name: Install Clippy
       run: rustup component add clippy
     - name: Clippy Run
@@ -53,8 +49,6 @@ jobs:
       uses: actions/checkout@v1
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev
-    - name: Install libusb
-      run: apt update && apt-get install -y libusb-1.0-0-dev
     - name: Install fmt
       run: rustup component add rustfmt
     - name: fmt Run
@@ -70,8 +64,6 @@ jobs:
       uses: actions/checkout@v1
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev
-    - name: Install libusb
-      run: apt update && apt-get install -y libusb-1.0-0-dev
     - name: Install Audit
       run: cargo install cargo-audit
     - name: Audit Run

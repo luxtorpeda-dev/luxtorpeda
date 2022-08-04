@@ -2,14 +2,42 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 53.0 (Unreleased)
+### 56.0 (???)
 
+<<<<<<< HEAD
 * Upgrade egui to 0.18 and replaced sdl2 windowing with egui_glow.
 * Replace sdl2 controller support with gilrs. Should act the same as previously.
 * Update to rust 1.60.
 * [striezel] - misc - fix typos.
 * [striezel] - Update dependencies to fix vulnerabilities.
 * Add ```cargo audit``` checks for pull request tests.
+=======
+* [striezel] Updated additional dependencies
+* Add version information to builds
+
+### 55.0 (2022-05-29)
+
+* Fix for steam deck DPI on desktop mode.
+* Detect if running on steam deck gaming mode and set ```LUX_STEAM_DECK_GAMING_MODE=1``` environment variable. This is used currently to detect if running in desktop mode, since in desktop mode the "Steam Virtual Gamepad" should not be used as a controller.
+* Add glyphs for steam deck if running on steam deck and that is the main controller found.
+
+### 54.0 (2022-05-22)
+
+* Upgrade dependencies and code cleanup.
+* Add logging to file if ```LUX_WRITE_LOGGING=1``` is set. The log will be written to ```~/.local/state/luxtorpeda/luxtorpeda.log```.
+* Remove Steam Controller direct connection logic, relying on steam input instead. Steam Controller will still work in keyboard/mouse simulation mode. This makes it easier to maintain along with the steam deck support.
+* Added support for Steam Deck gamepad controls. Gamepad support relies on the steam input settings. If steam input for the game is set as a gamepad, then will show controller icons and work as a controller. Otherwise, can use the touchscreen as a mouse.
+* Detect if running on steam deck and set ```LUX_STEAM_DECK=1``` environment variable.
+
+### 53.0 (2022-05-09)
+
+* Fix issue with dpi scaling, when dpi values of diagonal, horizontal, and vertical vary.
+* Scale dialog windows width and height based on the DPI scaling.
+* [striezel] - misc - fix typos
+* [striezel] - Update dependencies to fix vulnerabilities
+* Add ```cargo audit``` checks for pull request tests
+* Update to rust 1.60
+>>>>>>> master
 
 ### 52.0 (2022-04-25)
 

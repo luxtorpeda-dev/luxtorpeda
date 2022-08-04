@@ -1,4 +1,6 @@
 use crate::user_env;
+use log::{debug, error, info};
+use std::env;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs;
@@ -11,9 +13,9 @@ use egui_glow::glow;
 use gilrs::{Event, GamepadId, Gilrs};
 use glutin::platform::run_return::EventLoopExtRunReturn;
 
-use crate::run_context::RunContext;
-use crate::run_context::SteamControllerEvent;
-use crate::run_context::ThreadCommand;
+extern crate image;
+use crate::LUX_STEAM_DECK;
+use crate::LUX_STEAM_DECK_GAMING_MODE;
 
 const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
@@ -35,8 +37,14 @@ const PROMPT_KEYBOARD_ENTER: &[u8] = include_bytes!("../res/prompts/Enter_Key_Da
 const PROMPT_KEYBOARD_ESC: &[u8] = include_bytes!("../res/prompts/Esc_Key_Dark.png");
 const PROMPT_KEYBOARD_CTRL: &[u8] = include_bytes!("../res/prompts/Ctrl_Key_Dark.png");
 
+const PROMPT_CONTROLLER_STEAM_DECK_Y: &[u8] = include_bytes!("../res/prompts/SteamDeck_Y.png");
+const PROMPT_CONTROLLER_STEAM_DECK_A: &[u8] = include_bytes!("../res/prompts/SteamDeck_A.png");
+const PROMPT_CONTROLLER_STEAM_DECK_X: &[u8] = include_bytes!("../res/prompts/SteamDeck_X.png");
+const PROMPT_CONTROLLER_STEAM_DECK_B: &[u8] = include_bytes!("../res/prompts/SteamDeck_B.png");
+
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
+pub const DEFAULT_DPI: u32 = 120;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32_f32;
 pub const SCROLL_TIMES: usize = 40_usize;
 pub const AXIS_DEAD_ZONE: i16 = 10_000;
@@ -61,6 +69,9 @@ impl Display for ControllerType {
             ControllerType::Switch => {
                 write!(f, "Switch")
             }
+            ControllerType::SteamDeck => {
+                write!(f, "SteamDeck")
+            }
         }
     }
 }
@@ -70,6 +81,7 @@ pub enum ControllerType {
     Xbox,
     DualShock,
     Switch,
+    SteamDeck,
 }
 
 pub struct EguiWindowInstance {
@@ -79,7 +91,6 @@ pub struct EguiWindowInstance {
     event_loop: glutin::event_loop::EventLoop<()>,
     gilrs: std::option::Option<Gilrs>,
     controller: std::option::Option<GamepadId>,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
     pub window_data: EguiWindowInstanceData,
 }
 
@@ -113,7 +124,6 @@ impl EguiWindowInstance {
             gl,
             egui_glow,
             window_data,
-            context,
             gilrs,
             ..
         } = self;
@@ -125,40 +135,7 @@ impl EguiWindowInstance {
             let mut exit = false;
 
             if controller.is_none() {
-                let context_check = context.clone();
-                if let Some(context) = context_check {
-                    let mut guard = context.lock().unwrap();
-                    if let Some(event) = guard.event {
-                        match event {
-                            SteamControllerEvent::Connected => {
-                                window_data.attached_to_controller = true;
-                                window_data.reload_requested = true;
-                            }
-                            SteamControllerEvent::Disconnected => {
-                                window_data.attached_to_controller = false;
-                                window_data.reload_requested = true;
-                            }
-                            SteamControllerEvent::RequestedAction(action) => {
-                                window_data.last_requested_action = Some(action);
-                                window_data.reload_requested = true;
-                            }
-                            SteamControllerEvent::Up => {
-                                if window_data.enable_nav {
-                                    window_data.nav_counter_up += 1;
-                                    window_data.reload_requested = true;
-                                }
-                            }
-                            SteamControllerEvent::Down => {
-                                if window_data.enable_nav {
-                                    window_data.nav_counter_down += 1;
-                                    window_data.reload_requested = true;
-                                }
-                            }
-                        }
-                        guard.event = None;
-                    }
-                    std::mem::drop(guard);
-                }
+
             } else if last_input_timestamp.elapsed().as_millis() >= 300 {
                 if let Some(gilrs) = gilrs {
                     if let Some(controller) = controller {
@@ -439,12 +416,83 @@ pub fn start_egui_window(
     window_height: u32,
     window_title: &str,
     enable_nav: bool,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> Result<(EguiWindowInstance, egui::Context), Error> {
     let egui_ctx = egui::Context::default();
 
+    let mut dpi_scaling = 1.1;
+    let display_index = 0;
+    let mut final_width = window_width;
+    let mut final_height = window_height;
+
+    let mut on_steam_deck = false;
+    let mut steam_deck_gaming_mode = true;
+    match env::var(LUX_STEAM_DECK) {
+        Ok(val) => {
+            if val == "1" {
+                on_steam_deck = true;
+            }
+        }
+        Err(err) => {
+            debug!("LUX_STEAM_DECK env not found: {}", err);
+        }
+    }
+
+    match env::var(LUX_STEAM_DECK_GAMING_MODE) {
+        Ok(val) => {
+            if val != "1" {
+                steam_deck_gaming_mode = false;
+            }
+        }
+        Err(err) => {
+            debug!("LUX_STEAM_DECK_GAMING_MODE env not found: {}", err);
+            steam_deck_gaming_mode = false;
+        }
+    }
+
+    info!(
+        "window is on display_index: {:?} on_steam_deck: {} steam_deck_gaming_mode: {}",
+        display_index, on_steam_deck, steam_deck_gaming_mode
+    );
+    /*match video_subsystem.display_dpi(display_index) {
+        Ok(dpi) => {
+            let mut using_dpi = dpi.0;
+
+            if dpi.1 > using_dpi {
+                using_dpi = dpi.1;
+            }
+            if dpi.2 > using_dpi {
+                using_dpi = dpi.2;
+            }
+
+            if on_steam_deck {
+                info!("halving dpi, since on steam deck");
+                using_dpi /= 2_f32;
+            }
+
+            info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
+            dpi_scaling = 1.25 / (96_f32 / using_dpi);
+
+            let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
+            let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
+
+            if scaled_width > window_width && scaled_height > window_height {
+                dpi_scaling *= (scaled_width / window_width) as f32;
+                info!(
+                    "using scaled_width: {:?} scaled_height: {:?}",
+                    scaled_width, scaled_height
+                );
+                final_width = scaled_width;
+                final_height = scaled_height;
+            }
+        }
+        Err(err) => {
+            error!("error getting dpi: {:?}", err);
+        }
+    }*/
+
+    info!("using dpi scaling of {}", dpi_scaling);
+
     let mut attached_to_controller = false;
-    let mut try_steam_controller = false;
     let mut controller_type = ControllerType::Xbox;
     let mut controller = None;
 
@@ -453,12 +501,8 @@ pub fn start_egui_window(
     let config_parsed = json::parse(&config_json_str).unwrap();
 
     let mut use_controller = true;
-    let mut use_steam_controller = true;
     if !config_parsed["use_controller"].is_null() {
         use_controller = config_parsed["use_controller"] == true;
-    }
-    if !config_parsed["use_steam_controller"].is_null() {
-        use_steam_controller = config_parsed["use_steam_controller"] == true;
     }
 
     let mut gilrs = None;
@@ -466,10 +510,10 @@ pub fn start_egui_window(
         match Gilrs::new() {
             Ok(gilrs_instance) => {
                 if let Some((id, gamepad)) = gilrs_instance.gamepads().next() {
-                    println!("Found gamepad with name {}", gamepad.name());
+                    info!("Found gamepad with name {}", gamepad.name());
 
                     if gamepad.name() == "Steam Virtual Gamepad" {
-                        try_steam_controller = true;
+
                     } else {
                         controller = Some(id);
                         attached_to_controller = true;
@@ -478,13 +522,13 @@ pub fn start_egui_window(
                             || gamepad.name().contains("PS4")
                             || gamepad.name().contains("PS5")
                         {
-                            println!("controller assumed to be dualshock");
+                            info!("controller assumed to be dualshock");
                             controller_type = ControllerType::DualShock;
                         } else if gamepad.name().contains("Pro") {
-                            println!("controller assumed to be switch");
+                            info!("controller assumed to be switch");
                             controller_type = ControllerType::Switch;
                         } else {
-                            println!("controller assumed to be xbox");
+                            info!("controller assumed to be xbox");
                         }
                     }
                 }
@@ -492,36 +536,11 @@ pub fn start_egui_window(
                 gilrs = Some(gilrs_instance);
             }
             Err(err) => {
-                println!("gilrs err: {:?}", err);
+                info!("gilrs err: {:?}", err);
             }
         };
-
-        if controller.is_none() {
-            let controller_context = context.clone();
-            if let Some(controller_context) = controller_context {
-                let guard = controller_context.lock().unwrap();
-                if let Some(SteamControllerEvent::Connected) = guard.last_connected_event {
-                    attached_to_controller = true;
-                }
-                std::mem::drop(guard);
-            }
-        }
     } else {
-        println!("controller support disabled");
-    }
-
-    let controller_context = context.clone();
-    if let Some(controller_context) = controller_context {
-        let mut guard = controller_context.lock().unwrap();
-        if try_steam_controller && !attached_to_controller && use_steam_controller {
-            guard.thread_command = Some(ThreadCommand::Connect);
-        } else if controller.is_some() || !use_controller || !use_steam_controller {
-            guard.thread_command = Some(ThreadCommand::Stop);
-            if !use_steam_controller {
-                println!("steam controller support disabled");
-            }
-        }
-        std::mem::drop(guard);
+        info!("controller support disabled");
     }
 
     if attached_to_controller {
@@ -589,7 +608,6 @@ pub fn start_egui_window(
             egui_glow,
             gl,
             gl_window,
-            context,
             window_data,
         },
         egui_ctx,
@@ -607,13 +625,11 @@ pub fn egui_with_prompts(
     button_text: &str,
     button_message: bool,
     timeout_in_seconds: i8,
-    context: Option<std::sync::Arc<std::sync::Mutex<RunContext>>>,
 ) -> Result<(bool, bool), Error> {
     if window_height == 0 {
         window_height = DEFAULT_WINDOW_H;
     }
-    let (mut window, egui_ctx) =
-        start_egui_window(DEFAULT_WINDOW_W, window_height, title, true, context)?;
+    let (mut window, egui_ctx) = start_egui_window(DEFAULT_WINDOW_W, window_height, title, true)?;
     let mut no = false;
     let mut yes = false;
     let mut last_attached_state = window.window_data.attached_to_controller;
@@ -638,7 +654,7 @@ pub fn egui_with_prompts(
         if (!window_instance.attached_to_controller && last_attached_state)
             || (window_instance.attached_to_controller && !last_attached_state)
         {
-            println!("Detected controller change, reloading prompts");
+            info!("Detected controller change, reloading prompts");
             texture_confirm =
                 prompt_image_for_action(RequestedAction::Confirm, window_instance).unwrap();
             texture_back = prompt_image_for_action(RequestedAction::Back, window_instance).unwrap();
@@ -807,6 +823,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_A;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_A;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_A;
                 } else {
                     image = PROMPT_CONTROLLER_A;
                 }
@@ -820,6 +838,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_B;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_B;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_B;
                 } else {
                     image = PROMPT_CONTROLLER_B;
                 }
@@ -833,6 +853,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_Y;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_Y;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_Y;
                 } else {
                     image = PROMPT_CONTROLLER_Y;
                 }
@@ -846,6 +868,8 @@ pub fn prompt_image_for_action(
                     image = PROMPT_CONTROLLER_DUALSHOCK_X;
                 } else if window_instance.controller_type == ControllerType::Switch {
                     image = PROMPT_CONTROLLER_SWITCH_X;
+                } else if window_instance.controller_type == ControllerType::SteamDeck {
+                    image = PROMPT_CONTROLLER_STEAM_DECK_X;
                 } else {
                     image = PROMPT_CONTROLLER_X;
                 }
