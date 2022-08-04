@@ -158,10 +158,13 @@ impl EguiWindowInstance {
 
                 if let Some(last_requested_action) = window_data.last_requested_action {
                     if last_requested_action == RequestedAction::Back {
+
                         exit = true;
                         window_data.from_exit = true;
                         window_data.last_requested_action = None;
                     }
+
+                    window_data.last_requested_action = None;
                 }
             }
 

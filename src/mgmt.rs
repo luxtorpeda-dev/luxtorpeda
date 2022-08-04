@@ -251,15 +251,17 @@ pub fn run_mgmt() -> Result<(), Error> {
         if let Some(last_requested_action) = window_instance.last_requested_action {
             if last_requested_action == RequestedAction::CustomAction && current_choice_index != 0 {
                 clear_config(&mut guard.items[current_choice_index - 1]);
+                window_instance.last_requested_action = None;
             } else if last_requested_action == RequestedAction::SecondCustomAction
                 && current_choice_index != 0
             {
                 clear_cache(&mut guard.items[current_choice_index - 1]);
+                window_instance.last_requested_action = None;
             } else if last_requested_action == RequestedAction::Confirm {
                 reload_needed = true;
                 window_instance.reload_requested = true;
+                window_instance.last_requested_action = None;
             }
-            window_instance.last_requested_action = None;
         }
 
         egui::TopBottomPanel::bottom("bottom_panel")
