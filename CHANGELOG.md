@@ -6,6 +6,7 @@
 
 * [striezel] Updated additional dependencies
 * Add version information to builds
+* Fix for controller not working on desktop
 
 ### 55.0 (2022-05-29)
 
