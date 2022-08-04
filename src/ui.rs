@@ -45,7 +45,6 @@ const PROMPT_CONTROLLER_STEAM_DECK_B: &[u8] = include_bytes!("../res/prompts/Ste
 
 pub const DEFAULT_WINDOW_W: u32 = 600;
 pub const DEFAULT_WINDOW_H: u32 = 180;
-pub const DEFAULT_DPI: u32 = 120;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32_f32;
 pub const SCROLL_TIMES: usize = 40_usize;
 pub const AXIS_DEAD_ZONE: i16 = 10_000;
@@ -390,11 +389,6 @@ pub fn start_egui_window(
 ) -> Result<(EguiWindowInstance, egui::Context), Error> {
     let egui_ctx = egui::Context::default();
 
-    let mut dpi_scaling = 1.1;
-    let display_index = 0;
-    let mut final_width = window_width;
-    let mut final_height = window_height;
-
     let mut on_steam_deck = false;
     let mut steam_deck_gaming_mode = true;
     match env::var(LUX_STEAM_DECK) {
@@ -421,47 +415,9 @@ pub fn start_egui_window(
     }
 
     info!(
-        "window is on display_index: {:?} on_steam_deck: {} steam_deck_gaming_mode: {}",
-        display_index, on_steam_deck, steam_deck_gaming_mode
+        "on_steam_deck: {} steam_deck_gaming_mode: {}",
+        on_steam_deck, steam_deck_gaming_mode
     );
-    /*match video_subsystem.display_dpi(display_index) {
-        Ok(dpi) => {
-            let mut using_dpi = dpi.0;
-
-            if dpi.1 > using_dpi {
-                using_dpi = dpi.1;
-            }
-            if dpi.2 > using_dpi {
-                using_dpi = dpi.2;
-            }
-
-            if on_steam_deck {
-                info!("halving dpi, since on steam deck");
-                using_dpi /= 2_f32;
-            }
-
-            info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
-            dpi_scaling = 1.25 / (96_f32 / using_dpi);
-
-            let scaled_width = (window_width * using_dpi as u32) as u32 / DEFAULT_DPI;
-            let scaled_height = (window_height * using_dpi as u32) as u32 / DEFAULT_DPI;
-
-            if scaled_width > window_width && scaled_height > window_height {
-                dpi_scaling *= (scaled_width / window_width) as f32;
-                info!(
-                    "using scaled_width: {:?} scaled_height: {:?}",
-                    scaled_width, scaled_height
-                );
-                final_width = scaled_width;
-                final_height = scaled_height;
-            }
-        }
-        Err(err) => {
-            error!("error getting dpi: {:?}", err);
-        }
-    }*/
-
-    info!("using dpi scaling of {}", dpi_scaling);
 
     let sdl_context = sdl2::init().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
