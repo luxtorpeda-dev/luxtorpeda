@@ -36,3 +36,4 @@ steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = 
 signal-hook = "0.3.14"
 log = "0.4.17"
 simplelog = "0.12.0"
+sdl2 = "0.35.2"

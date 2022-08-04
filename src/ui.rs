@@ -10,8 +10,9 @@ use std::time::Instant;
 use arboard::Clipboard;
 use egui_extras::RetainedImage;
 use egui_glow::glow;
-use gilrs::{Event, GamepadId, Gilrs};
+extern crate sdl2;
 use glutin::platform::run_return::EventLoopExtRunReturn;
+use sdl2::{event::Event, event::EventType};
 
 extern crate image;
 use crate::LUX_STEAM_DECK;
@@ -89,8 +90,8 @@ pub struct EguiWindowInstance {
     gl_window: glutin::WindowedContext<glutin::PossiblyCurrent>,
     gl: std::rc::Rc<glow::Context>,
     event_loop: glutin::event_loop::EventLoop<()>,
-    gilrs: std::option::Option<Gilrs>,
-    controller: std::option::Option<GamepadId>,
+    event_pump: sdl2::EventPump,
+    sdl2_controller: std::option::Option<sdl2::controller::GameController>,
     pub window_data: EguiWindowInstanceData,
 }
 
@@ -113,7 +114,7 @@ impl EguiWindowInstance {
     where
         F: FnMut((&mut EguiWindowInstanceData, &egui::Context)),
     {
-        let mut last_axis_value = 0.0;
+        let mut last_axis_value = 0;
         let mut last_axis_timestamp = Instant::now();
         let mut last_input_timestamp = Instant::now();
 
@@ -124,117 +125,44 @@ impl EguiWindowInstance {
             gl,
             egui_glow,
             window_data,
-            gilrs,
+            sdl2_controller,
+            event_pump,
             ..
         } = self;
 
         let title = &window_data.title.to_owned();
-        let controller = self.controller;
 
         self.event_loop.run_return(move |event, _, control_flow| {
             let mut exit = false;
 
-            if controller.is_none() {
+            if sdl2_controller.is_some() && last_input_timestamp.elapsed().as_millis() >= 300 {
+                let controller = sdl2_controller.as_ref().unwrap();
+                let axis_value = controller.axis(sdl2::controller::Axis::LeftY);
+                if axis_value == last_axis_value {
+                    last_axis_timestamp = Instant::now();
+                } else if last_axis_timestamp.elapsed().as_millis() >= 300
+                    && last_input_timestamp.elapsed().as_millis() >= 300
+                    && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
+                {
+                    last_axis_timestamp = Instant::now();
+                    last_input_timestamp = Instant::now();
+                    last_axis_value = axis_value;
 
-            } else if last_input_timestamp.elapsed().as_millis() >= 300 {
-                if let Some(gilrs) = gilrs {
-                    if let Some(controller) = controller {
-                        let gamepad = gilrs.gamepad(controller);
-                        if gamepad.is_connected() {
-                            if !window_data.attached_to_controller {
-                                window_data.attached_to_controller = true;
-                            }
-                            while let Some(Event { event, .. }) = gilrs.next_event() {
-                                match event {
-                                    gilrs::ev::EventType::ButtonPressed(button, _code) => {
-                                        let mut event_used = false;
-                                        match button {
-                                            gilrs::ev::Button::South => {
-                                                window_data.last_requested_action =
-                                                    Some(RequestedAction::Confirm);
-                                                window_data.reload_requested = true;
-                                                event_used = true;
-                                            }
-                                            gilrs::ev::Button::North => {
-                                                window_data.last_requested_action =
-                                                    Some(RequestedAction::CustomAction);
-                                                window_data.reload_requested = true;
-                                                event_used = true;
-                                            }
-                                            gilrs::ev::Button::East => {
-                                                window_data.last_requested_action =
-                                                    Some(RequestedAction::Back);
-                                                window_data.reload_requested = true;
-                                                event_used = true;
-                                            }
-                                            gilrs::ev::Button::West => {
-                                                window_data.last_requested_action =
-                                                    Some(RequestedAction::SecondCustomAction);
-                                                window_data.reload_requested = true;
-                                                event_used = true;
-                                            }
-                                            gilrs::ev::Button::DPadDown => {
-                                                if window_data.enable_nav {
-                                                    window_data.nav_counter_down += 1;
-                                                    window_data.reload_requested = true;
-                                                    event_used = true;
-                                                }
-                                            }
-                                            gilrs::ev::Button::DPadUp => {
-                                                if window_data.enable_nav {
-                                                    window_data.nav_counter_up += 1;
-                                                    window_data.reload_requested = true;
-                                                    event_used = true;
-                                                }
-                                            }
-                                            _ => {}
-                                        };
-
-                                        if event_used {
-                                            last_input_timestamp = Instant::now();
-                                        }
-                                    }
-                                    gilrs::ev::EventType::AxisChanged(
-                                        gilrs::ev::Axis::LeftStickY,
-                                        axis_value,
-                                        _code,
-                                    ) => {
-                                        if window_data.enable_nav {
-                                            if axis_value == last_axis_value {
-                                                last_axis_timestamp = Instant::now();
-                                            } else if last_axis_timestamp.elapsed().as_millis()
-                                                >= 400
-                                                && last_input_timestamp.elapsed().as_millis() >= 300
-                                            {
-                                                last_axis_timestamp = Instant::now();
-                                                last_input_timestamp = Instant::now();
-                                                last_axis_value = axis_value;
-
-                                                if axis_value > 0.0 {
-                                                    window_data.nav_counter_up += 1;
-                                                    window_data.reload_requested = true;
-                                                } else {
-                                                    window_data.nav_counter_down += 1;
-                                                    window_data.reload_requested = true;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    _ => {}
-                                };
-                            }
-                        } else if window_data.attached_to_controller {
-                            window_data.attached_to_controller = false;
-                        }
+                    if axis_value < 0 {
+                        window_data.nav_counter_up += 1;
+                        window_data.reload_requested = true;
+                    } else {
+                        window_data.nav_counter_down += 1;
+                        window_data.reload_requested = true;
                     }
                 }
-            }
 
-            if let Some(last_requested_action) = window_data.last_requested_action {
-                if last_requested_action == RequestedAction::Back {
-                    exit = true;
-                    window_data.from_exit = true;
-                    window_data.last_requested_action = None;
+                if let Some(last_requested_action) = window_data.last_requested_action {
+                    if last_requested_action == RequestedAction::Back {
+                        exit = true;
+                        window_data.from_exit = true;
+                        window_data.last_requested_action = None;
+                    }
                 }
             }
 
@@ -383,6 +311,50 @@ impl EguiWindowInstance {
                 _ => (),
             }
 
+            if sdl2_controller.is_some() {
+                if let Some(event) = event_pump.poll_event() {
+                    match event {
+                        Event::ControllerButtonUp { button, .. } => {
+                            if last_input_timestamp.elapsed().as_millis() >= 300 {
+                                last_input_timestamp = Instant::now();
+                                println!("button: {:?}", button);
+                                if button == sdl2::controller::Button::DPadUp {
+                                    if window_data.enable_nav {
+                                        window_data.nav_counter_up += 1;
+                                        window_data.reload_requested = true;
+                                    }
+                                } else if button == sdl2::controller::Button::DPadDown {
+                                    if window_data.enable_nav {
+                                        window_data.nav_counter_down += 1;
+                                        window_data.reload_requested = true;
+                                    }
+                                } else if button == sdl2::controller::Button::A {
+                                    window_data.last_requested_action =
+                                        Some(RequestedAction::Confirm);
+                                    window_data.reload_requested = true;
+                                } else if button == sdl2::controller::Button::B {
+                                    window_data.last_requested_action = Some(RequestedAction::Back);
+                                    window_data.reload_requested = true;
+                                } else if button == sdl2::controller::Button::Y {
+                                    window_data.last_requested_action =
+                                        Some(RequestedAction::CustomAction);
+                                    window_data.reload_requested = true;
+                                } else if button == sdl2::controller::Button::X {
+                                    window_data.last_requested_action =
+                                        Some(RequestedAction::SecondCustomAction);
+                                    window_data.reload_requested = true;
+                                }
+                            }
+                        }
+                        Event::ControllerDeviceRemoved { .. } => {
+                            window_data.attached_to_controller = false;
+                            window_data.reload_requested = true;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
             if exit || window_data.should_close {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
                 egui_glow.destroy();
@@ -492,9 +464,15 @@ pub fn start_egui_window(
 
     info!("using dpi scaling of {}", dpi_scaling);
 
+    let sdl_context = sdl2::init().unwrap();
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    event_pump.disable_event(EventType::JoyAxisMotion);
+    event_pump.disable_event(EventType::ControllerAxisMotion);
+
     let mut attached_to_controller = false;
     let mut controller_type = ControllerType::Xbox;
-    let mut controller = None;
+    let game_controller_subsystem = sdl_context.game_controller().unwrap();
+    let mut sdl2_controller = None; //needed for controller connection to stay alive
 
     let config_json_file = user_env::tool_dir().join("config.json");
     let config_json_str = fs::read_to_string(config_json_file)?;
@@ -505,42 +483,82 @@ pub fn start_egui_window(
         use_controller = config_parsed["use_controller"] == true;
     }
 
-    let mut gilrs = None;
     if use_controller {
-        match Gilrs::new() {
-            Ok(gilrs_instance) => {
-                if let Some((id, gamepad)) = gilrs_instance.gamepads().next() {
-                    info!("Found gamepad with name {}", gamepad.name());
+        match game_controller_subsystem.num_joysticks() {
+            Ok(available) => {
+                info!("{} joysticks available", available);
 
-                    if gamepad.name() == "Steam Virtual Gamepad" {
+                if let Some(found_controller) = (0..available).find_map(|id| {
+                    if !game_controller_subsystem.is_game_controller(id) {
+                        error!("{} is not a game controller", id);
+                        return None;
+                    }
 
-                    } else {
-                        controller = Some(id);
-                        attached_to_controller = true;
+                    info!("Attempting to open controller {}", id);
 
-                        if gamepad.name().contains("PS3")
-                            || gamepad.name().contains("PS4")
-                            || gamepad.name().contains("PS5")
-                        {
-                            info!("controller assumed to be dualshock");
-                            controller_type = ControllerType::DualShock;
-                        } else if gamepad.name().contains("Pro") {
-                            info!("controller assumed to be switch");
-                            controller_type = ControllerType::Switch;
-                        } else {
-                            info!("controller assumed to be xbox");
+                    let mut ignore_controller = false;
+
+                    match game_controller_subsystem.name_for_index(id) {
+                        Ok(name) => {
+                            info!("controller name is {}", name);
+                            if name == "Steam Virtual Gamepad"
+                                && (!on_steam_deck || !steam_deck_gaming_mode)
+                            {
+                                info!("ignorning steam virtual gamepad");
+                                ignore_controller = true;
+                            }
+                        }
+                        Err(err) => {
+                            error!("controller name request failed: {:?}", err);
+                        }
+                    };
+
+                    if ignore_controller {
+                        return None;
+                    }
+
+                    match game_controller_subsystem.open(id) {
+                        Ok(c) => {
+                            info!("Success: opened \"{}\"", c.name());
+                            Some(c)
+                        }
+                        Err(e) => {
+                            error!("failed: {:?}", e);
+                            None
                         }
                     }
-                }
+                }) {
+                    info!(
+                        "Controller connected mapping: {}",
+                        found_controller.mapping()
+                    );
 
-                gilrs = Some(gilrs_instance);
+                    if found_controller.name().contains("PS3")
+                        || found_controller.name().contains("PS4")
+                        || found_controller.name().contains("PS5")
+                    {
+                        info!("controller assumed to be dualshock");
+                        controller_type = ControllerType::DualShock;
+                    } else if found_controller.name().contains("Pro") {
+                        info!("controller assumed to be switch");
+                        controller_type = ControllerType::Switch;
+                    } else if found_controller.name() == "Steam Virtual Gamepad" && on_steam_deck {
+                        info!("controller assumed to be steam deck");
+                        controller_type = ControllerType::SteamDeck;
+                    } else {
+                        info!("controller assumed to be xbox");
+                    }
+
+                    sdl2_controller = Some(found_controller);
+                    attached_to_controller = true;
+                }
             }
             Err(err) => {
-                info!("gilrs err: {:?}", err);
+                error!("num_joysticks error {}", err);
             }
-        };
+        }
     } else {
-        info!("controller support disabled");
+        error!("controller support disabled");
     }
 
     if attached_to_controller {
@@ -603,8 +621,8 @@ pub fn start_egui_window(
     Ok((
         EguiWindowInstance {
             event_loop,
-            gilrs,
-            controller,
+            event_pump,
+            sdl2_controller,
             egui_glow,
             gl,
             gl_window,

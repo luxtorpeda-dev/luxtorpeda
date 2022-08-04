@@ -257,6 +257,7 @@ pub fn run_mgmt() -> Result<(), Error> {
                 clear_cache(&mut guard.items[current_choice_index - 1]);
             } else if last_requested_action == RequestedAction::Confirm {
                 reload_needed = true;
+                window_instance.reload_requested = true;
             }
             window_instance.last_requested_action = None;
         }

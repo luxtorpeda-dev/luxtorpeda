@@ -291,16 +291,9 @@ pub fn show_question(title: &str, text: &str) -> Option<()> {
     }
 }
 
-pub fn start_progress(
-    arc: std::sync::Arc<std::sync::Mutex<ProgressState>>
-) -> Result<(), Error> {
-    let (mut window, egui_ctx) = start_egui_window(
-        DEFAULT_WINDOW_W,
-        DEFAULT_WINDOW_H,
-        "Progress",
-        false
-    )
-    .unwrap();
+pub fn start_progress(arc: std::sync::Arc<std::sync::Mutex<ProgressState>>) -> Result<(), Error> {
+    let (mut window, egui_ctx) =
+        start_egui_window(DEFAULT_WINDOW_W, DEFAULT_WINDOW_H, "Progress", false).unwrap();
     let mut last_attached_state = window.window_data.attached_to_controller;
     let mut texture_back =
         prompt_image_for_action(RequestedAction::Back, &mut window.window_data).unwrap();
