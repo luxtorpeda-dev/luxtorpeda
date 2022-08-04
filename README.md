@@ -102,7 +102,7 @@ When a prompt appears from the client, it will accept input from controllers, ke
 
 ### Controllers
 
-* gilrs, using the SDL_GameControllerDB, is used to detect and accept inputs from controllers, other than the steam controller, so any controller that supports that interface should work.
+* SDL2's SDL_GameController is used to detect and accept inputs from controllers, other than the steam controller, so any controller that supports that interface should work.
 * Controller icons will appear in the buttons if a controller is detected.
     * Icons are only available for controllers in the testing list below, with it falling back to the Xbox controller icons if an unknown controller is detected.
     * Input with that controller should still work but the icons may be incorrect. If additional controller support is wanted, feel free to open an issue.
