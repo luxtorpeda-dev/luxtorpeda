@@ -4,16 +4,9 @@
 
 ### 56.0 (???)
 
-<<<<<<< HEAD
-* Upgrade egui to 0.18 and replaced sdl2 windowing with egui_glow.
-* Replace sdl2 controller support with gilrs. Should act the same as previously.
-* Update to rust 1.60.
-* [striezel] - misc - fix typos.
-* [striezel] - Update dependencies to fix vulnerabilities.
-* Add ```cargo audit``` checks for pull request tests.
-=======
 * [striezel] Updated additional dependencies
 * Add version information to builds
+* Upgrade egui to 0.18 and replaced sdl2 windowing with egui_glow.
 
 ### 55.0 (2022-05-29)
 
@@ -37,7 +30,6 @@
 * [striezel] - Update dependencies to fix vulnerabilities
 * Add ```cargo audit``` checks for pull request tests
 * Update to rust 1.60
->>>>>>> master
 
 ### 52.0 (2022-04-25)
 
