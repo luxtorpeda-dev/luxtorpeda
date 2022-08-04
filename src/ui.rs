@@ -317,7 +317,6 @@ impl EguiWindowInstance {
                         Event::ControllerButtonUp { button, .. } => {
                             if last_input_timestamp.elapsed().as_millis() >= 300 {
                                 last_input_timestamp = Instant::now();
-                                println!("button: {:?}", button);
                                 if button == sdl2::controller::Button::DPadUp {
                                     if window_data.enable_nav {
                                         window_data.nav_counter_up += 1;
