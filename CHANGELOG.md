@@ -6,6 +6,7 @@
 
 * [striezel] Updated additional dependencies
 * Add version information to builds
+* Fix for controller not working on desktop
 * Upgrade egui to 0.18 and replaced sdl2 windowing with egui_glow.
 
 ### 55.0 (2022-05-29)
