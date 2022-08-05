@@ -407,6 +407,9 @@ fn main() -> io::Result<()> {
     let env_args: Vec<String> = env::args().collect();
     let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
+    dialog::show_error("Download Error", "asdasd").unwrap();
+    dialog::show_error("Download 2asdasd", "asdasdasd123123123").unwrap();
+
     if args.len() < 2 {
         usage();
         std::process::exit(0)

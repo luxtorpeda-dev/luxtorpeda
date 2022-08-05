@@ -186,7 +186,7 @@ impl EguiWindowInstance {
                     f((window_data, egui_ctx));
                 });
 
-                if needs_repaint {
+                if needs_repaint && !(exit || window_data.should_close) {
                     gl_window.window().request_redraw();
                     glutin::event_loop::ControlFlow::Poll
                 } else {
@@ -357,7 +357,7 @@ impl EguiWindowInstance {
 
             if exit || window_data.should_close {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
-                egui_glow.destroy();
+                return;
             }
 
             if window_data.reload_requested {
@@ -365,11 +365,14 @@ impl EguiWindowInstance {
                 gl_window.window().request_redraw();
             }
         });
+
+        println!("ASDASD888");
     }
 }
 
 impl EguiWindowInstanceData {
     pub fn close(&mut self) {
+        println!("ASDASD should close");
         self.should_close = true;
     }
 
