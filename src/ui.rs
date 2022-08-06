@@ -16,6 +16,7 @@ use sdl2::video::{GLContext, SwapInterval};
 extern crate image;
 use crate::LUX_STEAM_DECK;
 use crate::LUX_STEAM_DECK_GAMING_MODE;
+use crate::STEAM_DECK_DISPLAY_NAME;
 
 const PROMPT_CONTROLLER_Y: &[u8] = include_bytes!("../res/prompts/Steam_Y.png");
 const PROMPT_CONTROLLER_A: &[u8] = include_bytes!("../res/prompts/Steam_A.png");
@@ -449,8 +450,24 @@ pub fn start_egui_window(
                 using_dpi = dpi.2;
             }
 
+            let mut should_half_dpi = false;
+
             if on_steam_deck {
-                info!("halving dpi, since on steam deck");
+                match video_subsystem.display_name(display_index) {
+                    Ok(display_name) => {
+                        info!("found display name: {}", display_name);
+                        if display_name == STEAM_DECK_DISPLAY_NAME {
+                            should_half_dpi = true;
+                        }
+                    }
+                    Err(err) => {
+                        error!("error finding display name: {}", err);
+                    }
+                }
+            }
+
+            if should_half_dpi {
+                info!("halving dpi");
                 using_dpi /= 2_f32;
             }
 
