@@ -2,11 +2,12 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 56.0 (???)
+### 56.0 (2022-08-05)
 
 * [striezel] Updated additional dependencies
 * Add version information to builds
 * Fix for controller not working on desktop
+* Fix for steam deck desktop DPI mode detection
 
 ### 55.0 (2022-05-29)
 
