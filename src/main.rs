@@ -32,6 +32,7 @@ static STEAM_DECK_ENV: &str = "SteamDeck";
 static STEAM_OS_ENV: &str = "SteamOS";
 static USER_ENV: &str = "USER";
 static STEAM_DECK_USER: &str = "deck";
+static STEAM_DECK_DISPLAY_NAME: &str = "ANX7530 U 3\"";
 
 static LUX_ERRORS_SUPPORTED: &str = "LUX_ERRORS_SUPPORTED";
 static LUX_ORIGINAL_EXE: &str = "LUX_ORIGINAL_EXE";
