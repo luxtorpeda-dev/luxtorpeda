@@ -25,7 +25,7 @@ additional dependencies.
 3. Move and unpack tarball to compatibilitytools.d directory (create one if it does not exist):
 
         $ cd ~/.local/share/Steam/compatibilitytools.d/ || cd ~/.steam/root/compatibilitytools.d/
-        $ tar xJf luxtorpeda-55.tar.xz
+        $ tar xJf luxtorpeda-56.tar.xz
 
 4. Start Steam.
 5. In game properties window select "Force the use of a specific Steam Play
