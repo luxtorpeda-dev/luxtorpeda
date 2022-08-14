@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 57.0 (TDB)
+
+* [ThibaultLemaire] Show gui message on cross filesystem access
+
 ### 56.0 (2022-08-05)
 
 * [striezel] Updated additional dependencies
