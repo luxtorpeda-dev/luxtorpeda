@@ -51,6 +51,37 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
     xdg_dirs.find_cache_file(path_str)
 }
 
+// Try to create dirs of path recursively,
+// if that fails, try to show a helpful UI message
+fn create_dir_or_show_error(path: &impl AsRef<Path>) {
+    let err = match fs::create_dir_all(path) {
+        Ok(()) => return,
+        Err(err) => err,
+    };
+
+    let path = path.as_ref();
+    let mut msg = format!(
+        "Error creating directory {:?} (or one of its parents): {:?}",
+        path, err
+    );
+    if err.kind() == ErrorKind::AlreadyExists && !path.exists() {
+        msg += r"
+Cross filesystem interaction detected.
+It seems this folder is on a filesystem to which the Steam runtime prevents access.
+Try changing Launch Options in Steam to:
+STEAM_COMPAT_MOUNTS=/path/to/other/filesystem %command%";
+        // Steam runtime restrictions + symlinks are weird.
+        // Because a symlink acts as its target in most situations, from inside the
+        // runtime environment, symlinks to forbidden filesystems look as if they simply
+        // do not exist. That's ok for read ops. But we want to create a hierarchy if it
+        // does not exist. So create_dir_all happily tries to create a directory where
+        // the symlink is. And that's when the OS says "nope, there's already something
+        // here".
+    }
+    let _ = show_error("Setup Error", msg.as_str());
+    panic!("{}", msg);
+}
+
 pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}/{}", app_id, file);
@@ -61,7 +92,7 @@ pub fn path_to_packages_file() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_cache_home();
     let folder_path = config_home.join("luxtorpeda");
-    fs::create_dir_all(&folder_path).unwrap();
+    create_dir_or_show_error(&folder_path);
     folder_path.join("packagesruntime.json")
 }
 
@@ -69,7 +100,7 @@ pub fn path_to_cache() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let cache_home = xdg_dirs.get_cache_home();
     let folder_path = cache_home.join("luxtorpeda");
-    fs::create_dir_all(&folder_path).unwrap();
+    create_dir_or_show_error(&folder_path);
     folder_path
 }
 
@@ -77,7 +108,7 @@ pub fn path_to_config() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_config_home();
     let folder_path = config_home.join("luxtorpeda");
-    fs::create_dir_all(&folder_path).unwrap();
+    create_dir_or_show_error(&folder_path);
     folder_path
 }
 
