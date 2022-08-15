@@ -61,6 +61,9 @@ target/debug/compatibilitytool.vdf: compatibilitytool.template
 target/release/compatibilitytool.vdf: compatibilitytool.template
 	sed 's/%name%/$(tool_name)/; s/%display_name%/$(tool_name_display)/' $< > $@
 
+icon.png:
+	cp -r --reflink=auto res/icon.png $< $@
+
 target/debug/%: %
 	cp -r --reflink=auto $< $@
 
