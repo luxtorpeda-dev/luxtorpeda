@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 57.0 (TDB)
+### 57.0 (2022-08-15)
 
 * [ThibaultLemaire] Show gui message on cross filesystem access
 * Show icon in taskbar
