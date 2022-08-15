@@ -892,7 +892,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "56.0.0"
+version = "57.0.0"
 dependencies = [
  "bzip2",
  "egui",
