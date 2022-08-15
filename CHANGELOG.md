@@ -5,6 +5,7 @@
 ### 57.0 (TDB)
 
 * [ThibaultLemaire] Show gui message on cross filesystem access
+* Show icon in taskbar
 
 ### 56.0 (2022-08-05)
 

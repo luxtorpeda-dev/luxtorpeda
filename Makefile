@@ -18,7 +18,8 @@ files = compatibilitytool.vdf \
 	luxtorpeda.sh \
 	config.json \
 	LICENSE \
-	README.md
+	README.md \
+	icon.png
 
 ifeq ($(origin XDG_DATA_HOME), undefined)
 	data_home := ${HOME}/.local/share
@@ -73,7 +74,8 @@ $(tool_dir): \
 		target/release/config.json \
 		target/release/luxtorpeda.sh \
 		target/release/LICENSE \
-		target/release/README.md
+		target/release/README.md \
+		target/release/icon.png
 	mkdir -p $(tool_dir)
 	cd target/release && cp -r --reflink=auto -t ../../$(tool_dir) $(files)
 	$(STRIP) luxtorpeda/luxtorpeda
@@ -96,7 +98,8 @@ user-install: \
 		target/debug/config.json \
 		target/debug/luxtorpeda.sh \
 		target/debug/LICENSE \
-		target/debug/README.md
+		target/debug/README.md \
+		target/debug/icon.png
 	mkdir -p $(dev_install_dir)
 	cd target/debug && cp -r --reflink=auto -t $(dev_install_dir) $(files)
 

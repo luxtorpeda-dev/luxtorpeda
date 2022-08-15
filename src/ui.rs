@@ -11,6 +11,8 @@ use egui_backend::sdl2::video::GLProfile;
 use egui_backend::{egui, sdl2};
 use egui_backend::{sdl2::event::Event, sdl2::event::EventType, DpiScaling, ShaderVersion};
 use egui_sdl2_gl as egui_backend;
+use egui_sdl2_gl::sdl2::image::LoadSurface;
+use sdl2::surface::Surface;
 use sdl2::video::{GLContext, SwapInterval};
 
 extern crate image;
@@ -405,7 +407,6 @@ pub fn start_egui_window(
     gl_attr.set_context_version(3, 2);
 
     let mut window_flags: u32 = 0;
-    window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_UTILITY as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALWAYS_ON_TOP as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_RESIZABLE as u32;
     window_flags |= sdl2::sys::SDL_WindowFlags::SDL_WINDOW_ALLOW_HIGHDPI as u32;
@@ -494,13 +495,31 @@ pub fn start_egui_window(
 
     info!("using dpi scaling of {}", dpi_scaling);
 
+    let mut native_window_title = window_title.to_string();
+    if !window_title.contains("luxtorpeda") {
+        native_window_title = std::format!(
+            "luxtorpeda-dev {0} - {1}",
+            env!("CARGO_PKG_VERSION"),
+            window_title
+        );
+    }
+
     let mut window = video_subsystem
-        .window(window_title, final_width, final_height)
+        .window(native_window_title.as_str(), final_width, final_height)
         .set_window_flags(window_flags)
         .opengl()
         .borderless()
         .build()
         .unwrap();
+
+    match Surface::from_file(user_env::tool_dir().join("icon.png")) {
+        Ok(icon) => {
+            window.set_icon(icon);
+        }
+        Err(err) => {
+            error!("surface from file error: {:?}", err);
+        }
+    };
 
     window.raise();
 
