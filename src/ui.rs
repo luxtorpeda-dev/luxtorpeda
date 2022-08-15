@@ -51,6 +51,7 @@ pub const DEFAULT_DPI: u32 = 120;
 pub const DEFAULT_PROMPT_SIZE: f32 = 32_f32;
 pub const SCROLL_TIMES: usize = 40_usize;
 pub const AXIS_DEAD_ZONE: i16 = 10_000;
+pub const SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR: &str = "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR";
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RequestedAction {
@@ -393,7 +394,7 @@ pub fn start_egui_window(
     window_title: &str,
     enable_nav: bool,
 ) -> Result<(EguiWindowInstance, egui::CtxRef), Error> {
-    sdl2::hint::set("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
+    sdl2::hint::set(SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 
     let mut dpi_scaling = 1.1;
     let display_index = 0;
