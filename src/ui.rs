@@ -473,6 +473,10 @@ pub fn start_egui_window(
                 using_dpi /= 2_f32;
             }
 
+            if using_dpi >= 1250.0 {
+                using_dpi = DEFAULT_DPI as f32;
+            }
+
             info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
             dpi_scaling = 1.25 / (96_f32 / using_dpi);
 
