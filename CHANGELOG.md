@@ -2,10 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 58.0 (2022-08-31)
+### 59.0 (2022-08-31)
 
 * Workaround for dpi scaling calculation with high refresh rate
 * Update to rust 1.63
+* Fix for steam deck crash with new dpi workaround
 
 ### 57.0 (2022-08-15)
 
