@@ -53,7 +53,7 @@ pub const SCROLL_TIMES: usize = 40_usize;
 pub const AXIS_DEAD_ZONE: i16 = 10_000;
 pub const SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR: &str = "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR";
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum RequestedAction {
     Confirm,
     Back,
@@ -80,7 +80,7 @@ impl Display for ControllerType {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum ControllerType {
     Xbox,
     DualShock,
@@ -135,7 +135,7 @@ impl EguiWindowInstance {
                             last_axis_timestamp = Instant::now();
                         } else if last_axis_timestamp.elapsed().as_millis() >= 300
                             && last_input_timestamp.elapsed().as_millis() >= 300
-                            && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
+                            && !(-AXIS_DEAD_ZONE..=AXIS_DEAD_ZONE).contains(&axis_value)
                         {
                             last_axis_timestamp = Instant::now();
                             last_input_timestamp = Instant::now();
@@ -441,9 +441,12 @@ pub fn start_egui_window(
         "window is on display_index: {:?} on_steam_deck: {} steam_deck_gaming_mode: {}",
         display_index, on_steam_deck, steam_deck_gaming_mode
     );
+
+    let mut using_dpi = 0_f32;
+
     match video_subsystem.display_dpi(display_index) {
         Ok(dpi) => {
-            let mut using_dpi = dpi.0;
+            using_dpi = dpi.0;
 
             if dpi.1 > using_dpi {
                 using_dpi = dpi.1;
@@ -471,6 +474,10 @@ pub fn start_egui_window(
             if should_half_dpi {
                 info!("halving dpi");
                 using_dpi /= 2_f32;
+            }
+
+            if using_dpi >= 1250.0 {
+                using_dpi = DEFAULT_DPI as f32;
             }
 
             info!("found dpi: {:?} using dpi: {:?}", dpi, using_dpi);
@@ -638,8 +645,12 @@ pub fn start_egui_window(
     }
 
     let shader_ver = ShaderVersion::Default;
-    let (painter, egui_state) =
-        egui_backend::with_sdl2(&window, shader_ver, DpiScaling::Custom(dpi_scaling));
+    let (painter, egui_state) = egui_backend::with_sdl2(
+        &window,
+        shader_ver,
+        DpiScaling::Custom(dpi_scaling),
+        using_dpi,
+    );
     let start_time = Instant::now();
     Ok((
         EguiWindowInstance {
