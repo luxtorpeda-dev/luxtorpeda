@@ -441,9 +441,12 @@ pub fn start_egui_window(
         "window is on display_index: {:?} on_steam_deck: {} steam_deck_gaming_mode: {}",
         display_index, on_steam_deck, steam_deck_gaming_mode
     );
+
+    let mut using_dpi = 0_f32;
+
     match video_subsystem.display_dpi(display_index) {
         Ok(dpi) => {
-            let mut using_dpi = dpi.0;
+            using_dpi = dpi.0;
 
             if dpi.1 > using_dpi {
                 using_dpi = dpi.1;
@@ -643,7 +646,7 @@ pub fn start_egui_window(
 
     let shader_ver = ShaderVersion::Default;
     let (painter, egui_state) =
-        egui_backend::with_sdl2(&window, shader_ver, DpiScaling::Custom(dpi_scaling));
+        egui_backend::with_sdl2(&window, shader_ver, DpiScaling::Custom(dpi_scaling), using_dpi);
     let start_time = Instant::now();
     Ok((
         EguiWindowInstance {
