@@ -442,7 +442,7 @@ pub fn start_egui_window(
         display_index, on_steam_deck, steam_deck_gaming_mode
     );
 
-    let mut using_dpi = 0_f32;
+    let mut using_dpi = DEFAULT_DPI as f32;
 
     match video_subsystem.display_dpi(display_index) {
         Ok(dpi) => {
