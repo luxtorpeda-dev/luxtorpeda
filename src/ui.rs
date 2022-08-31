@@ -53,7 +53,7 @@ pub const SCROLL_TIMES: usize = 40_usize;
 pub const AXIS_DEAD_ZONE: i16 = 10_000;
 pub const SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR: &str = "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR";
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum RequestedAction {
     Confirm,
     Back,
@@ -80,7 +80,7 @@ impl Display for ControllerType {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum ControllerType {
     Xbox,
     DualShock,
@@ -135,7 +135,7 @@ impl EguiWindowInstance {
                             last_axis_timestamp = Instant::now();
                         } else if last_axis_timestamp.elapsed().as_millis() >= 300
                             && last_input_timestamp.elapsed().as_millis() >= 300
-                            && (axis_value > AXIS_DEAD_ZONE || axis_value < -AXIS_DEAD_ZONE)
+                            && !(-AXIS_DEAD_ZONE..=AXIS_DEAD_ZONE).contains(&axis_value)
                         {
                             last_axis_timestamp = Instant::now();
                             last_input_timestamp = Instant::now();
