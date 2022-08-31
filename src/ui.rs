@@ -645,8 +645,12 @@ pub fn start_egui_window(
     }
 
     let shader_ver = ShaderVersion::Default;
-    let (painter, egui_state) =
-        egui_backend::with_sdl2(&window, shader_ver, DpiScaling::Custom(dpi_scaling), using_dpi);
+    let (painter, egui_state) = egui_backend::with_sdl2(
+        &window,
+        shader_ver,
+        DpiScaling::Custom(dpi_scaling),
+        using_dpi,
+    );
     let start_time = Instant::now();
     Ok((
         EguiWindowInstance {
