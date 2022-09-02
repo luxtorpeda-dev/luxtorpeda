@@ -581,7 +581,7 @@ pub fn start_egui_window(
                             if name == "Steam Virtual Gamepad"
                                 && (!on_steam_deck || !steam_deck_gaming_mode)
                             {
-                                info!("ignorning steam virtual gamepad");
+                                info!("ignoring steam virtual gamepad");
                                 ignore_controller = true;
                             }
                         }
