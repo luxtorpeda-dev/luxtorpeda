@@ -2,6 +2,11 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 60.0 (???)
+
+* [striezel] misc - fix a typo
+* [striezel] Update crate dependencies
+
 ### 59.0 (2022-08-31)
 
 * Workaround for dpi scaling calculation with high refresh rate
