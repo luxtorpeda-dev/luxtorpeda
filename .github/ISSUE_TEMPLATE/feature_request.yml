@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an idea for this project
+description: Suggest an idea for this project. Engine/game requests should be done in the packages repository.
 labels: enhancement
 
 body:
