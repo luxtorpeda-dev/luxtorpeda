@@ -6,6 +6,7 @@
 
 * [striezel] misc - fix a typo
 * [striezel] Update crate dependencies
+* [striezel] update actions used in GitHub Actions workflow
 
 ### 59.0 (2022-08-31)
 
