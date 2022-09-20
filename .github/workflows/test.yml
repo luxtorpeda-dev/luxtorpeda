@@ -11,7 +11,7 @@ jobs:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Build
@@ -19,7 +19,7 @@ jobs:
     - name: Package
       run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: luxtorpeda.tar.xz
         path: ./luxtorpeda.tar.xz
@@ -31,7 +31,7 @@ jobs:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install Clippy
@@ -46,7 +46,7 @@ jobs:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install fmt
@@ -61,7 +61,7 @@ jobs:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install Audit

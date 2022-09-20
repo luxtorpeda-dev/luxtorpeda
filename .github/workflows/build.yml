@@ -30,7 +30,7 @@ jobs:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
     - name: Install SDL 2 Dev
       run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Build
@@ -38,7 +38,7 @@ jobs:
     - name: Package
       run: make version=${{ needs.setup.outputs.build_number }} luxtorpeda.tar.xz
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: luxtorpeda.tar.xz
         path: ./luxtorpeda.tar.xz
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download Artifacts
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name: luxtorpeda.tar.xz
         path: ./
