@@ -4,5 +4,5 @@
 
 [resource]
 resource_name = "HelloWorld"
-class_name = "Package"
+class_name = "LuxClient"
 library = ExtResource( 1 )

@@ -4,6 +4,7 @@ use log::{Level, LevelFilter};
 
 mod user_env;
 mod package;
+mod client;
 
 // Function that registers all exposed classes to Godot
 fn init(handle: InitHandle) {
@@ -11,8 +12,8 @@ fn init(handle: InitHandle) {
         .default_log_level(Level::Info)
         .init();
 
-    handle.add_class::<package::Package>();
-    handle.add_class::<package::SignalEmitter>();
+    handle.add_class::<client::LuxClient>();
+    handle.add_class::<client::SignalEmitter>();
 }
 
 // Macro that creates the entry-points of the dynamic library.
