@@ -1,6 +1,6 @@
 use gdnative::prelude::*;
 use godot_logger::GodotLogger;
-use log::{Level, LevelFilter};
+use log::Level;
 
 mod user_env;
 mod package;

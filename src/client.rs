@@ -100,7 +100,7 @@ impl LuxClient {
     }
 
     #[method]
-    fn _physics_process(&self, #[base] base: TRef<Node>, delta: f64) {
+    fn _physics_process(&self, #[base] base: TRef<Node>, _delta: f64) {
         if let Some(receiver) = &self.receiver {
             if let Ok(new_data) = receiver.try_recv() {
                 let emitter = &mut base.get_node("Container/Progress").unwrap();
@@ -241,7 +241,7 @@ impl LuxClient {
         let app_id = user_env::steam_app_id();
         let mut game_info = package::get_game_info(app_id.as_str()).unwrap();
 
-        let mut engine_choice = data.try_to::<String>().unwrap();
+        let engine_choice = data.try_to::<String>().unwrap();
 
         /*if !game_info["app_ids_deps"].is_null() {
             match get_app_id_deps_paths(&game_info["app_ids_deps"]) {
@@ -292,7 +292,7 @@ impl LuxClient {
 
         let (sender, receiver) = channel();
 
-        let download_thread = std::thread::spawn(move || {
+        std::thread::spawn(move || {
             let client = reqwest::Client::new();
 
             for (i, info) in downloads.iter().enumerate() {
@@ -356,9 +356,6 @@ impl LuxClient {
         });
 
         self.receiver = Some(receiver);
-
-        /*download_thread
-            .join();*/
     }
 
     async fn download(
