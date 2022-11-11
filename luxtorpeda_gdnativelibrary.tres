@@ -1,0 +1,5 @@
+[gd_resource type="GDNativeLibrary" format=2]
+
+[resource]
+entry/X11.64 = "res://target/debug/libluxtorpeda.so"
+dependency/X11.64 = [  ]

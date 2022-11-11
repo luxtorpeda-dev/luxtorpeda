@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Scenes/Progress/Progress.gd" type="Script" id=1]
+
+[node name="Progress" type="VBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_vertical = 3
+alignment = 1
+script = ExtResource( 1 )
+
+[node name="Label" type="Label" parent="."]
+margin_top = 271.0
+margin_right = 1024.0
+margin_bottom = 296.0
+align = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+margin_top = 304.0
+margin_right = 1024.0
+margin_bottom = 329.0
+step = 1.0

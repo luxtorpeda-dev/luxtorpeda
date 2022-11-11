@@ -1,0 +1,45 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Scenes/Choices/Choices.gd" type="Script" id=2]
+
+[node name="Choices" type="HBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 2 )
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ChoiceList" type="ItemList" parent="ScrollContainer"]
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+auto_height = true
+same_column_width = true
+
+[node name="Separator" type="VSeparator" parent="."]
+visible = false
+margin_left = 1016.0
+margin_right = 1024.0
+margin_bottom = 600.0
+
+[node name="LabelScrollContainer" type="ScrollContainer" parent="."]
+visible = false
+margin_left = 516.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="LabelScrollContainer"]
+margin_right = 508.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+autowrap = true
+
+[connection signal="item_selected" from="ScrollContainer/ChoiceList" to="." method="_on_ChoiceList_item_selected"]
