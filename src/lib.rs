@@ -2,6 +2,7 @@ use gdnative::prelude::*;
 use godot_logger::GodotLogger;
 use log::{Level, LevelFilter};
 
+mod user_env;
 mod package;
 
 // Function that registers all exposed classes to Godot

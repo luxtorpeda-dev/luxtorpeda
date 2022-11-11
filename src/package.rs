@@ -1,4 +1,4 @@
-use gdnative::prelude::*;
+#![allow(clippy::or_fun_call)]
 
 extern crate reqwest;
 extern crate tar;
@@ -25,12 +25,13 @@ use std::path::{Path, PathBuf};
 use tar::Archive;
 use tokio::runtime::Runtime;
 use xz2::read::XzDecoder;
-use std::sync::mpsc::channel;
-use std::time::Duration;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
-mod user_env;
+use crate::user_env;
+
+use gdnative::prelude::*;
+use std::sync::mpsc::channel;
 
 static LUX_DISABLE_DEFAULT_CONFIRM: &str = "LUX_DISABLE_DEFAULT_CONFIRM";
 
