@@ -55,11 +55,12 @@ grow_vertical = 0
 alignment = 1
 
 [node name="Choices" parent="Container" instance=ExtResource( 8 )]
+visible = false
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 49.0
 margin_right = 1024.0
-margin_bottom = 472.0
+margin_bottom = 256.0
 size_flags_vertical = 3
 
 [node name="Progress" parent="Container" instance=ExtResource( 10 )]
@@ -80,14 +81,14 @@ margin_bottom = 472.0
 size_flags_vertical = 3
 
 [node name="HSeparator" type="HSeparator" parent="Container"]
-margin_top = 480.0
+margin_top = 49.0
 margin_right = 1024.0
-margin_bottom = 488.0
+margin_bottom = 57.0
 
 [node name="Controls" type="HBoxContainer" parent="Container"]
-margin_top = 496.0
+margin_top = 65.0
 margin_right = 1024.0
-margin_bottom = 600.0
+margin_bottom = 169.0
 script = ExtResource( 9 )
 
 [node name="SecondaryButton" type="Button" parent="Container/Controls"]

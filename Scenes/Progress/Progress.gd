@@ -39,3 +39,7 @@ func progress_change_handler(change_str):
 		if !progress_log.visible:
 			progress_log.visible = true
 		progress_log.text += change.log_line + "\n"
+		
+		if 'run: ' in change.log_line:
+			progress_log.visible = false
+			progress_label.text = "Running"

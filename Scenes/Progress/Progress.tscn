@@ -10,15 +10,17 @@ alignment = 1
 script = ExtResource( 1 )
 
 [node name="Label" type="Label" parent="."]
-margin_top = 271.0
+margin_top = 255.0
 margin_right = 1024.0
-margin_bottom = 296.0
+margin_bottom = 311.0
+text = "This engine uses a non-free engine (Rebellion; non-commercial). Are you sure you want to continue?"
 align = 1
+autowrap = true
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
-margin_top = 304.0
+margin_top = 319.0
 margin_right = 1024.0
-margin_bottom = 329.0
+margin_bottom = 344.0
 step = 1.0
 
 [node name="ProgressLog" type="RichTextLabel" parent="."]

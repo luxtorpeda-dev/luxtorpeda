@@ -18,6 +18,8 @@ func _ready():
 
 func choices_found_handler(choices_str):
 	last_choices = parse_json(choices_str)
+	get_node("../TitleBar").emit_signal("mode_changed", "choices")
+	self.visible = true
 	
 	for choice in last_choices:
 		choice_list.add_item(choice.name)

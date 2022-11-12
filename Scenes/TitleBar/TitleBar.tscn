@@ -15,7 +15,6 @@ grow_vertical = 2
 rect_min_size = Vector2( 0, 24 )
 size_flags_horizontal = 3
 size_flags_vertical = 1
-text = "Pick an engine below"
 align = 1
 valign = 1
 autowrap = true

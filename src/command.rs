@@ -344,6 +344,8 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
         };
     }
 
+    std::process::exit(0);
+
     ret
 }
 

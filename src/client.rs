@@ -69,7 +69,7 @@ impl LuxClient {
     }
 
     #[method]
-    fn _ready(&self, #[base] base: TRef<Node>) {
+    fn _ready(&mut self, #[base] base: TRef<Node>) {
         let app_id = user_env::steam_app_id();
         let env_args: Vec<String> = env::args().collect();
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
@@ -138,7 +138,7 @@ impl LuxClient {
         }
     }
 
-    fn ask_for_engine_choice(&self, app_id: &str, owner: &Node) -> io::Result<String> {
+    fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<String> {
         let mut game_info = package::get_game_info(app_id)
             .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
@@ -250,6 +250,10 @@ impl LuxClient {
             let emitter = &mut owner.get_node("Container/Choices").unwrap();
             let emitter = unsafe { emitter.assume_safe() };
             emitter.emit_signal("choices_found", &[Variant::new(choices_str)]);
+        } else {
+            let downloads = package::json_to_downloads(app_id, &game_info).unwrap();
+            self.last_downloads = Some(downloads);
+            self.choice_picked(&owner, Variant::new("".to_string()));
         }
 
         Ok("test".to_string())
