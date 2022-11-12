@@ -20,3 +20,11 @@ margin_top = 304.0
 margin_right = 1024.0
 margin_bottom = 329.0
 step = 1.0
+
+[node name="ProgressLog" type="RichTextLabel" parent="."]
+visible = false
+margin_top = 66.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_vertical = 3
+scroll_following = true

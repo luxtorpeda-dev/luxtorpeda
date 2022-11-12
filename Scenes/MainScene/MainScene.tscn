@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://Scenes/MainScene/MainScene.gdns" type="Script" id=1]
 [ext_resource path="res://Scenes/TitleBar/TitleBar.tscn" type="PackedScene" id=2]
@@ -10,6 +10,7 @@
 [ext_resource path="res://Scenes/Choices/Choices.tscn" type="PackedScene" id=8]
 [ext_resource path="res://Scenes/MainScene/Controls.gd" type="Script" id=9]
 [ext_resource path="res://Scenes/Progress/Progress.tscn" type="PackedScene" id=10]
+[ext_resource path="res://Scenes/Prompt/Prompt.tscn" type="PackedScene" id=11]
 
 [sub_resource type="InputEventAction" id=1]
 action = "ui_select"
@@ -68,6 +69,15 @@ anchor_bottom = 0.0
 margin_top = 49.0
 margin_right = 1024.0
 margin_bottom = 472.0
+
+[node name="Prompt" parent="Container" instance=ExtResource( 11 )]
+visible = false
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 264.0
+margin_right = 1024.0
+margin_bottom = 472.0
+size_flags_vertical = 3
 
 [node name="HSeparator" type="HSeparator" parent="Container"]
 margin_top = 480.0

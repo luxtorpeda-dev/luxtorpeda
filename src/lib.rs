@@ -4,6 +4,7 @@ use log::Level;
 
 mod user_env;
 mod package;
+mod command;
 mod client;
 
 // Function that registers all exposed classes to Godot

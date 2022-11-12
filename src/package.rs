@@ -21,6 +21,7 @@ use tar::Archive;
 use xz2::read::XzDecoder;
 
 use crate::user_env;
+use crate::client;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
@@ -126,6 +127,7 @@ pub struct PackageMetadata {
     commands: Vec<CmdReplacement>,
 }
 
+#[derive(Clone)]
 pub struct PackageInfo {
     pub name: String,
     pub url: String,
@@ -550,12 +552,16 @@ pub fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Resul
     Ok(downloads)
 }
 
-fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io::Result<()> {
+fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str, sender: &std::sync::mpsc::Sender<String>) -> io::Result<()> {
     let package_name = tarball
         .file_name()
         .and_then(|x| x.to_str())
         .and_then(|x| x.split('.').next())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
+
+    let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Unpacking {}", package_name)) };
+    let status_str = serde_json::to_string(&status_obj).unwrap();
+    sender.send(status_str).unwrap();
 
     let transform = |path: &PathBuf| -> PathBuf {
         match path.as_path().to_str() {
@@ -614,6 +620,10 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
+            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())) };
+            let status_str = serde_json::to_string(&status_obj).unwrap();
+            sender.send(status_str).unwrap();
+
             info!("install: {:?}", &new_path);
 
             if new_path.parent().is_some() {
@@ -657,6 +667,10 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
+            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())) };
+            let status_str = serde_json::to_string(&status_obj).unwrap();
+            sender.send(status_str).unwrap();
+
             info!("install: {:?}", &new_path);
             if new_path.parent().is_some() {
                 fs::create_dir_all(new_path.parent().unwrap())?;
@@ -669,11 +683,15 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str) -> io
     Ok(())
 }
 
-fn copy_only(path: &Path) -> io::Result<()> {
+fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Result<()> {
     let package_name = path
         .file_name()
         .and_then(|x| x.to_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
+
+    let status_obj = client::StatusObj { label: None, progress: Some(0), complete: false, log_line: Some(format!("Copying {}", package_name)) };
+    let status_str = serde_json::to_string(&status_obj).unwrap();
+    sender.send(status_str).unwrap();
 
     info!("copying: {}", package_name);
     fs::copy(path, package_name)?;
@@ -686,10 +704,14 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     setup_complete
 }
 
-pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
+pub fn install(game_info: &json::JsonValue, sender: &std::sync::mpsc::Sender<String>) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"].members();
+
+    let status_obj = client::StatusObj { label: Some("Installing".to_string()), progress: Some(0), complete: false, log_line: None };
+    let status_str = serde_json::to_string(&status_obj).unwrap();
+    sender.send(status_str).unwrap();
 
     let mut setup_complete = false;
     if !game_info["setup"].is_null() {
@@ -724,9 +746,9 @@ pub fn install(game_info: &json::JsonValue) -> io::Result<()> {
                         && !&game_info["download_config"][&name.to_string()]["copy_only"].is_null()
                         && game_info["download_config"][&name.to_string()]["copy_only"] == true)
                 {
-                    copy_only(&path)?;
+                    copy_only(&path, &sender)?;
                 } else {
-                    match unpack_tarball(&path, game_info, &name) {
+                    match unpack_tarball(&path, game_info, &name, &sender) {
                         Ok(()) => {}
                         Err(err) => {
                             /*show_error(
