@@ -1,9 +1,11 @@
 extends VBoxContainer
 
+# warning-ignore:unused_signal
 signal mode_changed
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# warning-ignore:return_value_discarded
 	connect("mode_changed", self, "mode_changed_handler")
 	
 func mode_changed_handler(new_mode):

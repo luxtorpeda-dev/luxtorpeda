@@ -1,13 +1,17 @@
 extends VBoxContainer
 
+# warning-ignore:unused_signal
 signal show_prompt
+# warning-ignore:unused_signal
 signal hide_prompt
 
 onready var prompt_label = get_node("PromptLabel")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# warning-ignore:return_value_discarded
 	connect("show_prompt", self, "show_prompt_handler")
+	# warning-ignore:return_value_discarded
 	connect("hide_prompt", self, "hide_prompt_handler")
 
 

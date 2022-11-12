@@ -1,6 +1,8 @@
 extends VBoxContainer
 
+# warning-ignore:unused_signal
 signal show_progress
+# warning-ignore:unused_signal
 signal progress_change
 
 onready var progress_label = get_node("Label")
@@ -8,7 +10,9 @@ onready var progress_bar = get_node("ProgressBar")
 onready var progress_log = get_node("ProgressLog")
 
 func _ready():
+	# warning-ignore:return_value_discarded
 	connect("show_progress", self, "show_progress_handler")
+	# warning-ignore:return_value_discarded
 	connect("progress_change", self, "progress_change_handler")
 	
 func show_progress_handler(_data):

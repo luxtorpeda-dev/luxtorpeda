@@ -1,6 +1,8 @@
 extends Node
 
+# warning-ignore:unused_signal
 signal choices_found
+# warning-ignore:unused_signal
 signal choice_picked
 
 var last_choices = null
@@ -8,7 +10,9 @@ onready var choice_list = get_node("ScrollContainer/ChoiceList")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# warning-ignore:return_value_discarded
 	connect("choices_found", self, "choices_found_handler")
+	# warning-ignore:return_value_discarded
 	connect("choice_picked", self, "choice_picked_handler")
 	choice_list.grab_focus()
 
@@ -18,7 +22,7 @@ func choices_found_handler(choices_str):
 	for choice in last_choices:
 		choice_list.add_item(choice.name)
 		
-func choice_picked_handler(choice_str):
+func choice_picked_handler(_choice_str):
 	self.visible = false
 
 func _on_ChoiceList_item_selected(index):

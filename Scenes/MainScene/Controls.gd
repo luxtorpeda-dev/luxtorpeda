@@ -1,6 +1,8 @@
 extends HBoxContainer
 
+# warning-ignore:unused_signal
 signal choice_selected
+# warning-ignore:unused_signal
 signal mode_changed
 
 var last_choice
@@ -9,7 +11,9 @@ var last_mode_id
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# warning-ignore:return_value_discarded
 	connect("choice_selected", self, "signal_handler")
+	# warning-ignore:return_value_discarded
 	connect("mode_changed", self, "mode_changed_handler")
 	
 func signal_handler(choice):
