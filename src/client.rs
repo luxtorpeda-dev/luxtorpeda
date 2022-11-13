@@ -131,10 +131,9 @@ impl LuxClient {
         }
     }
 
-    fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<String> {
+    fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<()> {
         let game_info = package::get_game_info(app_id)
             .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
-
 
         if game_info.is_null() {
             return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
@@ -249,7 +248,7 @@ impl LuxClient {
             self.choice_picked(&owner, Variant::new("".to_string()));
         }
 
-        Ok("test".to_string())
+        Ok(())
     }
 
     #[method]
