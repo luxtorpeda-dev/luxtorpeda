@@ -73,13 +73,6 @@ impl LuxClient {
         let app_id = user_env::steam_app_id();
         let env_args: Vec<String> = env::args().collect();
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
-        let cmd_args = &args[2..];
-
-        let exe = cmd_args[0].to_lowercase();
-
-        if exe.ends_with("iscriptevaluator.exe") {
-            std::process::exit(0)
-        }
 
         info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
         info!("steam_app_id: {:?}", &app_id);
