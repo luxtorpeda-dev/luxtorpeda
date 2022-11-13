@@ -205,13 +205,6 @@ pub fn run(args: &[&str], engine_choice: String, sender: &std::sync::mpsc::Sende
     }
 
     if !game_info["choices"].is_null() {
-       /* let engine_choice = match package::download_all(app_id) {
-            Ok(s) => s,
-            Err(err) => {
-                error!("download all error: {:?}", err);
-                return Err(Error::new(ErrorKind::Other, "download all error"));
-            }
-        };*/
         match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {
                 info!("engine choice complete");
@@ -220,8 +213,6 @@ pub fn run(args: &[&str], engine_choice: String, sender: &std::sync::mpsc::Sende
                 return Err(err);
             }
         };
-    } else {
-        //package::download_all(app_id)?;
     }
 
     info!("json:");
@@ -275,12 +266,7 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
         std::process::exit(0)
     }
 
-    let exe = args[0].to_lowercase();
     let exe_args = &args[1..];
-
-    if exe.ends_with("iscriptevaluator.exe") {
-        return Err(Error::new(ErrorKind::Other, "iscriptevaluator ignoring"));
-    }
 
     let mut exe_file = "";
     let exe_path = Path::new(args[0]);
@@ -344,9 +330,13 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
         };
     }
 
-    std::process::exit(0);
-
-    ret
+    if ret.is_ok() {
+        std::process::exit(0);
+    }
+    else {
+        // TODO: show error?
+        ret
+    }
 }
 
 fn show_error_after_run(title: &str, error_message: &str) -> io::Result<()> {
@@ -408,7 +398,7 @@ fn setup_logging(file: Option<File>) {
     }
 }
 
-fn main() -> io::Result<()> {
+pub fn main() -> io::Result<()> {
     let env_args: Vec<String> = env::args().collect();
     let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
@@ -491,24 +481,6 @@ fn main() -> io::Result<()> {
             }
         }
     }
-
-    let cmd = args[1];
-    let cmd_args = &args[2..];
-
-    /*match cmd {
-        "run" => run_wrapper(cmd_args, ),
-        "wait-before-run" => run_wrapper(cmd_args),
-        "waitforexitandrun" => run_wrapper(cmd_args),
-        "manual-download" => manual_download(cmd_args),
-        "mgmt" => {
-            package::update_packages_json().unwrap();
-            //mgmt::run_mgmt()
-        }
-        _ => {
-            usage();
-            std::process::exit(1)
-        }
-    }*/
 
     Ok(())
 }

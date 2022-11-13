@@ -6,7 +6,6 @@ extern crate xz2;
 
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
-use futures_util::StreamExt;
 use log::{error, info};
 use regex::Regex;
 use serde::{Deserialize, Serialize};

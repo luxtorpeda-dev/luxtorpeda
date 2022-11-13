@@ -75,26 +75,19 @@ impl LuxClient {
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
         let cmd_args = &args[2..];
 
+        let exe = cmd_args[0].to_lowercase();
+
+        if exe.ends_with("iscriptevaluator.exe") {
+            std::process::exit(0)
+        }
+
         info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
         info!("steam_app_id: {:?}", &app_id);
         info!("original command: {:?}", args);
         info!("working dir: {:?}", env::current_dir());
         info!("tool dir: {:?}", user_env::tool_dir());
 
-        if args.len() < 2 {
-            //usage();
-            std::process::exit(0)
-        }
-
-        let exe = cmd_args[0].to_lowercase();
-        let exe_args = &cmd_args[1..];
-
-        if exe.ends_with("iscriptevaluator.exe") {
-            std::process::exit(0)
-        }
-
-        user_env::assure_xdg_runtime_dir();
-        user_env::assure_tool_dir(args[0]);
+        command::main().unwrap();
 
         let emitter = &mut base.get_node("SignalEmitter").unwrap();
         let emitter = unsafe { emitter.assume_safe() };
@@ -139,7 +132,7 @@ impl LuxClient {
     }
 
     fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<String> {
-        let mut game_info = package::get_game_info(app_id)
+        let game_info = package::get_game_info(app_id)
             .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
 
 

@@ -1,6 +1,5 @@
 {
     "host_url": "https://luxtorpeda-dev.github.io",
     "should_do_update": true,
-    "use_controller": true,
     "disable_default_confirm": false
 }
