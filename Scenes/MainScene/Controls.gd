@@ -31,6 +31,11 @@ func mode_changed_handler(new_mode, new_mode_id):
 	elif new_mode == "progress":
 		get_node("OkButton").visible = false
 		get_node("SecondaryButton").visible = false
+	elif new_mode == "error":
+		get_node("OkButton").visible = true
+		get_node("OkButton").disabled = false
+		get_node("SecondaryButton").visible = false
+		get_node("CancelButton").visible = false
 
 func _on_OkButton_pressed():
 	if last_mode == "choice":
@@ -39,6 +44,8 @@ func _on_OkButton_pressed():
 	elif last_mode == "question":
 		get_node("../Prompt").emit_signal("hide_prompt")
 		get_node("../../SignalEmitter").emit_signal("question_confirmed", last_mode_id)
+	elif last_mode == "error":
+		_on_CancelButton_pressed()
 
 func _on_CancelButton_pressed():
 	get_tree().quit()

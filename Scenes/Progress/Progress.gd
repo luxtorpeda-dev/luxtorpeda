@@ -38,8 +38,19 @@ func progress_change_handler(change_str):
 	if change.log_line:
 		if !progress_log.visible:
 			progress_log.visible = true
+		if progress_bar.visible:
+			progress_bar.visible = false
 		progress_log.text += change.log_line + "\n"
 		
 		if 'run: ' in change.log_line:
 			progress_log.visible = false
 			progress_label.text = "Running"
+			
+	if change.error:
+		if !self.visible:
+			self.visible = true
+		progress_log.visible = false
+		progress_label.text = change.error
+		progress_bar.visible = false
+		get_node("../TitleBar").emit_signal("mode_changed", "error")
+		get_node("../Controls").emit_signal("mode_changed", "error", "error")

@@ -51,15 +51,16 @@ pub struct StatusObj {
     pub label: std::option::Option<String>,
     pub progress: std::option::Option<i64>,
     pub complete: bool,
-    pub log_line: std::option::Option<String>
+    pub log_line: std::option::Option<String>,
+    pub error: std::option::Option<String>
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct PromptRequestData {
     label: std::option::Option<String>,
-    promptType: String,
+    prompt_type: String,
     title: String,
-    promptId: String
+    prompt_id: String
 }
 
 #[methods]
@@ -68,20 +69,16 @@ impl LuxClient {
         LuxClient { receiver: None, last_downloads: None, last_choice: None }
     }
 
+    fn show_error(&mut self, base: &Node, error: std::io::Error) {
+        let status_obj = StatusObj { label: None, progress: None, complete: false, log_line: None, error: Some(error.to_string()) };
+        let status_str = serde_json::to_string(&status_obj).unwrap();
+        let emitter = &mut base.get_node("Container/Progress").unwrap();
+        let emitter = unsafe { emitter.assume_safe() };
+        emitter.emit_signal("progress_change", &[Variant::new(&status_str)]);
+    }
+
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Node>) {
-        let app_id = user_env::steam_app_id();
-        let env_args: Vec<String> = env::args().collect();
-        let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
-
-        info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
-        info!("steam_app_id: {:?}", &app_id);
-        info!("original command: {:?}", args);
-        info!("working dir: {:?}", env::current_dir());
-        info!("tool dir: {:?}", user_env::tool_dir());
-
-        command::main().unwrap();
-
         let emitter = &mut base.get_node("SignalEmitter").unwrap();
         let emitter = unsafe { emitter.assume_safe() };
 
@@ -105,8 +102,48 @@ impl LuxClient {
             )
             .unwrap();
 
-        package::update_packages_json();
-        self.ask_for_engine_choice(app_id.as_str(), &base);
+        match self.init(&base) {
+            Ok(()) => {},
+            Err(err) => {
+                error!("init err: {:?}", err);
+                self.show_error(&base, err);
+            }
+        };
+    }
+
+    fn init(&mut self, base: &Node) -> io::Result<()> {
+        let app_id = user_env::steam_app_id();
+        let env_args: Vec<String> = env::args().collect();
+        let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
+
+        info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
+        info!("steam_app_id: {:?}", &app_id);
+        info!("original command: {:?}", args);
+        info!("working dir: {:?}", env::current_dir());
+        info!("tool dir: {:?}", user_env::tool_dir());
+
+        match command::main() {
+            Ok(()) => {},
+            Err(err) => {
+                return Err(err);
+            }
+        };
+
+        match package::update_packages_json() {
+            Ok(()) => {},
+            Err(err) => {
+                return Err(err);
+            }
+        };
+
+        match self.ask_for_engine_choice(app_id.as_str(), &base) {
+            Ok(()) => {},
+            Err(err) => {
+                return Err(err);
+            }
+        };
+
+        Ok(())
     }
 
     #[method]
@@ -249,6 +286,10 @@ impl LuxClient {
         let app_id = user_env::steam_app_id();
         let mut game_info = package::get_game_info(app_id.as_str()).unwrap();
 
+        let emitter = &mut owner.get_node("Container/Progress").unwrap();
+        let emitter = unsafe { emitter.assume_safe() };
+        emitter.emit_signal("show_progress", &[Variant::new("")]);
+
         let engine_choice = data.try_to::<String>().unwrap();
         self.last_choice = Some(engine_choice.clone());
 
@@ -257,7 +298,9 @@ impl LuxClient {
                 info!("engine choice complete");
             }
             Err(err) => {
-
+                error!("convert_game_info_with_choice err: {:?}", err);
+                self.show_error(&owner, err);
+                return;
             }
         };
 
@@ -274,6 +317,7 @@ impl LuxClient {
 
         if game_info["download"].is_null() {
             info!("skipping downloads (no urls defined for this package)");
+            self.run_game();
             return;
         }
 
@@ -281,12 +325,6 @@ impl LuxClient {
 
         if downloads.is_empty() {
             info!("Downloads is empty");
-            let emitter = &mut owner.get_node("Container/Progress").unwrap();
-            let emitter = unsafe { emitter.assume_safe() };
-            let status_obj = StatusObj { label: None, progress: None, complete: true, log_line: None };
-            let status_str = serde_json::to_string(&status_obj).unwrap();
-            emitter.emit_signal("progress_change", &[Variant::new(status_str)]);
-
             self.run_game();
             return;
         }
@@ -307,31 +345,27 @@ impl LuxClient {
         self.last_downloads = Some(downloads);
 
         if !dialog_message.is_empty() {
-            let prompt_request = PromptRequestData { label: Some(dialog_message), promptType: "question".to_string(), title: "License Warning".to_string(), promptId: "confirmlicensedownload".to_string() };
+            let prompt_request = PromptRequestData { label: Some(dialog_message), prompt_type: "question".to_string(), title: "License Warning".to_string(), prompt_id: "confirmlicensedownload".to_string() };
             let prompt_request_str = serde_json::to_string(&prompt_request).unwrap();
 
             let emitter = &mut owner.get_node("Container/Prompt").unwrap();
             let emitter = unsafe { emitter.assume_safe() };
             emitter.emit_signal("show_prompt", &[Variant::new(prompt_request_str)]);
         } else {
-            self.process_download(owner);
+            self.process_download();
         }
     }
 
     #[method]
-    fn question_confirmed(&mut self, #[base] owner: &Node, data: Variant) {
+    fn question_confirmed(&mut self, #[base] _owner: &Node, data: Variant) {
         let mode_id = data.try_to::<String>().unwrap();
         if mode_id == "confirmlicensedownload" {
-            self.process_download(&owner);
+            self.process_download();
         }
     }
 
-    fn process_download(&mut self, owner: &Node) {
+    fn process_download(&mut self) {
         let app_id = user_env::steam_app_id();
-
-        let emitter = &mut owner.get_node("Container/Progress").unwrap();
-        let emitter = unsafe { emitter.assume_safe() };
-        emitter.emit_signal("show_progress", &[Variant::new("")]);
 
         if let Some(last_downloads) = self.last_downloads.as_mut() {
             let downloads = last_downloads.clone();
@@ -340,6 +374,8 @@ impl LuxClient {
 
             std::thread::spawn(move || {
                 let client = reqwest::Client::new();
+
+                let mut found_error = false;
 
                 for (i, info) in downloads.iter().enumerate() {
                     let app_id = app_id.to_string();
@@ -352,7 +388,7 @@ impl LuxClient {
                         info.name.clone()
                     );
 
-                    let status_obj = StatusObj { label: Some(label_str), progress: None, complete: false, log_line: None };
+                    let status_obj = StatusObj { label: Some(label_str), progress: None, complete: false, log_line: None, error: None };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender.send(status_str).unwrap();
 
@@ -362,19 +398,16 @@ impl LuxClient {
                         sender.clone(),
                         &client,
                     )) {
-                        Ok(_) => {}
+                        Ok(_) => {
+                        }
                         Err(ref err) => {
-                            error!("download of {} error: {}", info.name.clone(), err);
-                        /* let mut guard = download_err_arc.lock().unwrap();
-                            guard.close = true;
-                            guard.error = true;
+                            let error_str = std::format!("Download of {} Error: {}", info.name.clone(), err);
+                            error!("{}", error_str);
 
-                            if err.to_string() != "progress update failed" {
-                                guard.error_str =
-                                    std::format!("Download of {} Error: {}", info.name.clone(), err);
-                            }
+                            let status_obj = StatusObj { label: None, progress: None, complete: false, log_line: None, error: Some(error_str) };
+                            let status_str = serde_json::to_string(&status_obj).unwrap();
+                            sender.send(status_str).unwrap();
 
-                            std::mem::drop(guard);*/
 
                             let mut cache_dir = app_id;
                             if info.cache_by_name {
@@ -384,25 +417,21 @@ impl LuxClient {
                             if dest_file.exists() {
                                 fs::remove_file(dest_file).unwrap();
                             }
+
+                            found_error = true;
                         }
                     };
 
-                    /*let error_check_arc = loop_arc.clone();
-                    let guard = error_check_arc.lock().unwrap();
-                    if !guard.error {
-                        info!("completed download on: {} {}", i, info.name.clone());
-                    } else {
-                        error!("failed download on: {} {}", i, info.name.clone());
-                        std::mem::drop(guard);
+                    if found_error {
                         break;
                     }
-                    std::mem::drop(guard);
-                    }*/
                 }
 
-                let status_obj = StatusObj { label: None, progress: None, complete: true, log_line: None };
-                let status_str = serde_json::to_string(&status_obj).unwrap();
-                sender.send(status_str).unwrap();
+                if !found_error {
+                    let status_obj = StatusObj { label: None, progress: None, complete: true, log_line: None, error: None };
+                    let status_str = serde_json::to_string(&status_obj).unwrap();
+                    sender.send(status_str).unwrap();
+                }
             });
         }
     }
@@ -458,7 +487,7 @@ impl LuxClient {
                     percentage, downloaded, total_size
                 );
 
-                let status_obj = StatusObj { label: None, progress: Some(percentage), complete: false, log_line: None };
+                let status_obj = StatusObj { label: None, progress: Some(percentage), complete: false, log_line: None, error: None };
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
 
@@ -483,7 +512,18 @@ impl LuxClient {
             let env_args: Vec<String> = env::args().collect();
             let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
-            command::run_wrapper(&args, engine_choice, sender);
+            let sender_err = sender.clone();
+
+            match command::run_wrapper(&args, engine_choice, sender) {
+                Ok(()) => {},
+                Err(err) => {
+                    error!("run_wrapper err: {:?}", err);
+
+                    let status_obj = StatusObj { label: None, progress: None, complete: false, log_line: None, error: Some(err.to_string()) };
+                    let status_str = serde_json::to_string(&status_obj).unwrap();
+                    sender_err.send(status_str).unwrap();
+                }
+            };
         });
     }
 }

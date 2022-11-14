@@ -294,7 +294,7 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
             Some((cmd, cmd_args)) => {
                 info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
 
-                let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args)) };
+                let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args)), error: None };
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
 
@@ -312,15 +312,16 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
                                 info!("run returned with lux exit code");
                                 match fs::read_to_string("last_error.txt") {
                                     Ok(s) => {
-                                        show_error_after_run("Run Error", &s)?;
+                                        ret = Err(Error::new(ErrorKind::Other, std::format!("Error on run: {}", s)));
                                     }
                                     Err(err) => {
                                         error!("read err: {:?}", err);
                                     }
                                 };
                             }
+                        } else {
+                            ret = Ok(());
                         }
-                        ret = Ok(());
                     }
                     Err(err) => {
                         ret = Err(err);
@@ -334,20 +335,8 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
         std::process::exit(0);
     }
     else {
-        // TODO: show error?
         ret
     }
-}
-
-fn show_error_after_run(title: &str, error_message: &str) -> io::Result<()> {
-    /*match dialog::show_error(title, error_message) {
-        Ok(()) => {}
-        Err(err) => {
-            error!("error showing show_error: {:?}", err);
-        }
-    };*/
-
-    Ok(())
 }
 
 fn manual_download(args: &[&str]) -> io::Result<()> {

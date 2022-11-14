@@ -558,7 +558,7 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str, sende
         .and_then(|x| x.split('.').next())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
-    let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Unpacking {}", package_name)) };
+    let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Unpacking {}", package_name)), error: None };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
 
@@ -619,7 +619,7 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str, sende
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())) };
+            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())), error: None };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
 
@@ -666,7 +666,7 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str, sende
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())) };
+            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())), error: None };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
 
@@ -688,7 +688,7 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
         .and_then(|x| x.to_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
-    let status_obj = client::StatusObj { label: None, progress: Some(0), complete: false, log_line: Some(format!("Copying {}", package_name)) };
+    let status_obj = client::StatusObj { label: None, progress: Some(0), complete: false, log_line: Some(format!("Copying {}", package_name)), error: None };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
 
@@ -708,7 +708,7 @@ pub fn install(game_info: &json::JsonValue, sender: &std::sync::mpsc::Sender<Str
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"].members();
 
-    let status_obj = client::StatusObj { label: Some("Installing".to_string()), progress: Some(0), complete: false, log_line: None };
+    let status_obj = client::StatusObj { label: Some("Installing".to_string()), progress: Some(0), complete: false, log_line: None, error: None };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
 

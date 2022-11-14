@@ -14,6 +14,8 @@ func mode_changed_handler(new_mode):
 		new_title = "Progress"
 	elif new_mode == "choices":
 		new_title = "Pick an engine below"
+	elif new_mode == "error":
+		new_title = "Error"
 	else:
 		new_title = new_mode
 		

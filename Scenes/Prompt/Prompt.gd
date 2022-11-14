@@ -21,7 +21,7 @@ func show_prompt_handler(data_str):
 	if prompt.label:
 		prompt_label.text = prompt.label
 		
-	get_node("../Controls").emit_signal("mode_changed", prompt.promptType, prompt.promptId)
+	get_node("../Controls").emit_signal("mode_changed", prompt.prompt_type, prompt.prompt_id)
 	get_node("../TitleBar").emit_signal("mode_changed", prompt.title)
 	
 	self.visible = true

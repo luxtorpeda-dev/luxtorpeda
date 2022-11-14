@@ -11,7 +11,7 @@ mod client;
 fn init(handle: InitHandle) {
     GodotLogger::builder()
         .default_log_level(Level::Info)
-        .init();
+        .init().unwrap();
 
     handle.add_class::<client::LuxClient>();
     handle.add_class::<client::SignalEmitter>();
