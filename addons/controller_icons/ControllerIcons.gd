@@ -46,6 +46,10 @@ func _ready():
 		_settings = ControllerSettings.new()
 	if _settings.custom_mapper:
 		Mapper = _settings.custom_mapper.new()
+		
+	if Input.get_connected_joypads().size():
+		yield(get_tree(), "idle_frame")
+		_set_last_input_type(InputType.CONTROLLER)
 
 func _on_joy_connection_changed(device, connected):
 	if device == 0:
@@ -64,7 +68,7 @@ func _input(event: InputEvent):
 		"InputEventKey", "InputEventMouseButton":
 			input_type = InputType.KEYBOARD_MOUSE
 		"InputEventMouseMotion":
-			if _settings.allow_mouse_remap and event.speed.length() > _settings.mouse_min_movement:
+			if _settings and _settings.allow_mouse_remap and event.speed.length() > _settings.mouse_min_movement:
 				input_type = InputType.KEYBOARD_MOUSE
 		"InputEventJoypadButton":
 			input_type = InputType.CONTROLLER
