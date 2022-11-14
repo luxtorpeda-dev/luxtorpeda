@@ -60,8 +60,8 @@ visible = false
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 49.0
-margin_right = 1024.0
-margin_bottom = 256.0
+margin_right = 996.0
+margin_bottom = 444.0
 size_flags_vertical = 3
 
 [node name="Progress" parent="Container" instance=ExtResource( 10 )]
@@ -69,16 +69,16 @@ visible = false
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 49.0
-margin_right = 1024.0
-margin_bottom = 472.0
+margin_right = 996.0
+margin_bottom = 444.0
 
 [node name="Prompt" parent="Container" instance=ExtResource( 11 )]
 visible = false
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 264.0
-margin_right = 1024.0
-margin_bottom = 472.0
+margin_top = 49.0
+margin_right = 996.0
+margin_bottom = 444.0
 size_flags_vertical = 3
 
 [node name="HSeparator" type="HSeparator" parent="Container"]
@@ -93,7 +93,7 @@ margin_bottom = 169.0
 script = ExtResource( 9 )
 
 [node name="SecondaryButton" type="Button" parent="Container/Controls"]
-margin_right = 264.0
+margin_right = 272.0
 margin_bottom = 104.0
 focus_mode = 0
 size_flags_vertical = 12
@@ -106,8 +106,8 @@ script = ExtResource( 3 )
 path = "ui_select"
 
 [node name="OkButton" type="Button" parent="Container/Controls"]
-margin_left = 671.0
-margin_right = 809.0
+margin_left = 655.0
+margin_right = 801.0
 margin_bottom = 104.0
 focus_mode = 0
 size_flags_horizontal = 10
@@ -121,7 +121,7 @@ script = ExtResource( 3 )
 path = "ui_accept"
 
 [node name="CancelButton" type="Button" parent="Container/Controls"]
-margin_left = 817.0
+margin_left = 809.0
 margin_right = 996.0
 margin_bottom = 104.0
 focus_mode = 0
