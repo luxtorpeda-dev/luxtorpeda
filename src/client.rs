@@ -171,8 +171,12 @@ impl LuxClient {
     }
 
     fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<()> {
-        let game_info = package::get_game_info(app_id)
-            .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
+        let game_info = match package::get_game_info(app_id) {
+            Ok(game_info) => game_info,
+            Err(err) => {
+                return Err(err);
+            }
+        };
 
         if game_info.is_null() {
             return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
@@ -302,7 +306,13 @@ impl LuxClient {
     #[method]
     fn choice_picked(&mut self, #[base] owner: &Node, data: Variant) {
         let app_id = user_env::steam_app_id();
-        let mut game_info = package::get_game_info(app_id.as_str()).unwrap();
+        let mut game_info = match package::get_game_info(app_id.as_str()) {
+            Ok(game_info) => game_info,
+            Err(err) => {
+                self.show_error(owner, err);
+                return;
+            }
+        };
 
         let emitter = &mut owner.get_node("Container/Progress").unwrap();
         let emitter = unsafe { emitter.assume_safe() };

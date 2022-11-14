@@ -200,8 +200,12 @@ pub fn run(
     info!("working dir: {:?}", env::current_dir());
     info!("tool dir: {:?}", user_env::tool_dir());
 
-    let mut game_info = package::get_game_info(app_id.as_str())
-        .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
+    let mut game_info = match package::get_game_info(&app_id) {
+        Ok(game_info) => game_info,
+        Err(err) => {
+            return Err(err);
+        }
+    };
 
     if game_info.is_null() {
         return Err(Error::new(ErrorKind::Other, "Unknown app_id"));

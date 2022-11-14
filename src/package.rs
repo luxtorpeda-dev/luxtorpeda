@@ -807,20 +807,21 @@ pub fn install(
     Ok(())
 }
 
-pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
+pub fn get_game_info(app_id: &str) -> io::Result<json::JsonValue> {
     let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
         Ok(s) => s,
         Err(err) => {
             info!("read err: {:?}", err);
-            return None;
+            return Err(err);
         }
     };
     let parsed = match json::parse(&json_str) {
         Ok(j) => j,
         Err(err) => {
-            info!("parsing err: {:?}", err);
-            return None;
+            let error_message = std::format!("parsing err: {:?}", err);
+            error!("{}", error_message);
+            return Err(Error::new(ErrorKind::Other, error_message));
         }
     };
     let game_info = parsed[app_id].clone();
@@ -834,11 +835,7 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json read err: {:?}", err);
                     error!("{:?}", error_message);
-                    /*match show_error("User Packages Error", &error_message) {
-                        Ok(s) => s,
-                        Err(_err) => {}
-                    }*/
-                    return None;
+                    return Err(Error::new(ErrorKind::Other, error_message));
                 }
             };
 
@@ -847,11 +844,7 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json parsing err: {:?}", err);
                     error!("{:?}", error_message);
-                    /*match show_error("User Packages Error", &error_message) {
-                        Ok(s) => s,
-                        Err(_err) => {}
-                    }*/
-                    return None;
+                    return Err(Error::new(ErrorKind::Other, error_message));
                 }
             };
 
@@ -863,11 +856,11 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
                             && user_parsed["override_all_with_user_default"] == true))
                 {
                     info!("game info using user default");
-                    return Some(user_parsed["default"].clone());
+                    return Ok(user_parsed["default"].clone());
                 }
             } else {
                 info!("user_packages_file used for game_info");
-                return Some(user_game_info);
+                return Ok(user_game_info);
             }
         }
         None => {
@@ -878,12 +871,12 @@ pub fn get_game_info(app_id: &str) -> Option<json::JsonValue> {
     if game_info.is_null() {
         if !parsed["default"].is_null() {
             info!("game info using default");
-            Some(parsed["default"].clone())
+            Ok(parsed["default"].clone())
         } else {
-            None
+            Err(Error::new(ErrorKind::Other, "Game info not found & no default"))
         }
     } else {
-        Some(game_info)
+        Ok(game_info)
     }
 }
 
