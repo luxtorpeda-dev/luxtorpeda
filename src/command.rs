@@ -21,8 +21,6 @@ extern crate simplelog;
 use log::{debug, error, info};
 use simplelog::*;
 
-static SDL_VIRTUAL_GAMEPAD: &str = "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD";
-static SDL_IGNORE_DEVICES: &str = "SDL_GAMECONTROLLER_IGNORE_DEVICES";
 static ORIGINAL_LD_PRELOAD: &str = "ORIGINAL_LD_PRELOAD";
 static LD_PRELOAD: &str = "LD_PRELOAD";
 
@@ -30,7 +28,6 @@ static STEAM_DECK_ENV: &str = "SteamDeck";
 static STEAM_OS_ENV: &str = "SteamOS";
 static USER_ENV: &str = "USER";
 static STEAM_DECK_USER: &str = "deck";
-static STEAM_DECK_DISPLAY_NAME: &str = "ANX7530 U 3\"";
 
 static LUX_ERRORS_SUPPORTED: &str = "LUX_ERRORS_SUPPORTED";
 static LUX_ORIGINAL_EXE: &str = "LUX_ORIGINAL_EXE";
@@ -151,46 +148,6 @@ pub fn run(
 ) -> io::Result<json::JsonValue> {
     env::set_var(LUX_ERRORS_SUPPORTED, "1");
 
-    let mut allow_virtual_gamepad = false;
-    let mut ignore_devices = "".to_string();
-
-    let mut on_steam_deck = false;
-    match env::var(LUX_STEAM_DECK) {
-        Ok(val) => {
-            if val == "1" {
-                on_steam_deck = true;
-            }
-        }
-        Err(err) => {
-            debug!("LUX_STEAM_DECK env not found: {}", err);
-        }
-    }
-
-    if !on_steam_deck {
-        match env::var(SDL_VIRTUAL_GAMEPAD) {
-            Ok(val) => {
-                if val == "1" {
-                    info!("turning virtual gamepad off");
-                    env::remove_var(SDL_VIRTUAL_GAMEPAD);
-                    allow_virtual_gamepad = true;
-
-                    match env::var(SDL_IGNORE_DEVICES) {
-                        Ok(val) => {
-                            ignore_devices = val;
-                            env::remove_var(SDL_IGNORE_DEVICES);
-                        }
-                        Err(err) => {
-                            debug!("SDL_IGNORE_DEVICES not found: {}", err);
-                        }
-                    };
-                }
-            }
-            Err(err) => {
-                debug!("virtual gamepad setting not found: {}", err);
-            }
-        }
-    }
-
     let app_id = user_env::steam_app_id();
 
     info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
@@ -247,11 +204,6 @@ pub fn run(
                 return Err(err);
             }
         }
-    }
-
-    if allow_virtual_gamepad {
-        env::set_var(SDL_VIRTUAL_GAMEPAD, "1");
-        env::set_var(SDL_IGNORE_DEVICES, ignore_devices);
     }
 
     match env::var(ORIGINAL_LD_PRELOAD) {
