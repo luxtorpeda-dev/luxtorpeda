@@ -232,7 +232,7 @@ pub fn run(
     }
 
     if !game_info["download"].is_null() {
-        package::install(&game_info, &sender)?;
+        package::install(&game_info, sender)?;
     }
 
     if !game_info["setup"].is_null() {

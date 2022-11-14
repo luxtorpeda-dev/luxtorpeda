@@ -145,7 +145,7 @@ impl LuxClient {
             }
         };
 
-        match self.ask_for_engine_choice(app_id.as_str(), &base) {
+        match self.ask_for_engine_choice(app_id.as_str(), base) {
             Ok(()) => {}
             Err(err) => {
                 return Err(err);
@@ -293,7 +293,7 @@ impl LuxClient {
         } else {
             let downloads = package::json_to_downloads(app_id, &game_info).unwrap();
             self.last_downloads = Some(downloads);
-            self.choice_picked(&owner, Variant::new("".to_string()));
+            self.choice_picked(owner, Variant::new("".to_string()));
         }
 
         Ok(())
@@ -311,13 +311,13 @@ impl LuxClient {
         let engine_choice = data.try_to::<String>().unwrap();
         self.last_choice = Some(engine_choice.clone());
 
-        match package::convert_game_info_with_choice(engine_choice.clone(), &mut game_info) {
+        match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {
                 info!("engine choice complete");
             }
             Err(err) => {
                 error!("convert_game_info_with_choice err: {:?}", err);
-                self.show_error(&owner, err);
+                self.show_error(owner, err);
                 return;
             }
         };
@@ -492,12 +492,12 @@ impl LuxClient {
 
         info!("download target: {:?}", target);
 
-        let res = client.get(&target).send().await.or(Err(Error::new(
+        let res = client.get(&target).send().await.map_err(|_| Error::new(
             ErrorKind::Other,
             format!("Failed to GET from '{}'", &target),
-        )))?;
+        ))?;
 
-        let total_size = res.content_length().ok_or(Error::new(
+        let total_size = res.content_length().ok_or_else(|| Error::new(
             ErrorKind::Other,
             format!("Failed to get content length from '{}'", &target),
         ))?;
@@ -509,14 +509,14 @@ impl LuxClient {
         let mut total_percentage: i64 = 0;
 
         while let Some(item) = stream.next().await {
-            let chunk = item.or(Err(Error::new(
+            let chunk = item.map_err(|_| Error::new(
                 ErrorKind::Other,
                 "Error while downloading file",
-            )))?;
-            dest.write_all(&chunk).or(Err(Error::new(
+            ))?;
+            dest.write_all(&chunk).map_err(|_| Error::new(
                 ErrorKind::Other,
                 "Error while writing to file",
-            )))?;
+            ))?;
 
             let new = min(downloaded + (chunk.len() as u64), total_size);
             downloaded = new;

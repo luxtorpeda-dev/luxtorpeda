@@ -615,7 +615,7 @@ fn unpack_tarball(
         }
     }
 
-    let file = fs::File::open(&tarball)?;
+    let file = fs::File::open(tarball)?;
 
     if decode_as_zip {
         let mut archive = zip::ZipArchive::new(file).unwrap();
@@ -789,22 +789,17 @@ pub fn install(
                         && !&game_info["download_config"][&name.to_string()]["copy_only"].is_null()
                         && game_info["download_config"][&name.to_string()]["copy_only"] == true)
                 {
-                    copy_only(&path, &sender)?;
+                    copy_only(&path, sender)?;
                 } else {
-                    match unpack_tarball(&path, game_info, &name, &sender) {
+                    match unpack_tarball(&path, game_info, &name, sender) {
                         Ok(()) => {}
                         Err(err) => {
-                            /*show_error(
-                                "Unpack Error",
-                                &std::format!("Error unpacking {}: {}", &file, &err),
-                            )?;*/
                             return Err(err);
                         }
                     };
                 }
             }
             None => {
-                //show_error("Run Error", "Package file not found")?;
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
             }
         }

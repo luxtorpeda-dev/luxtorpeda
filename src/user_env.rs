@@ -57,7 +57,7 @@ pub fn tool_dir() -> PathBuf {
 }
 
 pub fn set_env_var(key: &str, value: &str) {
-    env::set_var(&key, &value);
+    env::set_var(key, value);
 }
 
 pub fn set_controller_var(value: &str) {
