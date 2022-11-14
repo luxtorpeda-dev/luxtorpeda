@@ -62,6 +62,14 @@ func mode_changed_handler(new_mode, new_mode_id):
 		cancel_button.visible = true
 		cancel_button.text = "Clear Default"
 		
+	if cancel_button.visible and !ok_button.visible:
+		cancel_button.size_flags_horizontal |= SIZE_EXPAND
+		cancel_button.size_flags_horizontal |= SIZE_SHRINK_END
+		print("????")
+	else:
+		print("???? 2")
+		cancel_button.size_flags_horizontal = SIZE_SHRINK_END
+		
 func default_choice_selected_handler(new_default_choice):
 	last_default_choice = new_default_choice
 	

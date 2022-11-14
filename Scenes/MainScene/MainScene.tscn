@@ -30,25 +30,26 @@ action = "ui_cancel"
 [sub_resource type="ShortCut" id=6]
 shortcut = SubResource( 5 )
 
-[node name="UI" type="Node"]
+[node name="UI" type="PanelContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource( 1 )
 
 [node name="SignalEmitter" type="Node" parent="."]
 script = ExtResource( 6 )
 
-[node name="ColorRect" type="ColorRect" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color( 0.105882, 0.105882, 0.105882, 1 )
-
 [node name="Container" type="VBoxContainer" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
+margin_left = 14.0
+margin_top = 14.0
+margin_right = 1010.0
+margin_bottom = 586.0
 
 [node name="TitleBar" parent="Container" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 1024.0
+margin_right = 996.0
 margin_bottom = 41.0
 grow_horizontal = 0
 grow_vertical = 0
@@ -82,12 +83,12 @@ size_flags_vertical = 3
 
 [node name="HSeparator" type="HSeparator" parent="Container"]
 margin_top = 49.0
-margin_right = 1024.0
+margin_right = 996.0
 margin_bottom = 57.0
 
 [node name="Controls" type="HBoxContainer" parent="Container"]
 margin_top = 65.0
-margin_right = 1024.0
+margin_right = 996.0
 margin_bottom = 169.0
 script = ExtResource( 9 )
 
@@ -105,8 +106,8 @@ script = ExtResource( 3 )
 path = "ui_select"
 
 [node name="OkButton" type="Button" parent="Container/Controls"]
-margin_left = 699.0
-margin_right = 837.0
+margin_left = 671.0
+margin_right = 809.0
 margin_bottom = 104.0
 focus_mode = 0
 size_flags_horizontal = 10
@@ -120,8 +121,8 @@ script = ExtResource( 3 )
 path = "ui_accept"
 
 [node name="CancelButton" type="Button" parent="Container/Controls"]
-margin_left = 845.0
-margin_right = 1024.0
+margin_left = 817.0
+margin_right = 996.0
 margin_bottom = 104.0
 focus_mode = 0
 size_flags_horizontal = 8
