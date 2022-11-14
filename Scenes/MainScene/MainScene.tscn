@@ -92,14 +92,14 @@ margin_bottom = 169.0
 script = ExtResource( 9 )
 
 [node name="SecondaryButton" type="Button" parent="Container/Controls"]
-margin_right = 256.0
+margin_right = 264.0
 margin_bottom = 104.0
 focus_mode = 0
 size_flags_vertical = 12
 disabled = true
 enabled_focus_mode = 0
 shortcut = SubResource( 2 )
-text = "Set as Default"
+text = "Toggle Default"
 icon = ExtResource( 5 )
 script = ExtResource( 3 )
 path = "ui_select"
@@ -133,5 +133,6 @@ icon = ExtResource( 7 )
 script = ExtResource( 3 )
 path = "ui_cancel"
 
+[connection signal="pressed" from="Container/Controls/SecondaryButton" to="Container/Controls" method="_on_SecondaryButton_pressed"]
 [connection signal="pressed" from="Container/Controls/OkButton" to="Container/Controls" method="_on_OkButton_pressed"]
 [connection signal="pressed" from="Container/Controls/CancelButton" to="Container/Controls" method="_on_CancelButton_pressed"]

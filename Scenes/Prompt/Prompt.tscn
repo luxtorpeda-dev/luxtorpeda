@@ -21,3 +21,8 @@ margin_top = 560.0
 margin_right = 1024.0
 margin_bottom = 600.0
 rect_min_size = Vector2( 0, 40 )
+
+[node name="Timer" type="Timer" parent="."]
+process_mode = 0
+
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]

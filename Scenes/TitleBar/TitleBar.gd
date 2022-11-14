@@ -12,7 +12,7 @@ func mode_changed_handler(new_mode):
 	var new_title = ""
 	if new_mode == "progress":
 		new_title = "Progress"
-	elif new_mode == "choices":
+	elif new_mode == "choice":
 		new_title = "Pick an engine below"
 	elif new_mode == "error":
 		new_title = "Error"

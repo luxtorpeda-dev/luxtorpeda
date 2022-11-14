@@ -20,6 +20,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 auto_height = true
 same_column_width = true
+icon_scale = 0.3
 
 [node name="Separator" type="VSeparator" parent="."]
 visible = false

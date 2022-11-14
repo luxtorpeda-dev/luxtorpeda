@@ -144,5 +144,6 @@ frontend for packaging and triggering longer `cargo` commands.
 
 ## Credits
 
-* Controller and keyboard glyphs are from "Xelu's FREE Controller Prompts", in the public domain. It is available [here](https://thoseawesomeguys.com/prompts/).
+* add credits for godot, godot addons being used
 * Application icon is from a collection designed by AIGA, in the public domain. It is available [here](https://www.aiga.org/resources/symbol-signs).
+* https://uxwing.com/accept-icon/

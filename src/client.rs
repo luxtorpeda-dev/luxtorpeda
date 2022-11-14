@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::env;
 use std::fs;
+use std::fs::File;
 use std::io;
 use std::io::Write;
 use std::io::{Error, ErrorKind};
@@ -30,6 +31,7 @@ impl SignalEmitter {
     fn register_signals(builder: &ClassBuilder<Self>) {
         builder.signal("choice_picked").done();
         builder.signal("question_confirmed").done();
+        builder.signal("clear_default_choice").done();
     }
 
     fn new(_owner: &Node) -> Self {
@@ -60,6 +62,12 @@ struct PromptRequestData {
     prompt_type: String,
     title: String,
     prompt_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ChoiceData {
+    engine_choice: std::option::Option<String>,
+    default_engine_choice: std::option::Option<String>
 }
 
 #[methods]
@@ -106,6 +114,16 @@ impl LuxClient {
                 "question_confirmed",
                 base,
                 "question_confirmed",
+                VariantArray::new_shared(),
+                0,
+            )
+            .unwrap();
+
+        emitter
+            .connect(
+                "clear_default_choice",
+                base,
+                "clear_default_choice",
                 VariantArray::new_shared(),
                 0,
             )
@@ -290,10 +308,67 @@ impl LuxClient {
                 choices.push(choice_info);
             }
 
-            let choices_str = serde_json::to_string(&choices).unwrap();
-            let emitter = &mut owner.get_node("Container/Choices").unwrap();
-            let emitter = unsafe { emitter.assume_safe() };
-            emitter.emit_signal("choices_found", &[Variant::new(choices_str)]);
+            let check_default_choice_file_path = package::place_config_file(app_id, "default_engine_choice.txt")?;
+            if check_default_choice_file_path.exists() {
+                info!("show choice. found default choice.");
+                let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
+                info!(
+                    "show choice. found default choice. choice is {:?}",
+                    default_engine_choice_str
+                );
+
+                let mut should_show_confirm = true;
+
+                let config_json_file = user_env::tool_dir().join("config.json");
+                let config_json_str = fs::read_to_string(config_json_file)?;
+                let config_parsed = json::parse(&config_json_str).unwrap();
+
+                if !config_parsed["disable_default_confirm"].is_null() {
+                    let disable_default_confirm = &config_parsed["disable_default_confirm"];
+                    if disable_default_confirm == true {
+                        info!("show choice. disabling default confirm because of config");
+                        should_show_confirm = false;
+                    }
+                }
+
+                match env::var(package::LUX_DISABLE_DEFAULT_CONFIRM) {
+                    Ok(val) => {
+                        if val == "1" {
+                            info!("show choice. disabling default confirm because of env");
+                            should_show_confirm = false;
+                        } else if val == "0" {
+                            info!("show choice. enabling default confirm because of env");
+                            should_show_confirm = true;
+                        }
+                    }
+                    Err(err) => {
+                        info!("LUX_DISABLE_DEFAULT_CONFIRM not found: {}", err);
+                    }
+                }
+
+                if should_show_confirm {
+                    let prompt_request = PromptRequestData {
+                        label: Some(default_engine_choice_str.to_string()),
+                        prompt_type: "default_choice".to_string(),
+                        title: "Default Choice Confirmation".to_string(),
+                        prompt_id: "defaultchoiceconfirm".to_string(),
+                    };
+                    let prompt_request_str = serde_json::to_string(&prompt_request).unwrap();
+
+                    let emitter = &mut owner.get_node("Container/Prompt").unwrap();
+                    let emitter = unsafe { emitter.assume_safe() };
+                    emitter.emit_signal("show_prompt", &[Variant::new(prompt_request_str)]);
+                } else {
+                    let choice_obj = ChoiceData { engine_choice: Some(default_engine_choice_str.to_string()), default_engine_choice: Some(default_engine_choice_str.to_string()) };
+                    let choice_str = serde_json::to_string(&choice_obj).unwrap();
+                    self.choice_picked(owner, Variant::new(choice_str));
+                }
+            } else {
+                let choices_str = serde_json::to_string(&choices).unwrap();
+                let emitter = &mut owner.get_node("Container/Choices").unwrap();
+                let emitter = unsafe { emitter.assume_safe() };
+                emitter.emit_signal("choices_found", &[Variant::new(choices_str)]);
+            }
         } else {
             let downloads = package::json_to_downloads(app_id, &game_info).unwrap();
             self.last_downloads = Some(downloads);
@@ -318,19 +393,35 @@ impl LuxClient {
         let emitter = unsafe { emitter.assume_safe() };
         emitter.emit_signal("show_progress", &[Variant::new("")]);
 
-        let engine_choice = data.try_to::<String>().unwrap();
-        self.last_choice = Some(engine_choice.clone());
+        let data_str = data.try_to::<String>().unwrap();
 
-        match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
-            Ok(()) => {
-                info!("engine choice complete");
+        if !data_str.is_empty() {
+            let choice_obj: ChoiceData = serde_json::from_str(&data_str).unwrap();
+
+            if let Some(engine_choice) = choice_obj.engine_choice {
+                info!("picked for engine_choice: {}", engine_choice);
+
+                if let Some(default_choice) = choice_obj.default_engine_choice {
+                    info!("default engine choice requested for {}", default_choice);
+                    let default_choice_file_path = package::place_config_file(&app_id, "default_engine_choice.txt").unwrap();
+                    let mut default_choice_file = File::create(default_choice_file_path).unwrap();
+                    default_choice_file.write_all(default_choice.as_bytes()).unwrap();
+                }
+
+                self.last_choice = Some(engine_choice.clone());
+
+                match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
+                    Ok(()) => {
+                        info!("engine choice complete");
+                    }
+                    Err(err) => {
+                        error!("convert_game_info_with_choice err: {:?}", err);
+                        self.show_error(owner, err);
+                        return;
+                    }
+                };
             }
-            Err(err) => {
-                error!("convert_game_info_with_choice err: {:?}", err);
-                self.show_error(owner, err);
-                return;
-            }
-        };
+        }
 
         if !game_info["app_ids_deps"].is_null() {
             match package::get_app_id_deps_paths(&game_info["app_ids_deps"]) {
@@ -395,6 +486,29 @@ impl LuxClient {
         if mode_id == "confirmlicensedownload" {
             self.process_download();
         }
+    }
+
+    #[method]
+    fn clear_default_choice(&mut self, #[base] owner: &Node, _data: Variant) {
+        let app_id = user_env::steam_app_id();
+        let config_path = package::path_to_config();
+        let folder_path = config_path.join(&app_id);
+        match fs::remove_dir_all(folder_path) {
+            Ok(()) => {
+                info!("clear config done");
+            }
+            Err(err) => {
+                error!("clear config. err: {:?}", err);
+            }
+        }
+
+        match self.ask_for_engine_choice(app_id.as_str(), owner) {
+            Ok(()) => {}
+            Err(err) => {
+                error!("clear_default_choice ask err: {:?}", err);
+                self.show_error(&owner, err);
+            }
+        };
     }
 
     fn process_download(&mut self) {
