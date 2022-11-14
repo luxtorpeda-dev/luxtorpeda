@@ -53,7 +53,7 @@ func _on_ChoiceList_item_selected(index):
 	if engine_choice.notices && engine_choice.notices.size():
 		var noticeText = ""
 		for notice in engine_choice.notices:
-			noticeText += notice + "\n"
+			noticeText += "* " + notice + "\n"
 		get_node("LabelScrollContainer/Label").text = noticeText
 		get_node("LabelScrollContainer").visible = true
 		get_node("Separator").visible = true
