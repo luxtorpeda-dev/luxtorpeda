@@ -696,10 +696,10 @@ impl LuxClient {
 
             let sender_err = sender.clone();
 
-            match command::run_wrapper(&args, engine_choice, sender) {
-                Ok(()) => {}
+            let game_info = match command::run(&args, engine_choice, &sender) {
+                Ok(game_info) => game_info,
                 Err(err) => {
-                    error!("run_wrapper err: {:?}", err);
+                    error!("command::run err: {:?}", err);
 
                     let status_obj = StatusObj {
                         label: None,
@@ -710,8 +710,40 @@ impl LuxClient {
                     };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender_err.send(status_str).unwrap();
+
+                    return;
                 }
             };
+
+            if !game_info["setup"].is_null() {
+                /*match run_setup(&game_info) {
+                    Ok(()) => {
+                        info!("setup complete");
+                    }
+                    Err(err) => {
+                        return Err(err);
+                    }
+                }*/
+            } else {
+                match command::run_wrapper(&args, &game_info, &sender_err) {
+                    Ok(()) => {}
+                    Err(err) => {
+                        error!("command::run_wrapper err: {:?}", err);
+
+                        let status_obj = StatusObj {
+                            label: None,
+                            progress: None,
+                            complete: false,
+                            log_line: None,
+                            error: Some(err.to_string()),
+                        };
+                        let status_str = serde_json::to_string(&status_obj).unwrap();
+                        sender_err.send(status_str).unwrap();
+
+                        return;
+                    }
+                };
+            }
         });
     }
 }

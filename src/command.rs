@@ -150,12 +150,6 @@ pub fn run(
 
     let app_id = user_env::steam_app_id();
 
-    info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
-    info!("steam_app_id: {:?}", &app_id);
-    info!("original command: {:?}", args);
-    info!("working dir: {:?}", env::current_dir());
-    info!("tool dir: {:?}", user_env::tool_dir());
-
     let mut game_info = match package::get_game_info(&app_id) {
         Ok(game_info) => game_info,
         Err(err) => {
@@ -195,17 +189,6 @@ pub fn run(
         package::install(&game_info, sender)?;
     }
 
-    if !game_info["setup"].is_null() {
-        match run_setup(&game_info) {
-            Ok(()) => {
-                info!("setup complete");
-            }
-            Err(err) => {
-                return Err(err);
-            }
-        }
-    }
-
     match env::var(ORIGINAL_LD_PRELOAD) {
         Ok(val) => {
             env::set_var(LD_PRELOAD, val);
@@ -220,8 +203,8 @@ pub fn run(
 
 pub fn run_wrapper(
     args: &[&str],
-    engine_choice: String,
-    sender: std::sync::mpsc::Sender<String>,
+    game_info: &json::JsonValue,
+    sender: &std::sync::mpsc::Sender<String>,
 ) -> io::Result<()> {
     if args.is_empty() {
         usage();
@@ -239,71 +222,59 @@ pub fn run_wrapper(
     }
 
     let mut ret: Result<(), Error> = Ok(());
-    let mut game_info = None;
 
-    match run(args, engine_choice, &sender) {
-        Ok(g) => {
-            game_info = Some(g);
-        }
-        Err(err) => {
-            ret = Err(err);
-        }
-    }
+    match find_game_command(&game_info, args) {
+        None => ret = Err(Error::new(ErrorKind::Other, "No command line defined")),
+        Some((cmd, cmd_args)) => {
+            info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
 
-    if let Some(game_info) = game_info {
-        match find_game_command(&game_info, args) {
-            None => ret = Err(Error::new(ErrorKind::Other, "No command line defined")),
-            Some((cmd, cmd_args)) => {
-                info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
+            let status_obj = client::StatusObj {
+                label: None,
+                progress: None,
+                complete: false,
+                log_line: Some(format!(
+                    "run: \"{}\" with args: {:?} {:?}",
+                    cmd, cmd_args, exe_args
+                )),
+                error: None,
+            };
+            let status_str = serde_json::to_string(&status_obj).unwrap();
+            sender.send(status_str).unwrap();
 
-                let status_obj = client::StatusObj {
-                    label: None,
-                    progress: None,
-                    complete: false,
-                    log_line: Some(format!(
-                        "run: \"{}\" with args: {:?} {:?}",
-                        cmd, cmd_args, exe_args
-                    )),
-                    error: None,
-                };
-                let status_str = serde_json::to_string(&status_obj).unwrap();
-                sender.send(status_str).unwrap();
-
-                match Command::new(cmd)
-                    .args(cmd_args)
-                    .args(exe_args)
-                    .env(LUX_ORIGINAL_EXE, args[0])
-                    .env(LUX_ORIGINAL_EXE_FILE, exe_file)
-                    .status()
-                {
-                    Ok(status) => {
-                        info!("run returned with {}", status);
-                        if let Some(exit_code) = status.code() {
-                            if exit_code == 10 {
-                                info!("run returned with lux exit code");
-                                match fs::read_to_string("last_error.txt") {
-                                    Ok(s) => {
-                                        ret = Err(Error::new(
-                                            ErrorKind::Other,
-                                            std::format!("Error on run: {}", s),
-                                        ));
-                                    }
-                                    Err(err) => {
-                                        error!("read err: {:?}", err);
-                                    }
-                                };
-                            }
-                        } else {
-                            ret = Ok(());
+            match Command::new(cmd)
+                .args(cmd_args)
+                .args(exe_args)
+                .env(LUX_ORIGINAL_EXE, args[0])
+                .env(LUX_ORIGINAL_EXE_FILE, exe_file)
+                .status()
+            {
+                Ok(status) => {
+                    info!("run returned with {}", status);
+                    if let Some(exit_code) = status.code() {
+                        if exit_code == 10 {
+                            info!("run returned with lux exit code");
+                            match fs::read_to_string("last_error.txt") {
+                                Ok(s) => {
+                                    ret = Err(Error::new(
+                                        ErrorKind::Other,
+                                        std::format!("Error on run: {}", s),
+                                    ));
+                                }
+                                Err(err) => {
+                                    error!("read err: {:?}", err);
+                                }
+                            };
                         }
+                    } else {
+                        ret = Ok(());
                     }
-                    Err(err) => {
-                        ret = Err(err);
-                    }
-                };
-            }
-        };
-    }
+                }
+                Err(err) => {
+                    ret = Err(err);
+                }
+            };
+        }
+    };
 
     if ret.is_ok() {
         std::process::exit(0);
