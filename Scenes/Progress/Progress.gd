@@ -4,6 +4,8 @@ extends VBoxContainer
 signal show_progress
 # warning-ignore:unused_signal
 signal progress_change
+# warning-ignore:unused_signal
+signal hide_progress
 
 onready var progress_label = get_node("Label")
 onready var progress_bar = get_node("ProgressBar")
@@ -14,6 +16,8 @@ func _ready():
 	connect("show_progress", self, "show_progress_handler")
 	# warning-ignore:return_value_discarded
 	connect("progress_change", self, "progress_change_handler")
+	# warning-ignore:return_value_discarded
+	connect("hide_progress", self, "hide_progress_handler")
 	
 func show_progress_handler(_data):
 	self.visible = true
@@ -54,3 +58,6 @@ func progress_change_handler(change_str):
 		progress_bar.visible = false
 		get_node("../TitleBar").emit_signal("mode_changed", "error")
 		get_node("../Controls").emit_signal("mode_changed", "error", "error")
+		
+func hide_progress_handler():
+	self.visible = false

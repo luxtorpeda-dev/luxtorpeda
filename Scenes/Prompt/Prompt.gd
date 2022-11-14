@@ -29,6 +29,7 @@ func show_prompt_handler(data_str):
 		
 	get_node("../Controls").emit_signal("mode_changed", prompt.prompt_type, prompt.prompt_id)
 	get_node("../TitleBar").emit_signal("mode_changed", prompt.title)
+	get_node("../Progress").emit_signal("hide_progress")
 	
 	if prompt.prompt_type == "default_choice":
 		timer_left = DEFAULT_TIMER_START

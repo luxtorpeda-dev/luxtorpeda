@@ -135,7 +135,6 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
             .expect("failed to execute process");
 
         if !setup_cmd.success() {
-            //dialog::show_error("Setup Error", "Setup failed to complete")?;
             return Err(Error::new(ErrorKind::Other, "setup failed"));
         }
 

@@ -488,7 +488,11 @@ impl LuxClient {
     }
 
     #[method]
-    fn question_confirmed(&mut self, #[base] _owner: &Node, data: Variant) {
+    fn question_confirmed(&mut self, #[base] owner: &Node, data: Variant) {
+        let emitter = &mut owner.get_node("Container/Progress").unwrap();
+        let emitter = unsafe { emitter.assume_safe() };
+        emitter.emit_signal("show_progress", &[Variant::new("")]);
+
         let mode_id = data.try_to::<String>().unwrap();
         if mode_id == "confirmlicensedownload" {
             self.process_download();
