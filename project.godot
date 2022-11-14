@@ -50,7 +50,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="luxtorpeda-godot"
+config/name="Luxtorpeda"
 run/main_scene="res://Scenes/MainScene/MainScene.tscn"
 config/use_custom_user_dir=true
 boot_splash/show_image=false
