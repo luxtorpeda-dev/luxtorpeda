@@ -689,7 +689,10 @@ pub fn get_game_info(app_id: &str) -> io::Result<json::JsonValue> {
             info!("game info using default");
             Ok(parsed["default"].clone())
         } else {
-            Err(Error::new(ErrorKind::Other, "Game info not found & no default"))
+            Err(Error::new(
+                ErrorKind::Other,
+                "Game info not found & no default",
+            ))
         }
     } else {
         Ok(game_info)

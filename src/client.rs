@@ -67,7 +67,7 @@ struct PromptRequestData {
 #[derive(Serialize, Deserialize, Debug)]
 struct ChoiceData {
     engine_choice: std::option::Option<String>,
-    default_engine_choice: std::option::Option<String>
+    default_engine_choice: std::option::Option<String>,
 }
 
 #[methods]
@@ -308,7 +308,8 @@ impl LuxClient {
                 choices.push(choice_info);
             }
 
-            let check_default_choice_file_path = package::place_config_file(app_id, "default_engine_choice.txt")?;
+            let check_default_choice_file_path =
+                package::place_config_file(app_id, "default_engine_choice.txt")?;
             if check_default_choice_file_path.exists() {
                 info!("show choice. found default choice.");
                 let default_engine_choice_str = fs::read_to_string(check_default_choice_file_path)?;
@@ -348,7 +349,7 @@ impl LuxClient {
 
                 if should_show_confirm {
                     let prompt_request = PromptRequestData {
-                        label: Some(default_engine_choice_str.to_string()),
+                        label: Some(default_engine_choice_str),
                         prompt_type: "default_choice".to_string(),
                         title: "Default Choice Confirmation".to_string(),
                         prompt_id: "defaultchoiceconfirm".to_string(),
@@ -359,7 +360,10 @@ impl LuxClient {
                     let emitter = unsafe { emitter.assume_safe() };
                     emitter.emit_signal("show_prompt", &[Variant::new(prompt_request_str)]);
                 } else {
-                    let choice_obj = ChoiceData { engine_choice: Some(default_engine_choice_str.to_string()), default_engine_choice: Some(default_engine_choice_str.to_string()) };
+                    let choice_obj = ChoiceData {
+                        engine_choice: Some(default_engine_choice_str.to_string()),
+                        default_engine_choice: Some(default_engine_choice_str),
+                    };
                     let choice_str = serde_json::to_string(&choice_obj).unwrap();
                     self.choice_picked(owner, Variant::new(choice_str));
                 }
@@ -403,9 +407,12 @@ impl LuxClient {
 
                 if let Some(default_choice) = choice_obj.default_engine_choice {
                     info!("default engine choice requested for {}", default_choice);
-                    let default_choice_file_path = package::place_config_file(&app_id, "default_engine_choice.txt").unwrap();
+                    let default_choice_file_path =
+                        package::place_config_file(&app_id, "default_engine_choice.txt").unwrap();
                     let mut default_choice_file = File::create(default_choice_file_path).unwrap();
-                    default_choice_file.write_all(default_choice.as_bytes()).unwrap();
+                    default_choice_file
+                        .write_all(default_choice.as_bytes())
+                        .unwrap();
                 }
 
                 self.last_choice = Some(engine_choice.clone());
@@ -506,7 +513,7 @@ impl LuxClient {
             Ok(()) => {}
             Err(err) => {
                 error!("clear_default_choice ask err: {:?}", err);
-                self.show_error(&owner, err);
+                self.show_error(owner, err);
             }
         };
     }
@@ -616,15 +623,19 @@ impl LuxClient {
 
         info!("download target: {:?}", target);
 
-        let res = client.get(&target).send().await.map_err(|_| Error::new(
-            ErrorKind::Other,
-            format!("Failed to GET from '{}'", &target),
-        ))?;
+        let res = client.get(&target).send().await.map_err(|_| {
+            Error::new(
+                ErrorKind::Other,
+                format!("Failed to GET from '{}'", &target),
+            )
+        })?;
 
-        let total_size = res.content_length().ok_or_else(|| Error::new(
-            ErrorKind::Other,
-            format!("Failed to get content length from '{}'", &target),
-        ))?;
+        let total_size = res.content_length().ok_or_else(|| {
+            Error::new(
+                ErrorKind::Other,
+                format!("Failed to get content length from '{}'", &target),
+            )
+        })?;
 
         let dest_file = package::place_cached_file(cache_dir, &info.file)?;
         let mut dest = fs::File::create(dest_file)?;
@@ -633,14 +644,10 @@ impl LuxClient {
         let mut total_percentage: i64 = 0;
 
         while let Some(item) = stream.next().await {
-            let chunk = item.map_err(|_| Error::new(
-                ErrorKind::Other,
-                "Error while downloading file",
-            ))?;
-            dest.write_all(&chunk).map_err(|_| Error::new(
-                ErrorKind::Other,
-                "Error while writing to file",
-            ))?;
+            let chunk =
+                item.map_err(|_| Error::new(ErrorKind::Other, "Error while downloading file"))?;
+            dest.write_all(&chunk)
+                .map_err(|_| Error::new(ErrorKind::Other, "Error while writing to file"))?;
 
             let new = min(downloaded + (chunk.len() as u64), total_size);
             downloaded = new;
