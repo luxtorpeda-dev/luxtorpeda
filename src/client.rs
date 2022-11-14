@@ -1,23 +1,23 @@
 extern crate reqwest;
 
-use gdnative::prelude::*;
-use std::sync::mpsc::channel;
-use log::{error, info};
-use serde::{Deserialize, Serialize};
-use std::env;
-use std::io;
-use std::fs;
-use std::io::{Error, ErrorKind};
-use tokio::runtime::Runtime;
-use std::cmp::min;
-use std::io::Write;
-use reqwest::Client;
 use futures_util::StreamExt;
+use gdnative::prelude::*;
+use log::{error, info};
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::cmp::min;
+use std::env;
+use std::fs;
+use std::io;
+use std::io::Write;
+use std::io::{Error, ErrorKind};
+use std::sync::mpsc::channel;
+use tokio::runtime::Runtime;
 
-use crate::user_env;
-use crate::package;
 use crate::command;
+use crate::package;
 use crate::package::ChoiceInfo;
+use crate::user_env;
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -39,11 +39,10 @@ impl SignalEmitter {
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub struct LuxClient
-{
+pub struct LuxClient {
     receiver: std::option::Option<std::sync::mpsc::Receiver<String>>,
     last_downloads: std::option::Option<Vec<package::PackageInfo>>,
-    last_choice: std::option::Option<String>
+    last_choice: std::option::Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -52,7 +51,7 @@ pub struct StatusObj {
     pub progress: std::option::Option<i64>,
     pub complete: bool,
     pub log_line: std::option::Option<String>,
-    pub error: std::option::Option<String>
+    pub error: std::option::Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -60,17 +59,27 @@ struct PromptRequestData {
     label: std::option::Option<String>,
     prompt_type: String,
     title: String,
-    prompt_id: String
+    prompt_id: String,
 }
 
 #[methods]
 impl LuxClient {
     fn new(_base: &Node) -> Self {
-        LuxClient { receiver: None, last_downloads: None, last_choice: None }
+        LuxClient {
+            receiver: None,
+            last_downloads: None,
+            last_choice: None,
+        }
     }
 
     fn show_error(&mut self, base: &Node, error: std::io::Error) {
-        let status_obj = StatusObj { label: None, progress: None, complete: false, log_line: None, error: Some(error.to_string()) };
+        let status_obj = StatusObj {
+            label: None,
+            progress: None,
+            complete: false,
+            log_line: None,
+            error: Some(error.to_string()),
+        };
         let status_str = serde_json::to_string(&status_obj).unwrap();
         let emitter = &mut base.get_node("Container/Progress").unwrap();
         let emitter = unsafe { emitter.assume_safe() };
@@ -103,7 +112,7 @@ impl LuxClient {
             .unwrap();
 
         match self.init(&base) {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(err) => {
                 error!("init err: {:?}", err);
                 self.show_error(&base, err);
@@ -123,21 +132,21 @@ impl LuxClient {
         info!("tool dir: {:?}", user_env::tool_dir());
 
         match command::main() {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(err) => {
                 return Err(err);
             }
         };
 
         match package::update_packages_json() {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(err) => {
                 return Err(err);
             }
         };
 
         match self.ask_for_engine_choice(app_id.as_str(), &base) {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(err) => {
                 return Err(err);
             }
@@ -208,18 +217,23 @@ impl LuxClient {
                             engines[engine_name_clone_clone_two]["controllerNotSupported"] == true;
                         let controller_supported =
                             engines[engine_name_clone_clone_three]["controllerSupported"] == true;
-                        let controller_supported_manual =
-                            engines[engine_name_clone_clone_four]["controllerSupportedManualGame"] == true;
+                        let controller_supported_manual = engines[engine_name_clone_clone_four]
+                            ["controllerSupportedManualGame"]
+                            == true;
 
                         if controller_not_supported {
                             choice_info
                                 .notices
                                 .push("Engine Does Not Have Native Controller Support".to_string());
-                        } else if controller_supported && game_info["controllerSteamDefault"] == true {
+                        } else if controller_supported
+                            && game_info["controllerSteamDefault"] == true
+                        {
                             choice_info.notices.push(
-                                "Engine Has Native Controller Support And Works Out of the Box".to_string(),
+                                "Engine Has Native Controller Support And Works Out of the Box"
+                                    .to_string(),
                             );
-                        } else if controller_supported_manual && game_info["controllerSteamDefault"] == true
+                        } else if controller_supported_manual
+                            && game_info["controllerSteamDefault"] == true
                         {
                             choice_info.notices.push(
                                 "Engine Has Native Controller Support But Needs Manual In-Game Settings"
@@ -241,16 +255,20 @@ impl LuxClient {
                             .notices
                             .push("Game Does Not Have Cloud Saves".to_string());
                     } else if game_info["cloudAvailable"] == true
-                        && (game_info["cloudSupported"].is_null() || game_info["cloudSupported"] != true)
+                        && (game_info["cloudSupported"].is_null()
+                            || game_info["cloudSupported"] != true)
                     {
                         choice_info
                             .notices
                             .push("Game Has Cloud Saves But Unknown Status".to_string());
-                    } else if game_info["cloudAvailable"] == true && game_info["cloudSupported"] == true {
+                    } else if game_info["cloudAvailable"] == true
+                        && game_info["cloudSupported"] == true
+                    {
                         choice_info
                             .notices
                             .push("Cloud Saves Supported".to_string());
-                    } else if game_info["cloudAvailable"] == true && game_info["cloudIssue"] == true {
+                    } else if game_info["cloudAvailable"] == true && game_info["cloudIssue"] == true
+                    {
                         choice_info
                             .notices
                             .push("Cloud Saves Not Supported".to_string());
@@ -345,7 +363,12 @@ impl LuxClient {
         self.last_downloads = Some(downloads);
 
         if !dialog_message.is_empty() {
-            let prompt_request = PromptRequestData { label: Some(dialog_message), prompt_type: "question".to_string(), title: "License Warning".to_string(), prompt_id: "confirmlicensedownload".to_string() };
+            let prompt_request = PromptRequestData {
+                label: Some(dialog_message),
+                prompt_type: "question".to_string(),
+                title: "License Warning".to_string(),
+                prompt_id: "confirmlicensedownload".to_string(),
+            };
             let prompt_request_str = serde_json::to_string(&prompt_request).unwrap();
 
             let emitter = &mut owner.get_node("Container/Prompt").unwrap();
@@ -388,7 +411,13 @@ impl LuxClient {
                         info.name.clone()
                     );
 
-                    let status_obj = StatusObj { label: Some(label_str), progress: None, complete: false, log_line: None, error: None };
+                    let status_obj = StatusObj {
+                        label: Some(label_str),
+                        progress: None,
+                        complete: false,
+                        log_line: None,
+                        error: None,
+                    };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender.send(status_str).unwrap();
 
@@ -398,22 +427,28 @@ impl LuxClient {
                         sender.clone(),
                         &client,
                     )) {
-                        Ok(_) => {
-                        }
+                        Ok(_) => {}
                         Err(ref err) => {
-                            let error_str = std::format!("Download of {} Error: {}", info.name.clone(), err);
+                            let error_str =
+                                std::format!("Download of {} Error: {}", info.name.clone(), err);
                             error!("{}", error_str);
 
-                            let status_obj = StatusObj { label: None, progress: None, complete: false, log_line: None, error: Some(error_str) };
+                            let status_obj = StatusObj {
+                                label: None,
+                                progress: None,
+                                complete: false,
+                                log_line: None,
+                                error: Some(error_str),
+                            };
                             let status_str = serde_json::to_string(&status_obj).unwrap();
                             sender.send(status_str).unwrap();
-
 
                             let mut cache_dir = app_id;
                             if info.cache_by_name {
                                 cache_dir = info.name.clone();
                             }
-                            let dest_file = package::place_cached_file(&cache_dir, &info.file).unwrap();
+                            let dest_file =
+                                package::place_cached_file(&cache_dir, &info.file).unwrap();
                             if dest_file.exists() {
                                 fs::remove_file(dest_file).unwrap();
                             }
@@ -428,7 +463,13 @@ impl LuxClient {
                 }
 
                 if !found_error {
-                    let status_obj = StatusObj { label: None, progress: None, complete: true, log_line: None, error: None };
+                    let status_obj = StatusObj {
+                        label: None,
+                        progress: None,
+                        complete: true,
+                        log_line: None,
+                        error: None,
+                    };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender.send(status_str).unwrap();
                 }
@@ -487,7 +528,13 @@ impl LuxClient {
                     percentage, downloaded, total_size
                 );
 
-                let status_obj = StatusObj { label: None, progress: Some(percentage), complete: false, log_line: None, error: None };
+                let status_obj = StatusObj {
+                    label: None,
+                    progress: Some(percentage),
+                    complete: false,
+                    log_line: None,
+                    error: None,
+                };
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
 
@@ -515,11 +562,17 @@ impl LuxClient {
             let sender_err = sender.clone();
 
             match command::run_wrapper(&args, engine_choice, sender) {
-                Ok(()) => {},
+                Ok(()) => {}
                 Err(err) => {
                     error!("run_wrapper err: {:?}", err);
 
-                    let status_obj = StatusObj { label: None, progress: None, complete: false, log_line: None, error: Some(err.to_string()) };
+                    let status_obj = StatusObj {
+                        label: None,
+                        progress: None,
+                        complete: false,
+                        log_line: None,
+                        error: Some(err.to_string()),
+                    };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender_err.send(status_str).unwrap();
                 }

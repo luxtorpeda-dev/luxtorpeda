@@ -11,11 +11,10 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::process::Command;
 
-
-use crate::user_env;
-use crate::package;
 use crate::client;
+use crate::package;
 use crate::package::place_state_file;
+use crate::user_env;
 
 extern crate log;
 extern crate simplelog;
@@ -146,7 +145,11 @@ fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
     Ok(())
 }
 
-pub fn run(args: &[&str], engine_choice: String, sender: &std::sync::mpsc::Sender<String>) -> io::Result<json::JsonValue> {
+pub fn run(
+    args: &[&str],
+    engine_choice: String,
+    sender: &std::sync::mpsc::Sender<String>,
+) -> io::Result<json::JsonValue> {
     env::set_var(LUX_ERRORS_SUPPORTED, "1");
 
     let mut allow_virtual_gamepad = false;
@@ -260,7 +263,11 @@ pub fn run(args: &[&str], engine_choice: String, sender: &std::sync::mpsc::Sende
     Ok(game_info)
 }
 
-pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc::Sender<String>) -> io::Result<()> {
+pub fn run_wrapper(
+    args: &[&str],
+    engine_choice: String,
+    sender: std::sync::mpsc::Sender<String>,
+) -> io::Result<()> {
     if args.is_empty() {
         usage();
         std::process::exit(0)
@@ -294,7 +301,16 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
             Some((cmd, cmd_args)) => {
                 info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
 
-                let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args)), error: None };
+                let status_obj = client::StatusObj {
+                    label: None,
+                    progress: None,
+                    complete: false,
+                    log_line: Some(format!(
+                        "run: \"{}\" with args: {:?} {:?}",
+                        cmd, cmd_args, exe_args
+                    )),
+                    error: None,
+                };
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
 
@@ -312,7 +328,10 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
                                 info!("run returned with lux exit code");
                                 match fs::read_to_string("last_error.txt") {
                                     Ok(s) => {
-                                        ret = Err(Error::new(ErrorKind::Other, std::format!("Error on run: {}", s)));
+                                        ret = Err(Error::new(
+                                            ErrorKind::Other,
+                                            std::format!("Error on run: {}", s),
+                                        ));
                                     }
                                     Err(err) => {
                                         error!("read err: {:?}", err);
@@ -333,8 +352,7 @@ pub fn run_wrapper(args: &[&str], engine_choice: String, sender: std::sync::mpsc
 
     if ret.is_ok() {
         std::process::exit(0);
-    }
-    else {
+    } else {
         ret
     }
 }

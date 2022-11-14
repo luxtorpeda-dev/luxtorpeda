@@ -19,8 +19,8 @@ use std::path::{Path, PathBuf};
 use tar::Archive;
 use xz2::read::XzDecoder;
 
-use crate::user_env;
 use crate::client;
+use crate::user_env;
 
 extern crate steamlocate;
 use steamlocate::SteamDir;
@@ -255,7 +255,10 @@ pub fn update_packages_json() -> io::Result<()> {
     Ok(())
 }
 
-pub fn convert_notice_to_str(notice_item: &json::JsonValue, notice_map: &json::JsonValue) -> String {
+pub fn convert_notice_to_str(
+    notice_item: &json::JsonValue,
+    notice_map: &json::JsonValue,
+) -> String {
     let mut notice = String::new();
 
     if !notice_item.is_null() {
@@ -517,7 +520,10 @@ pub fn convert_game_info_with_choice(
     Ok(())
 }
 
-pub fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Result<Vec<PackageInfo>> {
+pub fn json_to_downloads(
+    app_id: &str,
+    game_info: &json::JsonValue,
+) -> io::Result<Vec<PackageInfo>> {
     let mut downloads: Vec<PackageInfo> = Vec::new();
 
     for entry in game_info["download"].members() {
@@ -551,14 +557,25 @@ pub fn json_to_downloads(app_id: &str, game_info: &json::JsonValue) -> io::Resul
     Ok(downloads)
 }
 
-fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str, sender: &std::sync::mpsc::Sender<String>) -> io::Result<()> {
+fn unpack_tarball(
+    tarball: &Path,
+    game_info: &json::JsonValue,
+    name: &str,
+    sender: &std::sync::mpsc::Sender<String>,
+) -> io::Result<()> {
     let package_name = tarball
         .file_name()
         .and_then(|x| x.to_str())
         .and_then(|x| x.split('.').next())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
-    let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Unpacking {}", package_name)), error: None };
+    let status_obj = client::StatusObj {
+        label: None,
+        progress: None,
+        complete: false,
+        log_line: Some(format!("Unpacking {}", package_name)),
+        error: None,
+    };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
 
@@ -619,7 +636,13 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str, sende
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())), error: None };
+            let status_obj = client::StatusObj {
+                label: None,
+                progress: None,
+                complete: false,
+                log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())),
+                error: None,
+            };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
 
@@ -666,7 +689,13 @@ fn unpack_tarball(tarball: &Path, game_info: &json::JsonValue, name: &str, sende
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            let status_obj = client::StatusObj { label: None, progress: None, complete: false, log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())), error: None };
+            let status_obj = client::StatusObj {
+                label: None,
+                progress: None,
+                complete: false,
+                log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())),
+                error: None,
+            };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
 
@@ -688,7 +717,13 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
         .and_then(|x| x.to_str())
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
-    let status_obj = client::StatusObj { label: None, progress: Some(0), complete: false, log_line: Some(format!("Copying {}", package_name)), error: None };
+    let status_obj = client::StatusObj {
+        label: None,
+        progress: Some(0),
+        complete: false,
+        log_line: Some(format!("Copying {}", package_name)),
+        error: None,
+    };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
 
@@ -703,12 +738,21 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     setup_complete
 }
 
-pub fn install(game_info: &json::JsonValue, sender: &std::sync::mpsc::Sender<String>) -> io::Result<()> {
+pub fn install(
+    game_info: &json::JsonValue,
+    sender: &std::sync::mpsc::Sender<String>,
+) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
 
     let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"].members();
 
-    let status_obj = client::StatusObj { label: Some("Installing".to_string()), progress: Some(0), complete: false, log_line: None, error: None };
+    let status_obj = client::StatusObj {
+        label: Some("Installing".to_string()),
+        progress: Some(0),
+        complete: false,
+        log_line: None,
+        error: None,
+    };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
 
