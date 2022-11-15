@@ -453,17 +453,6 @@ fn unpack_tarball(
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            let status_obj = client::StatusObj {
-                label: None,
-                progress: None,
-                complete: false,
-                log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())),
-                error: None,
-                prompt_items: None,
-            };
-            let status_str = serde_json::to_string(&status_obj).unwrap();
-            sender.send(status_str).unwrap();
-
             info!("install: {:?}", &new_path);
 
             if new_path.parent().is_some() {
@@ -507,17 +496,6 @@ fn unpack_tarball(
                 new_path = Path::new(&extract_location).join(new_path);
             }
 
-            let status_obj = client::StatusObj {
-                label: None,
-                progress: None,
-                complete: false,
-                log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())),
-                error: None,
-                prompt_items: None,
-            };
-            let status_str = serde_json::to_string(&status_obj).unwrap();
-            sender.send(status_str).unwrap();
-
             info!("install: {:?}", &new_path);
             if new_path.parent().is_some() {
                 fs::create_dir_all(new_path.parent().unwrap())?;
@@ -526,6 +504,17 @@ fn unpack_tarball(
             file.unpack(&new_path)?;
         }
     }
+
+    let status_obj = client::StatusObj {
+        label: None,
+        progress: None,
+        complete: false,
+        log_line: Some(format!("Unpacking complete for {}", package_name)),
+        error: None,
+        prompt_items: None,
+    };
+    let status_str = serde_json::to_string(&status_obj).unwrap();
+    sender.send(status_str).unwrap();
 
     Ok(())
 }
@@ -549,6 +538,17 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
 
     info!("copying: {}", package_name);
     fs::copy(path, package_name)?;
+
+    let status_obj_complete = client::StatusObj {
+        label: None,
+        progress: Some(0),
+        complete: false,
+        log_line: Some(format!("Copying complete for {}", package_name)),
+        error: None,
+        prompt_items: None,
+    };
+    let status_str_complete = serde_json::to_string(&status_obj_complete).unwrap();
+    sender.send(status_str_complete).unwrap();
 
     Ok(())
 }
