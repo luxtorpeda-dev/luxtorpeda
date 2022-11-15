@@ -1734,8 +1734,7 @@ dependencies = [
 [[package]]
 name = "time"
 version = "0.3.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
+source = "git+https://github.com/time-rs/time.git?tag=v0.3.17#d97594b9f5cfeab0335c16687e26a8b51c56a526"
 dependencies = [
  "itoa",
  "libc",
@@ -1748,14 +1747,12 @@ dependencies = [
 [[package]]
 name = "time-core"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e153e1f1acaef8acc537e68b44906d2db6436e2b35ac2c6b42640fff91f00fd"
+source = "git+https://github.com/time-rs/time.git?tag=v0.3.17#d97594b9f5cfeab0335c16687e26a8b51c56a526"
 
 [[package]]
 name = "time-macros"
 version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d967f99f534ca7e495c575c62638eebc2898a8c84c119b89e250477bc4ba16b2"
+source = "git+https://github.com/time-rs/time.git?tag=v0.3.17#d97594b9f5cfeab0335c16687e26a8b51c56a526"
 dependencies = [
  "time-core",
 ]
