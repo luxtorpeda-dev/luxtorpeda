@@ -7,6 +7,7 @@ use std::env;
 use std::fs;
 use std::fs::File;
 use std::io;
+use std::io::Read;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::process::Command;
@@ -74,69 +75,80 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
-fn run_setup(game_info: &json::JsonValue) -> io::Result<()> {
+pub fn process_setup_details(
+    game_info: &json::JsonValue,
+) -> io::Result<Vec<client::PromptRequestData>> {
     let setup_info = &game_info["setup"];
-    if !package::is_setup_complete(&game_info["setup"]) {
-        if !&setup_info["license_path"].is_null()
-            && Path::new(&setup_info["license_path"].to_string()).exists()
-        {
-            /*match dialog::show_file_with_confirm(
-                "Closed Source Engine EULA",
-                &setup_info["license_path"].to_string(),
-            ) {
-                Ok(()) => {
-                    info!("show eula. dialog was accepted");
-                }
-                Err(_) => {
-                    info!("show eula. dialog was rejected");
-                    if !setup_info["uninstall_command"].is_null() {
-                        let command_str = setup_info["uninstall_command"].to_string();
-                        info!("uninstall run: \"{}\"", command_str);
+    let mut setup_items = Vec::new();
 
-                        Command::new(command_str)
-                            .env("LD_PRELOAD", "")
-                            .status()
-                            .expect("failed to execute process");
-                    }
-                    return Err(Error::new(ErrorKind::Other, "dialog was rejected"));
-                }
-            }*/
-        }
+    if !&setup_info["license_path"].is_null()
+        && Path::new(&setup_info["license_path"].to_string()).exists()
+    {
+        let mut file = File::open(&setup_info["license_path"].to_string())?;
+        let mut file_buf = vec![];
+        file.read_to_end(&mut file_buf)?;
+        let file_str = String::from_utf8_lossy(&file_buf);
+        let file_str_milk = file_str.as_ref();
 
-        if !&setup_info["dialogs"].is_null() {
-            for entry in setup_info["dialogs"].members() {
-                if entry["type"] == "input" {
-                    /*match dialog::text_input(
-                        &entry["title"].to_string(),
-                        &entry["label"].to_string(),
-                        &entry["key"].to_string(),
-                    ) {
-                        Ok(_) => {}
-                        Err(err) => {
-                            error!("setup failed, text input dialog error: {:?}", err);
-                            return Err(Error::new(
-                                ErrorKind::Other,
-                                "setup failed, input dialog failed",
-                            ));
-                        }
-                    };*/
-                }
+        let prompt_request = client::PromptRequestData {
+            label: Some("By clicking Ok below, you are agreeing to the following.".to_string()),
+            prompt_type: "question".to_string(),
+            title: "Closed Source Engine EULA".to_string(),
+            prompt_id: "closedsourceengineeulaconfirm".to_string(),
+            rich_text: Some(file_str_milk.to_string()),
+        };
+        setup_items.push(prompt_request);
+    }
+
+    if !&setup_info["dialogs"].is_null() {
+        for entry in setup_info["dialogs"].members() {
+            if entry["type"] == "input" {
+                let prompt_request = client::PromptRequestData {
+                    label: Some(entry["label"].to_string()),
+                    prompt_type: "input".to_string(),
+                    title: entry["title"].to_string(),
+                    prompt_id: std::format!("dialogentryconfirm%%{}%%", entry["key"].to_string())
+                        .to_string(),
+                    rich_text: None,
+                };
+                setup_items.push(prompt_request);
             }
         }
-
-        let command_str = setup_info["command"].to_string();
-        info!("setup run: \"{}\"", command_str);
-        let setup_cmd = Command::new(command_str)
-            .env("LD_PRELOAD", "")
-            .status()
-            .expect("failed to execute process");
-
-        if !setup_cmd.success() {
-            return Err(Error::new(ErrorKind::Other, "setup failed"));
-        }
-
-        File::create(&setup_info["complete_path"].to_string())?;
     }
+
+    Ok(setup_items)
+}
+
+pub fn run_setup(
+    game_info: &json::JsonValue,
+    sender: &std::sync::mpsc::Sender<String>,
+) -> io::Result<()> {
+    let setup_info = &game_info["setup"];
+
+    let command_str = setup_info["command"].to_string();
+    info!("setup run: \"{}\"", command_str);
+
+    let status_obj = client::StatusObj {
+        label: None,
+        progress: None,
+        complete: false,
+        log_line: Some(format!("setup run: \"{}\"", command_str)),
+        error: None,
+        prompt_items: None,
+    };
+    let status_str = serde_json::to_string(&status_obj).unwrap();
+    sender.send(status_str).unwrap();
+
+    let setup_cmd = Command::new(command_str)
+        .env("LD_PRELOAD", "")
+        .status()
+        .expect("failed to execute process");
+
+    if !setup_cmd.success() {
+        return Err(Error::new(ErrorKind::Other, "setup failed"));
+    }
+
+    File::create(&setup_info["complete_path"].to_string())?;
 
     Ok(())
 }
@@ -145,6 +157,7 @@ pub fn run(
     args: &[&str],
     engine_choice: String,
     sender: &std::sync::mpsc::Sender<String>,
+    after_setup_question_mode: bool,
 ) -> io::Result<json::JsonValue> {
     env::set_var(LUX_ERRORS_SUPPORTED, "1");
 
@@ -185,8 +198,13 @@ pub fn run(
         info!("tool dir: {:?}", user_env::tool_dir());
     }
 
-    if !game_info["download"].is_null() {
-        package::install(&game_info, sender)?;
+    if !game_info["download"].is_null() && !after_setup_question_mode {
+        match package::install(&game_info, sender) {
+            Ok(()) => {}
+            Err(err) => {
+                return Err(err);
+            }
+        }
     }
 
     match env::var(ORIGINAL_LD_PRELOAD) {
@@ -237,6 +255,7 @@ pub fn run_wrapper(
                     cmd, cmd_args, exe_args
                 )),
                 error: None,
+                prompt_items: None,
             };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
@@ -283,7 +302,7 @@ pub fn run_wrapper(
     }
 }
 
-fn manual_download(args: &[&str]) -> io::Result<()> {
+/*fn manual_download(args: &[&str]) -> io::Result<()> {
     if args.is_empty() {
         usage();
         std::process::exit(0)
@@ -294,7 +313,7 @@ fn manual_download(args: &[&str]) -> io::Result<()> {
     //package::download_all(app_id.to_string())?;
 
     Ok(())
-}
+}*/
 
 fn setup_logging(file: Option<File>) {
     if let Some(file) = file {

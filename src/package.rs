@@ -391,6 +391,7 @@ fn unpack_tarball(
         complete: false,
         log_line: Some(format!("Unpacking {}", package_name)),
         error: None,
+        prompt_items: None,
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -458,6 +459,7 @@ fn unpack_tarball(
                 complete: false,
                 log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())),
                 error: None,
+                prompt_items: None,
             };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
@@ -511,6 +513,7 @@ fn unpack_tarball(
                 complete: false,
                 log_line: Some(format!("Extracting {}", &new_path.to_string_lossy())),
                 error: None,
+                prompt_items: None,
             };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
@@ -539,6 +542,7 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
         complete: false,
         log_line: Some(format!("Copying {}", package_name)),
         error: None,
+        prompt_items: None,
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -568,6 +572,7 @@ pub fn install(
         complete: false,
         log_line: None,
         error: None,
+        prompt_items: None,
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();

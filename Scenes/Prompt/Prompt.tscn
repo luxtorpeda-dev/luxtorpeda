@@ -16,6 +16,14 @@ align = 1
 valign = 1
 autowrap = true
 
+[node name="PromptRichText" type="RichTextLabel" parent="."]
+visible = false
+margin_top = 304.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
 [node name="TextEdit" type="TextEdit" parent="."]
 visible = false
 margin_top = 560.0

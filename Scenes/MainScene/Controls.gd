@@ -38,6 +38,7 @@ func mode_changed_handler(new_mode, new_mode_id):
 	last_mode = new_mode
 	last_mode_id = new_mode_id
 	cancel_button.text = "Cancel"
+	secondary_button.text = "Toggle Default"
 	
 	if new_mode == "choice":
 		ok_button.visible = true
@@ -61,6 +62,11 @@ func mode_changed_handler(new_mode, new_mode_id):
 		secondary_button.visible = false
 		cancel_button.visible = true
 		cancel_button.text = "Clear Default"
+	elif new_mode == "input":
+		secondary_button.visible = true
+		ok_button.visible = true
+		ok_button.disabled = false
+		secondary_button.text = "Paste from Clipboard"
 		
 	if cancel_button.visible and !ok_button.visible:
 		cancel_button.size_flags_horizontal |= SIZE_EXPAND
@@ -81,8 +87,12 @@ func _on_OkButton_pressed():
 		get_node("../../SignalEmitter").emit_signal("choice_picked", to_json(choice_picked_obj))
 		get_node("../Choices").emit_signal("choice_picked", last_choice)
 	elif last_mode == "question":
-		get_node("../Prompt").emit_signal("hide_prompt")
 		get_node("../../SignalEmitter").emit_signal("question_confirmed", last_mode_id)
+		get_node("../Prompt").emit_signal("hide_prompt")
+	elif last_mode == "input":
+		var input_value = last_mode_id + get_node("../Prompt/TextEdit").text
+		get_node("../../SignalEmitter").emit_signal("question_confirmed", input_value)
+		get_node("../Prompt").emit_signal("hide_prompt")
 	elif last_mode == "error":
 		_on_CancelButton_pressed()
 	elif last_mode == "default_choice":
@@ -94,9 +104,13 @@ func _on_CancelButton_pressed():
 	if last_mode == "default_choice":
 		get_node("../../SignalEmitter").emit_signal("clear_default_choice", "")
 		get_node("../Prompt").emit_signal("hide_prompt")
+	elif last_mode == "question":
+		get_node("../../SignalEmitter").emit_signal("question_confirmed", "cancel%%" + last_mode_id)
 	else:
 		get_tree().quit()
 
 func _on_SecondaryButton_pressed():
 	if last_mode == "choice":
 		get_node("../Choices").emit_signal("default_choice_clicked", last_choice, last_default_choice)
+	elif last_mode == "input":
+		get_node("../Prompt").emit_signal("clipboard_paste")

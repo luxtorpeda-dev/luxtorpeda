@@ -54,14 +54,22 @@ pub struct StatusObj {
     pub complete: bool,
     pub log_line: std::option::Option<String>,
     pub error: std::option::Option<String>,
+    pub prompt_items: std::option::Option<PromptItemsData>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct PromptRequestData {
-    label: std::option::Option<String>,
-    prompt_type: String,
-    title: String,
-    prompt_id: String,
+pub struct PromptRequestData {
+    pub label: std::option::Option<String>,
+    pub prompt_type: String,
+    pub title: String,
+    pub prompt_id: String,
+    pub rich_text: std::option::Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PromptItemsData {
+    pub prompt_items: Vec<PromptRequestData>,
+    pub prompt_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -87,6 +95,7 @@ impl LuxClient {
             complete: false,
             log_line: None,
             error: Some(error.to_string()),
+            prompt_items: None,
         };
         let status_str = serde_json::to_string(&status_obj).unwrap();
         let emitter = &mut base.get_node("Container/Progress").unwrap();
@@ -182,7 +191,7 @@ impl LuxClient {
                 emitter.emit_signal("progress_change", &[Variant::new(&new_data)]);
 
                 if new_data.contains("\"complete\":true") {
-                    self.run_game();
+                    self.run_game(false);
                 }
             }
         }
@@ -353,6 +362,7 @@ impl LuxClient {
                         prompt_type: "default_choice".to_string(),
                         title: "Default Choice Confirmation".to_string(),
                         prompt_id: "defaultchoiceconfirm".to_string(),
+                        rich_text: None,
                     };
                     let prompt_request_str = serde_json::to_string(&prompt_request).unwrap();
 
@@ -443,7 +453,7 @@ impl LuxClient {
 
         if game_info["download"].is_null() {
             info!("skipping downloads (no urls defined for this package)");
-            self.run_game();
+            self.run_game(false);
             return;
         }
 
@@ -451,7 +461,7 @@ impl LuxClient {
 
         if downloads.is_empty() {
             info!("Downloads is empty");
-            self.run_game();
+            self.run_game(false);
             return;
         }
 
@@ -476,6 +486,7 @@ impl LuxClient {
                 prompt_type: "question".to_string(),
                 title: "License Warning".to_string(),
                 prompt_id: "confirmlicensedownload".to_string(),
+                rich_text: None,
             };
             let prompt_request_str = serde_json::to_string(&prompt_request).unwrap();
 
@@ -489,13 +500,45 @@ impl LuxClient {
 
     #[method]
     fn question_confirmed(&mut self, #[base] owner: &Node, data: Variant) {
-        let emitter = &mut owner.get_node("Container/Progress").unwrap();
-        let emitter = unsafe { emitter.assume_safe() };
-        emitter.emit_signal("show_progress", &[Variant::new("")]);
-
         let mode_id = data.try_to::<String>().unwrap();
+        info!("question_confirmed with mode: {}", mode_id);
+
         if mode_id == "confirmlicensedownload" {
+            let emitter = &mut owner.get_node("Container/Progress").unwrap();
+            let emitter = unsafe { emitter.assume_safe() };
+            emitter.emit_signal("show_progress", &[Variant::new("")]);
+
             self.process_download();
+        } else if mode_id.contains("dialogentryconfirm") {
+            let mode_split = mode_id.split("%%");
+            let mode_items = mode_split.collect::<Vec<&str>>();
+            if mode_items.len() == 3 {
+                let key = mode_items[1];
+                let text_input = mode_items[2];
+
+                info!(
+                    "found dialog entry response for key: {} with value: {}",
+                    key, text_input
+                );
+                if !key.is_empty() {
+                    env::set_var(std::format!("DIALOGRESPONSE_{}", key), text_input.clone());
+                }
+            }
+        } else if mode_id.contains("allprompts") {
+            let mode_split = mode_id.split("allprompts");
+            let mode_items = mode_split.collect::<Vec<&str>>();
+            if mode_items.len() == 2 {
+                let mode_id = mode_items[1];
+                if mode_id == "setup" {
+                    let emitter = &mut owner.get_node("Container/Progress").unwrap();
+                    let emitter = unsafe { emitter.assume_safe() };
+                    emitter.emit_signal("show_progress", &[Variant::new("")]);
+
+                    self.run_game(true);
+                }
+            }
+        } else if mode_id.contains("cancel%%") {
+            std::process::exit(0);
         }
     }
 
@@ -552,6 +595,7 @@ impl LuxClient {
                         complete: false,
                         log_line: None,
                         error: None,
+                        prompt_items: None,
                     };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender.send(status_str).unwrap();
@@ -574,6 +618,7 @@ impl LuxClient {
                                 complete: false,
                                 log_line: None,
                                 error: Some(error_str),
+                                prompt_items: None,
                             };
                             let status_str = serde_json::to_string(&status_obj).unwrap();
                             sender.send(status_str).unwrap();
@@ -604,6 +649,7 @@ impl LuxClient {
                         complete: true,
                         log_line: None,
                         error: None,
+                        prompt_items: None,
                     };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender.send(status_str).unwrap();
@@ -669,6 +715,7 @@ impl LuxClient {
                     complete: false,
                     log_line: None,
                     error: None,
+                    prompt_items: None,
                 };
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
@@ -680,7 +727,7 @@ impl LuxClient {
         Ok(())
     }
 
-    fn run_game(&mut self) {
+    fn run_game(&mut self, after_setup_question_mode: bool) {
         let mut engine_choice = String::new();
 
         if let Some(choice) = &self.last_choice {
@@ -693,42 +740,15 @@ impl LuxClient {
         std::thread::spawn(move || {
             let env_args: Vec<String> = env::args().collect();
             let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
+            let cmd_args = &args[2..];
 
             let sender_err = sender.clone();
 
-            let game_info = match command::run(&args, engine_choice, &sender) {
-                Ok(game_info) => game_info,
-                Err(err) => {
-                    error!("command::run err: {:?}", err);
-
-                    let status_obj = StatusObj {
-                        label: None,
-                        progress: None,
-                        complete: false,
-                        log_line: None,
-                        error: Some(err.to_string()),
-                    };
-                    let status_str = serde_json::to_string(&status_obj).unwrap();
-                    sender_err.send(status_str).unwrap();
-
-                    return;
-                }
-            };
-
-            if !game_info["setup"].is_null() {
-                /*match run_setup(&game_info) {
-                    Ok(()) => {
-                        info!("setup complete");
-                    }
+            let game_info =
+                match command::run(&cmd_args, engine_choice, &sender, after_setup_question_mode) {
+                    Ok(game_info) => game_info,
                     Err(err) => {
-                        return Err(err);
-                    }
-                }*/
-            } else {
-                match command::run_wrapper(&args, &game_info, &sender_err) {
-                    Ok(()) => {}
-                    Err(err) => {
-                        error!("command::run_wrapper err: {:?}", err);
+                        error!("command::run err: {:?}", err);
 
                         let status_obj = StatusObj {
                             label: None,
@@ -736,6 +756,7 @@ impl LuxClient {
                             complete: false,
                             log_line: None,
                             error: Some(err.to_string()),
+                            prompt_items: None,
                         };
                         let status_str = serde_json::to_string(&status_obj).unwrap();
                         sender_err.send(status_str).unwrap();
@@ -743,7 +764,114 @@ impl LuxClient {
                         return;
                     }
                 };
+
+            if !game_info["setup"].is_null() && !after_setup_question_mode {
+                if !package::is_setup_complete(&game_info["setup"]) {
+                    match command::process_setup_details(&game_info) {
+                        Ok(setup_details) => {
+                            info!("setup details ready: {:?}", setup_details);
+
+                            if setup_details.len() > 0 {
+                                let prompt_items = PromptItemsData {
+                                    prompt_items: setup_details,
+                                    prompt_id: "allpromptssetup".to_string(),
+                                };
+                                let status_obj = StatusObj {
+                                    label: None,
+                                    progress: None,
+                                    complete: false,
+                                    log_line: Some("Processing setup items".to_string()),
+                                    error: None,
+                                    prompt_items: Some(prompt_items),
+                                };
+                                let status_str = serde_json::to_string(&status_obj).unwrap();
+                                sender_err.send(status_str).unwrap();
+
+                                return;
+                            } else {
+                                match command::run_setup(&game_info, &sender) {
+                                    Ok(()) => {}
+                                    Err(err) => {
+                                        error!("command::run_setup err: {:?}", err);
+
+                                        let status_obj = StatusObj {
+                                            label: None,
+                                            progress: None,
+                                            complete: false,
+                                            log_line: None,
+                                            error: Some(err.to_string()),
+                                            prompt_items: None,
+                                        };
+                                        let status_str =
+                                            serde_json::to_string(&status_obj).unwrap();
+                                        sender_err.send(status_str).unwrap();
+
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        Err(err) => {
+                            error!("command::process_setup_details err: {:?}", err);
+
+                            let status_obj = StatusObj {
+                                label: None,
+                                progress: None,
+                                complete: false,
+                                log_line: None,
+                                error: Some(err.to_string()),
+                                prompt_items: None,
+                            };
+                            let status_str = serde_json::to_string(&status_obj).unwrap();
+                            sender_err.send(status_str).unwrap();
+
+                            return;
+                        }
+                    }
+                }
             }
+
+            if after_setup_question_mode {
+                match command::run_setup(&game_info, &sender) {
+                    Ok(()) => {}
+                    Err(err) => {
+                        error!("command::run_setup err: {:?}", err);
+
+                        let status_obj = StatusObj {
+                            label: None,
+                            progress: None,
+                            complete: false,
+                            log_line: None,
+                            error: Some(err.to_string()),
+                            prompt_items: None,
+                        };
+                        let status_str = serde_json::to_string(&status_obj).unwrap();
+                        sender_err.send(status_str).unwrap();
+
+                        return;
+                    }
+                }
+            }
+
+            match command::run_wrapper(&cmd_args, &game_info, &sender_err) {
+                Ok(()) => {}
+                Err(err) => {
+                    error!("command::run_wrapper err: {:?}", err);
+
+                    let status_obj = StatusObj {
+                        label: None,
+                        progress: None,
+                        complete: false,
+                        log_line: None,
+                        error: Some(err.to_string()),
+                        prompt_items: None,
+                    };
+                    let status_str = serde_json::to_string(&status_obj).unwrap();
+                    sender_err.send(status_str).unwrap();
+
+                    return;
+                }
+            };
         });
     }
 }

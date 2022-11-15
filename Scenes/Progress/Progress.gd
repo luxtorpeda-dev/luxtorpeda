@@ -59,5 +59,9 @@ func progress_change_handler(change_str):
 		get_node("../TitleBar").emit_signal("mode_changed", "error")
 		get_node("../Controls").emit_signal("mode_changed", "error", "error")
 		
+	if change.prompt_items:
+		self.visible = false
+		get_node("../Prompt").emit_signal("show_prompts", change.prompt_items)
+		
 func hide_progress_handler():
 	self.visible = false
