@@ -6,16 +6,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.60-buster
+      image: rust:1.63-buster
     env:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
+    - name: Install Godot
+      run: wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_x11.64.zip && unzip Godot_v3.5.1-stable_x11.64.zip
     - name: Build
-      run: make release
+      run: make release GODOT=Godot_v3.5.1-stable_x11.64
     - name: Package
       run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz
     - name: Upload Artifacts
@@ -32,8 +32,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install Clippy
       run: rustup component add clippy
     - name: Clippy Run
@@ -47,8 +45,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install fmt
       run: rustup component add rustfmt
     - name: fmt Run
@@ -62,8 +58,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install Audit
       run: cargo install cargo-audit
     - name: Audit Run
