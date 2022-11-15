@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.63-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
@@ -15,9 +15,9 @@ jobs:
     - name: Install Deps
       run: apt-get update && apt-get -y install clang
     - name: Install Godot
-      run: wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_x11.64.zip && unzip Godot_v3.5.1-stable_x11.64.zip
+      run: wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_x11.64.zip && unzip Godot_v3.5.1-stable_x11.64.zip && ls -l && echo "dir: $PWD"
     - name: Build
-      run: make release GODOT=Godot_v3.5.1-stable_x11.64
+      run: echo "dir: $PWD" && make release GODOT=Godot_v3.5.1-stable_x11.64
     - name: Package
       run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz
     - name: Upload Artifacts
@@ -28,7 +28,7 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.63-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
@@ -43,7 +43,7 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.60-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
@@ -56,7 +56,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.60-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
