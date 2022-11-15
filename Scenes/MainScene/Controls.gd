@@ -106,6 +106,8 @@ func _on_CancelButton_pressed():
 		get_node("../Prompt").emit_signal("hide_prompt")
 	elif last_mode == "question":
 		get_node("../../SignalEmitter").emit_signal("question_confirmed", "cancel%%" + last_mode_id)
+	elif last_mode == "progress":
+		get_node("../../SignalEmitter").emit_signal("question_confirmed", "cancel%%" + last_mode_id)
 	else:
 		get_tree().quit()
 

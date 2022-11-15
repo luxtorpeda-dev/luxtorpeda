@@ -11,6 +11,8 @@ onready var progress_label = get_node("Label")
 onready var progress_bar = get_node("ProgressBar")
 onready var progress_log = get_node("ProgressLog")
 
+var mode_id = "download"
+
 func _ready():
 	# warning-ignore:return_value_discarded
 	connect("show_progress", self, "show_progress_handler")
@@ -23,7 +25,7 @@ func show_progress_handler(_data):
 	self.visible = true
 	progress_bar.visible = true
 	get_node("../TitleBar").emit_signal("mode_changed", "progress")
-	get_node("../Controls").emit_signal("mode_changed", "progress", "progress")
+	get_node("../Controls").emit_signal("mode_changed", "progress", mode_id)
 	
 func progress_change_handler(change_str):
 	var change = parse_json(change_str)
@@ -35,6 +37,7 @@ func progress_change_handler(change_str):
 		progress_bar.value = change.progress
 		
 	if change.complete:
+		mode_id = "complete"
 		show_progress_handler(null)
 		progress_bar.visible = false
 		progress_label.text = "Download Complete"

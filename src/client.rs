@@ -538,6 +538,29 @@ impl LuxClient {
                 }
             }
         } else if mode_id.contains("cancel%%") {
+            let mode_split = mode_id.split("cancel%%");
+            let mode_items = mode_split.collect::<Vec<&str>>();
+            if mode_items.len() == 2 {
+                let mode_id = mode_items[1];
+                if mode_id == "download" {
+                    if let Some(last_downloads) = &self.last_downloads {
+                        for info in last_downloads.iter() {
+                            let app_id = user_env::steam_app_id();
+                            let mut cache_dir = app_id;
+                            if info.cache_by_name {
+                                cache_dir = info.name.to_string();
+                            }
+
+                            let dest_file =
+                                package::place_cached_file(&cache_dir, &info.file).unwrap();
+                            if dest_file.exists() {
+                                info!("download cancel, removing file: {:?}", dest_file);
+                                fs::remove_file(dest_file).unwrap();
+                            }
+                        }
+                    }
+                }
+            }
             std::process::exit(0);
         }
     }
