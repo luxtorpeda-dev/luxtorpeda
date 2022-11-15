@@ -32,6 +32,7 @@ impl SignalEmitter {
         builder.signal("choice_picked").done();
         builder.signal("question_confirmed").done();
         builder.signal("clear_default_choice").done();
+        builder.signal("controller_detection_change").done();
     }
 
     fn new(_owner: &Node) -> Self {
@@ -133,6 +134,16 @@ impl LuxClient {
                 "clear_default_choice",
                 base,
                 "clear_default_choice",
+                VariantArray::new_shared(),
+                0,
+            )
+            .unwrap();
+
+        emitter
+            .connect(
+                "controller_detection_change",
+                base,
+                "controller_detection_change",
                 VariantArray::new_shared(),
                 0,
             )
@@ -390,6 +401,13 @@ impl LuxClient {
         }
 
         Ok(())
+    }
+
+    #[method]
+    fn controller_detection_change(&mut self, #[base] _owner: &Node, data: Variant) {
+        let data_str = data.try_to::<String>().unwrap();
+        info!("controller_detection_change: {}", data_str);
+        user_env::set_controller_var(&data_str.to_string());
     }
 
     #[method]

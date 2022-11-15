@@ -28,6 +28,8 @@ func _ready():
 	connect("default_choice_selected", self, "default_choice_selected_handler")
 	# warning-ignore:return_value_discarded
 	connect("simulate_button", self, "simulate_button_handler")
+	# warning-ignore:return_value_discarded
+	ControllerIcons.connect("input_type_changed", self, "_on_input_type_changed")
 	
 func signal_handler(choice_data):
 	last_choice = choice_data.name
@@ -80,6 +82,13 @@ func default_choice_selected_handler(new_default_choice):
 func simulate_button_handler(button):
 	if button == "ok":
 		_on_OkButton_pressed()
+		
+func _on_input_type_changed(value):
+	if value == 0:
+		value = ""
+	else:
+		value = Input.get_joy_name(0)
+	get_node("../../SignalEmitter").emit_signal("controller_detection_change", value)
 
 func _on_OkButton_pressed():
 	if last_mode == "choice":
