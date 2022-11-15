@@ -56,13 +56,15 @@ Fedora
 Arch
        
        $ sudo pacman -S openssl rust
+
+0b. As well, ensure that Godot is downloaded. Currently, 3.5.1 is in use.
        
 1. Close Steam.
 2. Clone the repository, then use makefile to trigger `cargo build` and install:
 
        $ git clone https://github.com/luxtorpeda-dev/luxtorpeda.git
        $ cd luxtorpeda
-       $ make user-install
+       $ make user-install GODOT=godot-path-here
 
 3. Start Steam.
 4. In game properties window select "Force the use of a specific Steam Play
@@ -74,7 +76,7 @@ Arch
 * Install flatpak org.freedesktop.Sdk/21.08 (should have glibc 2.33, as of current steam deck glibc version).
 * Run the following: ```flatpak run --command=bash -d --filesystem=home --share=network org.freedesktop.Sdk//21.08```
 * Install rustup: ```curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh```
-* Go into the luxtorpeda directory and run ```cargo build```. Then copy ```target/debug/luxtorpeda``` into the correct directory.
+* Go into the luxtorpeda directory and run ```cargo build```. Then copy ```target/debug/libluxtorpeda.so``` into the correct directory. The Godot project should be exportable using the engine on Steam and then copied into the correct directory.
 
 ## Configuration
 
@@ -82,7 +84,6 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
-- use_controller - If this parameter is set to true, then attempts to access controllers through SDL2. Defaults to true.
 - disable_default_confirm - Disables default engine confirmation dialog. Defaults to false. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.
 
 Logs will be written to file if ```LUX_WRITE_LOGGING=1``` is set. The log file will be located at ```~/.local/state/luxtorpeda/luxtorpeda.log```.
@@ -102,8 +103,8 @@ When a prompt appears from the client, it will accept input from controllers, ke
 
 ### Controllers
 
-* SDL2's SDL_GameController is used to detect and accept inputs from controllers, other than the steam controller, so any controller that supports that interface should work.
-* Controller icons will appear in the buttons if a controller is detected.
+* Controller Icons Library for Godot is used to detect and accept inputs from controllers.
+* Controller icons will appear in the buttons if a controller is detected. If input is switched, such as going from using a controller to mouse or keyboard, the icons will change accordingly.
     * Icons are only available for controllers in the testing list below, with it falling back to the Xbox controller icons if an unknown controller is detected.
     * Input with that controller should still work but the icons may be incorrect. If additional controller support is wanted, feel free to open an issue.
 * The following controllers have been tested:
@@ -142,8 +143,11 @@ You can also [create a package yourself](https://github.com/luxtorpeda-dev/packa
 You can use `cargo` as with any Rust project; `make` serves only as a convenient
 frontend for packaging and triggering longer `cargo` commands.
 
+For the UI, the Godot editor is required. It can be downloaded from https://godotengine.org/download
+
 ## Credits
 
-* add credits for godot, godot addons being used
 * Application icon is from a collection designed by AIGA, in the public domain. It is available [here](https://www.aiga.org/resources/symbol-signs).
-* https://uxwing.com/accept-icon/
+* Godot game engine is from https://github.com/godotengine/godot
+* Accept icon is from https://uxwing.com/accept-icon/
+* Controller Icons Library for Godot is from https://github.com/rsubtil/controller_icons
