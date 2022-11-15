@@ -39,7 +39,7 @@ jobs:
     - name: Install Deps
       run: apt-get update && apt-get -y install clang libsdl2-dev
     - name: Install Godot
-      run: wget https://downloads.tuxfamily.org/godotengine/3.5.1/Godot_v3.5.1-stable_linux_headless.64.zip && unzip Godot_v3.5.1-stable_linux_headless.64.zip && chmod +x Godot_v3.5.1-stable_linux_headless.64 && wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_export_templates.tpz && unzip Godot_v3.5.1-stable_export_templates.tpz &&  mv templates/* ~/.local/share/godot/templates/3.5.1.stable
+      run: wget https://downloads.tuxfamily.org/godotengine/3.5.1/Godot_v3.5.1-stable_linux_headless.64.zip && unzip Godot_v3.5.1-stable_linux_headless.64.zip && chmod +x Godot_v3.5.1-stable_linux_headless.64 && wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_export_templates.tpz && unzip Godot_v3.5.1-stable_export_templates.tpz && mkdir -p ~/.local/share/godot/templates/3.5.1.stable && mv templates/* ~/.local/share/godot/templates/3.5.1.stable
     - name: Build
       run: make release GODOT=./Godot_v3.5.1-stable_linux_headless.64
     - name: Package
