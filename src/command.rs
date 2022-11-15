@@ -107,8 +107,7 @@ pub fn process_setup_details(
                     label: Some(entry["label"].to_string()),
                     prompt_type: "input".to_string(),
                     title: entry["title"].to_string(),
-                    prompt_id: std::format!("dialogentryconfirm%%{}%%", entry["key"])
-                        .to_string(),
+                    prompt_id: std::format!("dialogentryconfirm%%{}%%", entry["key"]).to_string(),
                     rich_text: None,
                 };
                 setup_items.push(prompt_request);

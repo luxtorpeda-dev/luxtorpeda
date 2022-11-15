@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Install Deps
+      run: apt-get update && apt-get -y install clang
     - name: Install Godot
       run: wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_x11.64.zip && unzip Godot_v3.5.1-stable_x11.64.zip
     - name: Build
@@ -32,6 +34,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Install Deps
+      run: apt-get update && apt-get -y install clang
     - name: Install Clippy
       run: rustup component add clippy
     - name: Clippy Run
