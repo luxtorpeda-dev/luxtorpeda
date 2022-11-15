@@ -14,12 +14,13 @@ tool_dir_dev = luxtorpeda-dev
 
 files = compatibilitytool.vdf \
 	toolmanifest.vdf \
-	luxtorpeda \
+	libluxtorpeda.so \
+	luxtorpeda.pck \
 	luxtorpeda.sh \
+	luxtorpeda.x86_64 \
 	config.json \
 	LICENSE \
-	README.md \
-	icon.png
+	README.md
 
 ifeq ($(origin XDG_DATA_HOME), undefined)
 	data_home := ${HOME}/.local/share
@@ -31,15 +32,19 @@ STRIP := strip
 
 PREFIX := /usr/local
 
+GODOT := ~/.local/share/Steam/steamapps/common/Godot\ Engine/godot.x11.opt.tools.64
+
 install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
 
 dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
 
 build:
 	cargo build
+	$(GODOT) --path . --export "Linux/X11" target/debug/luxtorpeda.x86_64 --no-window
 
 release:
 	cargo build --release
+	$(GODOT) --path . --export "Linux/X11" target/release/luxtorpeda.x86_64 --no-window
 
 lint:
 	cargo clippy -- -D warnings
@@ -61,9 +66,6 @@ target/debug/compatibilitytool.vdf: compatibilitytool.template
 target/release/compatibilitytool.vdf: compatibilitytool.template
 	sed 's/%name%/$(tool_name)/; s/%display_name%/$(tool_name_display)/' $< > $@
 
-icon.png:
-	cp -r --reflink=auto res/icon.png $< $@
-
 target/debug/%: %
 	cp -r --reflink=auto $< $@
 
@@ -77,11 +79,10 @@ $(tool_dir): \
 		target/release/config.json \
 		target/release/luxtorpeda.sh \
 		target/release/LICENSE \
-		target/release/README.md \
-		target/release/icon.png
+		target/release/README.md
 	mkdir -p $(tool_dir)
 	cd target/release && cp -r --reflink=auto -t ../../$(tool_dir) $(files)
-	$(STRIP) luxtorpeda/luxtorpeda
+	$(STRIP) luxtorpeda/libluxtorpeda.so
 
 $(tool_dir).tar.xz: $(tool_dir)
 	@if [ "$(version)" != "" ]; then\
@@ -101,8 +102,7 @@ user-install: \
 		target/debug/config.json \
 		target/debug/luxtorpeda.sh \
 		target/debug/LICENSE \
-		target/debug/README.md \
-		target/debug/icon.png
+		target/debug/README.md
 	mkdir -p $(dev_install_dir)
 	cd target/debug && cp -r --reflink=auto -t $(dev_install_dir) $(files)
 

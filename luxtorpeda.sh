@@ -13,4 +13,4 @@ if [[ $2 == *"iscriptevaluator.exe"* ]]; then
   exit 0
 fi
 
-"$DIR/luxtorpeda" "$@"
+"$DIR/luxtorpeda.x86_64" "$@"
