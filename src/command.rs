@@ -107,7 +107,7 @@ pub fn process_setup_details(
                     label: Some(entry["label"].to_string()),
                     prompt_type: "input".to_string(),
                     title: entry["title"].to_string(),
-                    prompt_id: std::format!("dialogentryconfirm%%{}%%", entry["key"].to_string())
+                    prompt_id: std::format!("dialogentryconfirm%%{}%%", entry["key"])
                         .to_string(),
                     rich_text: None,
                 };
@@ -241,7 +241,7 @@ pub fn run_wrapper(
 
     let mut ret: Result<(), Error> = Ok(());
 
-    match find_game_command(&game_info, args) {
+    match find_game_command(game_info, args) {
         None => ret = Err(Error::new(ErrorKind::Other, "No command line defined")),
         Some((cmd, cmd_args)) => {
             info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);

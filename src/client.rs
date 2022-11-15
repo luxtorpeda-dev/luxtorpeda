@@ -521,7 +521,7 @@ impl LuxClient {
                     key, text_input
                 );
                 if !key.is_empty() {
-                    env::set_var(std::format!("DIALOGRESPONSE_{}", key), text_input.clone());
+                    env::set_var(std::format!("DIALOGRESPONSE_{}", key), text_input);
                 }
             }
         } else if mode_id.contains("allprompts") {
@@ -745,7 +745,7 @@ impl LuxClient {
             let sender_err = sender.clone();
 
             let game_info =
-                match command::run(&cmd_args, engine_choice, &sender, after_setup_question_mode) {
+                match command::run(cmd_args, engine_choice, &sender, after_setup_question_mode) {
                     Ok(game_info) => game_info,
                     Err(err) => {
                         error!("command::run err: {:?}", err);
@@ -765,68 +765,68 @@ impl LuxClient {
                     }
                 };
 
-            if !game_info["setup"].is_null() && !after_setup_question_mode {
-                if !package::is_setup_complete(&game_info["setup"]) {
-                    match command::process_setup_details(&game_info) {
-                        Ok(setup_details) => {
-                            info!("setup details ready: {:?}", setup_details);
+            if !game_info["setup"].is_null()
+                && !after_setup_question_mode
+                && !package::is_setup_complete(&game_info["setup"])
+            {
+                match command::process_setup_details(&game_info) {
+                    Ok(setup_details) => {
+                        info!("setup details ready: {:?}", setup_details);
 
-                            if setup_details.len() > 0 {
-                                let prompt_items = PromptItemsData {
-                                    prompt_items: setup_details,
-                                    prompt_id: "allpromptssetup".to_string(),
-                                };
-                                let status_obj = StatusObj {
-                                    label: None,
-                                    progress: None,
-                                    complete: false,
-                                    log_line: Some("Processing setup items".to_string()),
-                                    error: None,
-                                    prompt_items: Some(prompt_items),
-                                };
-                                let status_str = serde_json::to_string(&status_obj).unwrap();
-                                sender_err.send(status_str).unwrap();
-
-                                return;
-                            } else {
-                                match command::run_setup(&game_info, &sender) {
-                                    Ok(()) => {}
-                                    Err(err) => {
-                                        error!("command::run_setup err: {:?}", err);
-
-                                        let status_obj = StatusObj {
-                                            label: None,
-                                            progress: None,
-                                            complete: false,
-                                            log_line: None,
-                                            error: Some(err.to_string()),
-                                            prompt_items: None,
-                                        };
-                                        let status_str =
-                                            serde_json::to_string(&status_obj).unwrap();
-                                        sender_err.send(status_str).unwrap();
-
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                        Err(err) => {
-                            error!("command::process_setup_details err: {:?}", err);
-
+                        if !setup_details.is_empty() {
+                            let prompt_items = PromptItemsData {
+                                prompt_items: setup_details,
+                                prompt_id: "allpromptssetup".to_string(),
+                            };
                             let status_obj = StatusObj {
                                 label: None,
                                 progress: None,
                                 complete: false,
-                                log_line: None,
-                                error: Some(err.to_string()),
-                                prompt_items: None,
+                                log_line: Some("Processing setup items".to_string()),
+                                error: None,
+                                prompt_items: Some(prompt_items),
                             };
                             let status_str = serde_json::to_string(&status_obj).unwrap();
                             sender_err.send(status_str).unwrap();
 
                             return;
+                        } else {
+                            match command::run_setup(&game_info, &sender) {
+                                Ok(()) => {}
+                                Err(err) => {
+                                    error!("command::run_setup err: {:?}", err);
+
+                                    let status_obj = StatusObj {
+                                        label: None,
+                                        progress: None,
+                                        complete: false,
+                                        log_line: None,
+                                        error: Some(err.to_string()),
+                                        prompt_items: None,
+                                    };
+                                    let status_str = serde_json::to_string(&status_obj).unwrap();
+                                    sender_err.send(status_str).unwrap();
+
+                                    return;
+                                }
+                            }
                         }
+                    }
+                    Err(err) => {
+                        error!("command::process_setup_details err: {:?}", err);
+
+                        let status_obj = StatusObj {
+                            label: None,
+                            progress: None,
+                            complete: false,
+                            log_line: None,
+                            error: Some(err.to_string()),
+                            prompt_items: None,
+                        };
+                        let status_str = serde_json::to_string(&status_obj).unwrap();
+                        sender_err.send(status_str).unwrap();
+
+                        return;
                     }
                 }
             }
@@ -853,7 +853,7 @@ impl LuxClient {
                 }
             }
 
-            match command::run_wrapper(&cmd_args, &game_info, &sender_err) {
+            match command::run_wrapper(cmd_args, &game_info, &sender_err) {
                 Ok(()) => {}
                 Err(err) => {
                     error!("command::run_wrapper err: {:?}", err);
@@ -868,8 +868,6 @@ impl LuxClient {
                     };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender_err.send(status_str).unwrap();
-
-                    return;
                 }
             };
         });
