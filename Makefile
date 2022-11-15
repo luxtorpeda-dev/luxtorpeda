@@ -44,6 +44,8 @@ build:
 
 release:
 	cargo build --release
+	mkdir -p target/debug
+	cp -r target/release/* target/debug
 	$(GODOT) --path . --export "Linux/X11" target/release/luxtorpeda.x86_64 --no-window
 
 lint:
