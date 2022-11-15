@@ -66,8 +66,7 @@ STEAM_COMPAT_MOUNTS=/path/to/other/filesystem %command%";
         // the symlink is. And that's when the OS says "nope, there's already something
         // here".
     }
-    //let _ = show_error("Setup Error", msg.as_str());
-    //panic!("{}", msg);
+    panic!("{}", msg);
 }
 
 pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
