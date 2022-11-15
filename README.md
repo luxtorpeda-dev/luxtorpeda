@@ -43,7 +43,7 @@ additional dependencies.
 
 ## Installation (debug build, from source)
 
-0. Download the latest version of Rust: https://www.rust-lang.org/ and verify that openssl is installed on your system.
+0. Download the latest version of Rust: https://www.rust-lang.org/ and verify that openssl is installed on your system. As well, ensure that Godot is downloaded. Currently, 3.5.1 is in use.
 
 Debian, Ubuntu and variants
 
@@ -56,8 +56,6 @@ Fedora
 Arch
        
        $ sudo pacman -S openssl rust
-
-0b. As well, ensure that Godot is downloaded. Currently, 3.5.1 is in use.
        
 1. Close Steam.
 2. Clone the repository, then use makefile to trigger `cargo build` and install:

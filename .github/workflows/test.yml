@@ -15,9 +15,9 @@ jobs:
     - name: Install Deps
       run: apt-get update && apt-get -y install clang
     - name: Install Godot
-      run: wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_x11.64.zip && unzip Godot_v3.5.1-stable_x11.64.zip && ls -l && echo "dir: $PWD"
+      run: wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_x11.64.zip && unzip Godot_v3.5.1-stable_x11.64.zip && ls -l && echo $PWD
     - name: Build
-      run: echo "dir: $PWD" && make release GODOT=Godot_v3.5.1-stable_x11.64
+      run: echo $PWD && make release GODOT=Godot_v3.5.1-stable_x11.64
     - name: Package
       run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz
     - name: Upload Artifacts
