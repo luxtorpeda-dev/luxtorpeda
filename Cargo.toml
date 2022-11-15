@@ -33,7 +33,4 @@ signal-hook = "0.3.14"
 log = "0.4.17"
 simplelog = "0.12.0"
 gdnative = "0.11"
-godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "bd9b8c5" }
-
-[patch.crates-io]
-time = { git = 'https://github.com/time-rs/time.git', tag = "v0.3.17" }
+godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "34ba70a" }

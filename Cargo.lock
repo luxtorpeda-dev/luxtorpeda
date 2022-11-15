@@ -221,6 +221,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "chrono"
+version = "0.5.0-alpha.1"
+source = "git+https://github.com/chronotope/chrono.git?rev=d147e9a#d147e9a2152d1d961372bf5a6a261c644746efdf"
+dependencies = [
+ "iana-time-zone",
+ "js-sys",
+ "num-integer",
+ "wasm-bindgen",
+ "winapi",
+]
+
+[[package]]
 name = "cipher"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -643,10 +655,10 @@ checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
 [[package]]
 name = "godot-logger"
 version = "1.0.0"
-source = "git+https://github.com/luxtorpeda-dev/godot-logger.git?rev=bd9b8c5#bd9b8c5ea1c878a5340fecdc26e9d0b8bddd6dad"
+source = "git+https://github.com/luxtorpeda-dev/godot-logger.git?rev=34ba70a#34ba70a116e7e75c1524a572bde037650d73b2ec"
 dependencies = [
  "anyhow",
- "chrono",
+ "chrono 0.5.0-alpha.1",
  "gdnative-core",
  "log",
  "log4rs",
@@ -952,7 +964,7 @@ checksum = "d36ca1786d9e79b8193a68d480a0907b612f109537115c6ff655a3a1967533fd"
 dependencies = [
  "anyhow",
  "arc-swap",
- "chrono",
+ "chrono 0.4.22",
  "derivative",
  "fnv",
  "humantime",
@@ -1734,7 +1746,8 @@ dependencies = [
 [[package]]
 name = "time"
 version = "0.3.17"
-source = "git+https://github.com/time-rs/time.git?tag=v0.3.17#d97594b9f5cfeab0335c16687e26a8b51c56a526"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
 dependencies = [
  "itoa",
  "libc",
@@ -1747,12 +1760,14 @@ dependencies = [
 [[package]]
 name = "time-core"
 version = "0.1.0"
-source = "git+https://github.com/time-rs/time.git?tag=v0.3.17#d97594b9f5cfeab0335c16687e26a8b51c56a526"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e153e1f1acaef8acc537e68b44906d2db6436e2b35ac2c6b42640fff91f00fd"
 
 [[package]]
 name = "time-macros"
 version = "0.2.6"
-source = "git+https://github.com/time-rs/time.git?tag=v0.3.17#d97594b9f5cfeab0335c16687e26a8b51c56a526"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d967f99f534ca7e495c575c62638eebc2898a8c84c119b89e250477bc4ba16b2"
 dependencies = [
  "time-core",
 ]
