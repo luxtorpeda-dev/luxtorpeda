@@ -13,7 +13,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Deps
-      run: apt-get update && apt-get -y install clang
+      run: apt-get update && apt-get -y install clang libsdl2-dev
     - name: Install Godot
       run: wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_x11.64.zip && unzip Godot_v3.5.1-stable_x11.64.zip && chmod +x Godot_v3.5.1-stable_x11.64
     - name: Build
