@@ -32,6 +32,14 @@ func _ready():
 	# warning-ignore:return_value_discarded
 	connect("clipboard_paste", self, "clipboard_paste_handler")
 	
+func _input(event: InputEvent):
+	if visible:
+		if event.is_action_pressed("ui_down"):
+			yield(get_tree(), "idle_frame")
+			prompt_rich_text.get_v_scroll().set_value(prompt_rich_text.get_v_scroll().value + 100)
+		elif event.is_action_pressed("ui_up"):
+			yield(get_tree(), "idle_frame")
+			prompt_rich_text.get_v_scroll().set_value(prompt_rich_text.get_v_scroll().value - 100)
 
 func show_prompt_handler(data_str):
 	var prompt = parse_json(data_str)
