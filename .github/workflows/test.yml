@@ -6,18 +6,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.60-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
+    - name: Install Deps
+      run: apt-get update && apt-get -y install clang libsdl2-dev
+    - name: Install Godot
+      run: wget https://downloads.tuxfamily.org/godotengine/3.5.1/Godot_v3.5.1-stable_linux_headless.64.zip && unzip Godot_v3.5.1-stable_linux_headless.64.zip && chmod +x Godot_v3.5.1-stable_linux_headless.64 && wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_export_templates.tpz && unzip Godot_v3.5.1-stable_export_templates.tpz && mkdir -p ~/.local/share/godot/templates/3.5.1.stable && mv templates/* ~/.local/share/godot/templates/3.5.1.stable && rm Godot_v3.5.1-stable_export_templates.tpz && rm Godot_v3.5.1-stable_linux_headless.64.zip && mv Godot_v3.5.1-stable_linux_headless.64 /usr/local/bin/godot
     - name: Build
-      run: make release
+      run: make release GODOT=godot
     - name: Package
-      run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz
+      run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz  GODOT=godot
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
@@ -26,14 +28,14 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.63-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
+    - name: Install Deps
+      run: apt-get update && apt-get -y install clang
     - name: Install Clippy
       run: rustup component add clippy
     - name: Clippy Run
@@ -41,14 +43,12 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.60-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install fmt
       run: rustup component add rustfmt
     - name: fmt Run
@@ -56,14 +56,12 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.60-buster
+      image: rust:1.65-buster
     env:
       CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install SDL 2 Dev
-      run: apt update && apt-get install -y libsdl2-dev libsdl2-image-dev
     - name: Install Audit
       run: cargo install cargo-audit
     - name: Audit Run

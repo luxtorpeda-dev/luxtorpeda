@@ -1,10 +1,13 @@
 [package]
 name = "luxtorpeda"
-version = "59.0.0"
+version = "60.0.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
 serde = { version = "1.0.137", features = ["derive"] }
@@ -26,9 +29,8 @@ futures-util = "0.3.21"
 tokio = { version = "1.21.0", default-features = false, features = ["full"] }
 which = "4.3.0"
 steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
-egui = "0.16.1"
-egui_sdl2_gl =  { git = "https://github.com/luxtorpeda-dev/egui_sdl2_gl.git", "rev" = "09ebb14", features = ["sdl2_image"] }
-image = "0.24.3"
 signal-hook = "0.3.14"
 log = "0.4.17"
 simplelog = "0.12.0"
+gdnative = "0.11"
+godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }

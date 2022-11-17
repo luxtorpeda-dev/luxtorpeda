@@ -1,0 +1,139 @@
+[gd_scene load_steps=18 format=2]
+
+[ext_resource path="res://Scenes/MainScene/MainScene.gdns" type="Script" id=1]
+[ext_resource path="res://Scenes/TitleBar/TitleBar.tscn" type="PackedScene" id=2]
+[ext_resource path="res://addons/controller_icons/objects/Button.gd" type="Script" id=3]
+[ext_resource path="res://addons/controller_icons/assets/key/enter_alt.png" type="Texture" id=4]
+[ext_resource path="res://addons/controller_icons/assets/key/space.png" type="Texture" id=5]
+[ext_resource path="res://Scenes/MainScene/SignalEmitter.gdns" type="Script" id=6]
+[ext_resource path="res://addons/controller_icons/assets/key/esc.png" type="Texture" id=7]
+[ext_resource path="res://Scenes/Choices/Choices.tscn" type="PackedScene" id=8]
+[ext_resource path="res://Scenes/MainScene/Controls.gd" type="Script" id=9]
+[ext_resource path="res://Scenes/Progress/Progress.tscn" type="PackedScene" id=10]
+[ext_resource path="res://Scenes/Prompt/Prompt.tscn" type="PackedScene" id=11]
+
+[sub_resource type="InputEventAction" id=1]
+action = "ui_select"
+
+[sub_resource type="ShortCut" id=2]
+shortcut = SubResource( 1 )
+
+[sub_resource type="InputEventAction" id=3]
+action = "ui_accept"
+
+[sub_resource type="ShortCut" id=4]
+shortcut = SubResource( 3 )
+
+[sub_resource type="InputEventAction" id=5]
+action = "ui_cancel"
+
+[sub_resource type="ShortCut" id=6]
+shortcut = SubResource( 5 )
+
+[node name="UI" type="PanelContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 1 )
+
+[node name="SignalEmitter" type="Node" parent="."]
+script = ExtResource( 6 )
+
+[node name="Container" type="VBoxContainer" parent="."]
+margin_left = 14.0
+margin_top = 14.0
+margin_right = 1010.0
+margin_bottom = 586.0
+
+[node name="TitleBar" parent="Container" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 996.0
+margin_bottom = 41.0
+grow_horizontal = 0
+grow_vertical = 0
+alignment = 1
+
+[node name="Choices" parent="Container" instance=ExtResource( 8 )]
+visible = false
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 49.0
+margin_right = 996.0
+margin_bottom = 444.0
+size_flags_vertical = 3
+
+[node name="Progress" parent="Container" instance=ExtResource( 10 )]
+visible = false
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 49.0
+margin_right = 996.0
+margin_bottom = 444.0
+
+[node name="Prompt" parent="Container" instance=ExtResource( 11 )]
+visible = false
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 49.0
+margin_right = 996.0
+margin_bottom = 444.0
+size_flags_vertical = 3
+
+[node name="HSeparator" type="HSeparator" parent="Container"]
+margin_top = 49.0
+margin_right = 996.0
+margin_bottom = 57.0
+
+[node name="Controls" type="HBoxContainer" parent="Container"]
+margin_top = 65.0
+margin_right = 996.0
+margin_bottom = 169.0
+script = ExtResource( 9 )
+
+[node name="SecondaryButton" type="Button" parent="Container/Controls"]
+margin_right = 272.0
+margin_bottom = 104.0
+focus_mode = 0
+size_flags_vertical = 12
+disabled = true
+enabled_focus_mode = 0
+shortcut = SubResource( 2 )
+text = "Toggle Default"
+icon = ExtResource( 5 )
+script = ExtResource( 3 )
+path = "ui_select"
+
+[node name="OkButton" type="Button" parent="Container/Controls"]
+margin_left = 655.0
+margin_right = 801.0
+margin_bottom = 104.0
+focus_mode = 0
+size_flags_horizontal = 10
+size_flags_vertical = 12
+disabled = true
+enabled_focus_mode = 0
+shortcut = SubResource( 4 )
+text = "Ok"
+icon = ExtResource( 4 )
+script = ExtResource( 3 )
+path = "ui_accept"
+
+[node name="CancelButton" type="Button" parent="Container/Controls"]
+margin_left = 809.0
+margin_right = 996.0
+margin_bottom = 104.0
+focus_mode = 0
+size_flags_horizontal = 8
+size_flags_vertical = 12
+enabled_focus_mode = 0
+shortcut = SubResource( 6 )
+text = "Cancel"
+icon = ExtResource( 7 )
+script = ExtResource( 3 )
+path = "ui_cancel"
+
+[connection signal="pressed" from="Container/Controls/SecondaryButton" to="Container/Controls" method="_on_SecondaryButton_pressed"]
+[connection signal="pressed" from="Container/Controls/OkButton" to="Container/Controls" method="_on_OkButton_pressed"]
+[connection signal="pressed" from="Container/Controls/CancelButton" to="Container/Controls" method="_on_CancelButton_pressed"]

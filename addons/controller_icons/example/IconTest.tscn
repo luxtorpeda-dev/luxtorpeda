@@ -1,0 +1,49 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://addons/controller_icons/objects/TextureRect.gd" type="Script" id=1]
+[ext_resource path="res://addons/controller_icons/objects/Button.gd" type="Script" id=2]
+[ext_resource path="res://addons/controller_icons/assets/key/arrow_up.png" type="Texture" id=3]
+[ext_resource path="res://addons/controller_icons/objects/Sprite3D.gd" type="Script" id=4]
+[ext_resource path="res://addons/controller_icons/assets/key/arrow_right.png" type="Texture" id=5]
+[ext_resource path="res://addons/controller_icons/assets/key/arrow_left.png" type="Texture" id=6]
+[ext_resource path="res://addons/controller_icons/assets/key/arrow_down.png" type="Texture" id=7]
+[ext_resource path="res://addons/controller_icons/objects/Sprite.gd" type="Script" id=8]
+
+[node name="Test" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="ControllerButton" type="Button" parent="."]
+margin_left = 282.0
+margin_top = 44.0
+margin_right = 469.0
+margin_bottom = 150.0
+text = "Move left"
+icon = ExtResource( 6 )
+script = ExtResource( 2 )
+path = "ui_left"
+
+[node name="ControllerSprite" type="Sprite" parent="."]
+position = Vector2( 359, 229 )
+texture = ExtResource( 3 )
+script = ExtResource( 8 )
+path = "ui_up"
+
+[node name="ControllerSprite3D" type="Sprite3D" parent="."]
+texture = ExtResource( 5 )
+script = ExtResource( 4 )
+path = "ui_right"
+
+[node name="ControllerTextureRect" type="TextureRect" parent="."]
+margin_left = 675.0
+margin_top = 106.0
+margin_right = 772.0
+margin_bottom = 206.0
+rect_min_size = Vector2( 40, 40 )
+texture = ExtResource( 7 )
+expand = true
+script = ExtResource( 1 )
+path = "ui_down"
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.79406 )

@@ -2,3 +2,14 @@
 **/*.rs.bk
 luxtorpeda/
 luxtorpeda.tar.xz
+
+# Godot-specific ignores
+.import/
+export.cfg
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/

@@ -2,8 +2,14 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 60.0 (???)
+### Pre-release 60.0 (2022-11-17)
 
+* Move GUI to Godot, using godot-rust
+    * godot-rust allows for the underlying code for downloading, extracting, etc to stay the same in rust, and then allow for fairly simple communication between Godot and rust, using the Godot signal method. The Godot layer handles user input and the UI, and rust handles all the pieces behind the scenes
+    * This move makes maintaining the UI easier, with being able to use the many built-in Godot features and the editor
+    * Controller and window support, such as DPI, is now handled by Godot, instead of custom code on top of SDL2
+    * Instead of opening individual windows for each action (like choices, download progress, etc), one Godot window is used for the full flow until the game has closed, which should make the UI flow better
+* Progress is now shown for install and setup steps, to make it clearer to the user what is going on
 * [striezel] misc - fix a typo
 * [striezel] Update crate dependencies
 * [striezel] update actions used in GitHub Actions workflow
