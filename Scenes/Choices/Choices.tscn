@@ -7,7 +7,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 2 )
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="ScrollContainer" type="VBoxContainer" parent="."]
 margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
@@ -18,7 +18,6 @@ margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-auto_height = true
 same_column_width = true
 icon_scale = 0.3
 

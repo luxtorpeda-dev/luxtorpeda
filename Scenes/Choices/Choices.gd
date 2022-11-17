@@ -64,6 +64,7 @@ func default_choice_clicked_handler(current_choice, default_choice):
 	get_node("../Controls").emit_signal("default_choice_selected", default_choice)
 
 func _on_ChoiceList_item_selected(index):
+	choice_list.ensure_current_is_visible()
 	var engine_choice = last_choices[index]
 	last_index = index
 	get_node("../Controls").emit_signal("choice_selected", engine_choice)
