@@ -37,7 +37,7 @@ static LUX_WRITE_LOGGING: &str = "LUX_WRITE_LOGGING";
 static LUX_STEAM_DECK: &str = "LUX_STEAM_DECK";
 static LUX_STEAM_DECK_GAMING_MODE: &str = "LUX_STEAM_DECK_GAMING_MODE";
 
-fn usage() {
+pub fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
 }
 
@@ -300,19 +300,6 @@ pub fn run_wrapper(
         ret
     }
 }
-
-/*fn manual_download(args: &[&str]) -> io::Result<()> {
-    if args.is_empty() {
-        usage();
-        std::process::exit(0)
-    }
-
-    let app_id = args[0];
-    package::update_packages_json().unwrap();
-    //package::download_all(app_id.to_string())?;
-
-    Ok(())
-}*/
 
 fn setup_logging(file: Option<File>) {
     if let Some(file) = file {

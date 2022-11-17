@@ -769,6 +769,10 @@ impl LuxClient {
     }
 
     fn run_game(&mut self, after_setup_question_mode: bool) {
+        if !user_env::manual_download_app_id().is_empty() {
+            std::process::exit(0);
+        }
+
         let mut engine_choice = String::new();
 
         if let Some(choice) = &self.last_choice {

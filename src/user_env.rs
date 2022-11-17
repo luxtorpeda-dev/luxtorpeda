@@ -8,6 +8,7 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use users::get_current_uid;
+use crate::command;
 
 static XDG_RUNTIME_DIR: &str = "XDG_RUNTIME_DIR";
 static LUX_TOOL_DIR: &str = "LUX_TOOL_DIR";
@@ -43,10 +44,36 @@ pub fn assure_tool_dir(arg0: &str) -> Result<(), std::io::Error> {
 /// use `SteamGameId` environment variable instead.
 ///
 pub fn steam_app_id() -> String {
+    let manual_download_check = manual_download_app_id();
+    if !manual_download_check.is_empty() {
+        return manual_download_check;
+    }
+
     match env::var(STEAM_APPID) {
         Ok(app_id) => app_id,
         Err(_) => "0".to_string(),
     }
+}
+
+pub fn manual_download_app_id() -> String {
+    let env_args: Vec<String> = env::args().collect();
+    let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
+    if !args.is_empty() && args.len() > 1 {
+        let cmd = args[1];
+        let cmd_args = &args[2..];
+
+        if cmd == "manual-download" {
+            if !cmd_args.is_empty() {
+                let app_id = cmd_args[0];
+                return app_id.to_string();
+            } else {
+                command::usage();
+                std::process::exit(0)
+            }
+        }
+    }
+
+    String::new()
 }
 
 pub fn tool_dir() -> PathBuf {
