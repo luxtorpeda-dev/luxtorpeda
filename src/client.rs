@@ -407,7 +407,7 @@ impl LuxClient {
     fn controller_detection_change(&mut self, #[base] _owner: &Node, data: Variant) {
         let data_str = data.try_to::<String>().unwrap();
         info!("controller_detection_change: {}", data_str);
-        user_env::set_controller_var(&data_str.to_string());
+        user_env::set_controller_var(&data_str);
     }
 
     #[method]

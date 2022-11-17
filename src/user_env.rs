@@ -7,8 +7,8 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
 
-use users::get_current_uid;
 use crate::command;
+use users::get_current_uid;
 
 static XDG_RUNTIME_DIR: &str = "XDG_RUNTIME_DIR";
 static LUX_TOOL_DIR: &str = "LUX_TOOL_DIR";

@@ -83,14 +83,6 @@ pub fn path_to_packages_file() -> PathBuf {
     folder_path.join("packagesruntime.json")
 }
 
-pub fn path_to_cache() -> PathBuf {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let cache_home = xdg_dirs.get_cache_home();
-    let folder_path = cache_home.join("luxtorpeda");
-    create_dir_or_show_error(&folder_path);
-    folder_path
-}
-
 pub fn path_to_config() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_config_home();
@@ -724,45 +716,6 @@ pub fn get_engines_info() -> Option<(json::JsonValue, json::JsonValue)> {
         None
     } else {
         Some((parsed["engines"].clone(), parsed["noticeMap"].clone()))
-    }
-}
-
-pub fn get_game_info_with_json(app_id: &str, parsed: &json::JsonValue) -> Option<json::JsonValue> {
-    let game_info = parsed[app_id].clone();
-
-    if let Some(user_packages_file) = find_user_packages_file() {
-        let user_json_str = match fs::read_to_string(user_packages_file) {
-            Ok(s) => s,
-            Err(err) => {
-                let error_message = std::format!("user-packages.json read err: {:?}", err);
-                error!("{:?}", error_message);
-                return None;
-            }
-        };
-
-        let user_parsed = match json::parse(&user_json_str) {
-            Ok(j) => j,
-            Err(err) => {
-                let error_message = std::format!("user-packages.json parsing err: {:?}", err);
-                error!("{:?}", error_message);
-                return None;
-            }
-        };
-
-        let game_info = user_parsed[app_id].clone();
-        if game_info.is_null() {
-            if !user_parsed["default"].is_null() {
-                return Some(user_parsed["default"].clone());
-            }
-        } else {
-            return Some(game_info);
-        }
-    };
-
-    if game_info.is_null() {
-        None
-    } else {
-        Some(game_info)
     }
 }
 
