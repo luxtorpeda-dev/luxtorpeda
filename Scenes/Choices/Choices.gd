@@ -8,6 +8,7 @@ signal choice_picked
 signal default_choice_clicked
 
 var last_choices = null
+var last_index = -1
 onready var choice_list = get_node("ScrollContainer/ChoiceList")
 onready var default_icon_texture = load("res://Resources/accept-icon.png")
 
@@ -20,6 +21,21 @@ func _ready():
 	# warning-ignore:return_value_discarded
 	connect("default_choice_clicked", self, "default_choice_clicked_handler")
 	choice_list.grab_focus()
+	
+func _input(event):
+	if self.visible and event is InputEventJoypadMotion and event.axis == JOY_AXIS_1:
+		var new_index = last_index
+		if event.get_action_strength("ui_down") >= 1:
+			new_index += 1
+		elif event.get_action_strength("ui_up") >= 1:
+			new_index -= 1
+		
+		if new_index >= 0 and new_index != last_index and new_index < last_choices.size():
+			choice_list.select(new_index)
+			_on_ChoiceList_item_selected(new_index)
+			
+		ControllerIcons._set_last_input_type(ControllerIcons.InputType.CONTROLLER)
+		choice_list.accept_event()
 
 func choices_found_handler(choices_str):
 	last_choices = parse_json(choices_str)
@@ -49,6 +65,7 @@ func default_choice_clicked_handler(current_choice, default_choice):
 
 func _on_ChoiceList_item_selected(index):
 	var engine_choice = last_choices[index]
+	last_index = index
 	get_node("../Controls").emit_signal("choice_selected", engine_choice)
 	if engine_choice.notices && engine_choice.notices.size():
 		var noticeText = ""
