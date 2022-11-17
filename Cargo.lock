@@ -655,7 +655,7 @@ checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
 [[package]]
 name = "godot-logger"
 version = "1.0.0"
-source = "git+https://github.com/luxtorpeda-dev/godot-logger.git?rev=34ba70a#34ba70a116e7e75c1524a572bde037650d73b2ec"
+source = "git+https://github.com/luxtorpeda-dev/godot-logger.git?rev=56d4f89#56d4f890ae0ad1a581cc25ed7a5d2c553ed6b09d"
 dependencies = [
  "anyhow",
  "chrono 0.5.0-alpha.1",
