@@ -2,7 +2,7 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### Pre-release 60.0 (???)
+### Pre-release 60.0 (2022-11-17)
 
 * Move GUI to Godot, using godot-rust
     * godot-rust allows for the underlying code for downloading, extracting, etc to stay the same in rust, and then allow for fairly simple communication between Godot and rust, using the Godot signal method. The Godot layer handles user input and the UI, and rust handles all the pieces behind the scenes
