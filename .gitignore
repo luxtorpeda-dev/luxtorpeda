@@ -13,3 +13,5 @@ export.cfg
 # Mono-specific ignores
 .mono/
 data_*/
+
+godot-build
