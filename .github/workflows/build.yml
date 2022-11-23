@@ -17,7 +17,7 @@ on:
 
 jobs:
   setup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       build_number: ${{ steps.buildnumber.outputs.build_number }}
     steps:
@@ -27,7 +27,7 @@ jobs:
       with:
         token: ${{ secrets.github_token }}
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: setup
     container:
       image: rust:1.65-buster
@@ -53,7 +53,7 @@ jobs:
         path: ./luxtorpeda.tar.xz
   deploy:
     needs: [setup, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Download Artifacts
       uses: actions/download-artifact@v3
