@@ -37,7 +37,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Deps
-      run: apt-get update && apt-get -y install clang libsdl2-dev
+      run: apt-get update && apt-get -y install clang libsdl2-dev scons
     - name: Install Godot
       run: wget https://downloads.tuxfamily.org/godotengine/3.5.1/Godot_v3.5.1-stable_linux_headless.64.zip && unzip Godot_v3.5.1-stable_linux_headless.64.zip && chmod +x Godot_v3.5.1-stable_linux_headless.64 && rm Godot_v3.5.1-stable_linux_headless.64.zip && mv Godot_v3.5.1-stable_linux_headless.64 /usr/local/bin/godot
     - name: Build Godot Export Template
