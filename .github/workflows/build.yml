@@ -23,7 +23,7 @@ jobs:
     steps:
     - name: Generate build number
       id: buildnumber
-      uses: luxtorpeda-dev/build-number@28d7a5563af2dd582178bab6b5a50dc8e10f1061
+      uses: luxtorpeda-dev/build-number@v5
       with:
         token: ${{ secrets.github_token }}
   build:
@@ -60,7 +60,7 @@ jobs:
         path: ./
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: luxtorpeda-dev/create-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -70,7 +70,7 @@ jobs:
           prerelease: false
     - name: Upload Release Asset
       id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
+      uses: luxtorpeda-dev/upload-release-asset@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
