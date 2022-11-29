@@ -2,6 +2,14 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### Pre-release 61.0 (2022-11-23)
+
+Everything from Pre-release 60.0 plus
+
+* Add theme for tooltip, to improve readability
+* Fixes to github action workflows, for deprecated actions
+* Build custom Godot export template, to decrease the size of the resulting build
+
 ### Pre-release 60.0 (2022-11-17)
 
 * Move GUI to Godot, using godot-rust

@@ -23,7 +23,7 @@ jobs:
     steps:
     - name: Generate build number
       id: buildnumber
-      uses: luxtorpeda-dev/build-number@28d7a5563af2dd582178bab6b5a50dc8e10f1061
+      uses: luxtorpeda-dev/build-number@v5
       with:
         token: ${{ secrets.github_token }}
   build:
@@ -37,9 +37,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Deps
-      run: apt-get update && apt-get -y install clang libsdl2-dev
+      run: apt-get update && apt-get -y install clang libsdl2-dev scons libpng-dev
     - name: Install Godot
-      run: wget https://downloads.tuxfamily.org/godotengine/3.5.1/Godot_v3.5.1-stable_linux_headless.64.zip && unzip Godot_v3.5.1-stable_linux_headless.64.zip && chmod +x Godot_v3.5.1-stable_linux_headless.64 && wget https://github.com/godotengine/godot/releases/download/3.5.1-stable/Godot_v3.5.1-stable_export_templates.tpz && unzip Godot_v3.5.1-stable_export_templates.tpz && mkdir -p ~/.local/share/godot/templates/3.5.1.stable && mv templates/* ~/.local/share/godot/templates/3.5.1.stable && rm Godot_v3.5.1-stable_export_templates.tpz && rm Godot_v3.5.1-stable_linux_headless.64.zip && mv Godot_v3.5.1-stable_linux_headless.64 /usr/local/bin/godot
+      run: wget https://downloads.tuxfamily.org/godotengine/3.5.1/Godot_v3.5.1-stable_linux_headless.64.zip && unzip Godot_v3.5.1-stable_linux_headless.64.zip && chmod +x Godot_v3.5.1-stable_linux_headless.64 && rm Godot_v3.5.1-stable_linux_headless.64.zip && mv Godot_v3.5.1-stable_linux_headless.64 /usr/local/bin/godot
+    - name: Build Godot Export Template
+      run: make godot-export-template SCONS="python3 /usr/bin/scons" && mkdir -p ~/.local/share/godot/templates/3.5.1.stable && mv ./godot-build/bin/godot.x11.opt.64 ~/.local/share/godot/templates/3.5.1.stable/linux_x11_64_release
     - name: Build
       run: make release GODOT=godot
     - name: Package
@@ -60,7 +62,7 @@ jobs:
         path: ./
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: luxtorpeda-dev/create-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -70,7 +72,7 @@ jobs:
           prerelease: false
     - name: Upload Release Asset
       id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
+      uses: luxtorpeda-dev/upload-release-asset@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
