@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 62.0 (???)
+
+* [striezel] Update dependencies 
+
 ### 61.0 (2022-11-29)
 
 Everything from Pre-release 60.0 plus
