@@ -4,7 +4,8 @@
 
 ### 62.0 (???)
 
-* [striezel] Update dependencies 
+* [striezel] Update dependencies
+* Bump tokio from 1.22.0 to 1.23.1
 
 ### 61.0 (2022-11-29)
 
