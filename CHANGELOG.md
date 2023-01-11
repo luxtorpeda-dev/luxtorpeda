@@ -6,6 +6,7 @@
 
 * [striezel] Update dependencies
 * Bump tokio from 1.22.0 to 1.23.1
+* Bump bzip2 from 0.4.3 to 0.4.4
 
 ### 61.0 (2022-11-29)
 
