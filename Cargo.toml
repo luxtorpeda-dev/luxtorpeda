@@ -28,7 +28,7 @@ flate2 = "1.0.23"
 futures-util = "0.3.21"
 tokio = { version = "1.24.2", default-features = false, features = ["full"] }
 which = "4.3.0"
-steamlocate = { git = "https://github.com/luxtorpeda-dev/steamlocate-rs", tag = "0.1.5" }
+steamlocate = { git = "https://github.com/WilliamVenner/steamlocate-rs.git", "rev" = "3f1559f" }
 signal-hook = "0.3.14"
 log = "0.4.17"
 simplelog = "0.12.0"
