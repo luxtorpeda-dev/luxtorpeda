@@ -930,7 +930,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "61.0.0"
+version = "62.0.0"
 dependencies = [
  "bzip2",
  "flate2",
