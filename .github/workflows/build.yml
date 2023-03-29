@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     container:
-      image: rust:1.65-buster
+      image: rust:1.68-buster
     env:
       CARGO_HOME: ./cargo
     steps:
@@ -39,9 +39,9 @@ jobs:
     - name: Install Deps
       run: apt-get update && apt-get -y install clang libsdl2-dev scons libpng-dev
     - name: Install Godot
-      run: wget https://downloads.tuxfamily.org/godotengine/3.5.1/Godot_v3.5.1-stable_linux_headless.64.zip && unzip Godot_v3.5.1-stable_linux_headless.64.zip && chmod +x Godot_v3.5.1-stable_linux_headless.64 && rm Godot_v3.5.1-stable_linux_headless.64.zip && mv Godot_v3.5.1-stable_linux_headless.64 /usr/local/bin/godot
+      run: wget https://downloads.tuxfamily.org/godotengine/3.5.2/Godot_v3.5.2-stable_linux_headless.64.zip && unzip Godot_v3.5.2-stable_linux_headless.64.zip && chmod +x Godot_v3.5.2-stable_linux_headless.64 && rm Godot_v3.5.2-stable_linux_headless.64.zip && mv Godot_v3.5.2-stable_linux_headless.64 /usr/local/bin/godot
     - name: Build Godot Export Template
-      run: make godot-export-template SCONS="python3 /usr/bin/scons" && mkdir -p ~/.local/share/godot/templates/3.5.1.stable && mv ./godot-build/bin/godot.x11.opt.64 ~/.local/share/godot/templates/3.5.1.stable/linux_x11_64_release
+      run: make godot-export-template SCONS="python3 /usr/bin/scons" && mkdir -p ~/.local/share/godot/templates/3.5.2.stable && mv ./godot-build/bin/godot.x11.opt.64 ~/.local/share/godot/templates/3.5.2.stable/linux_x11_64_release
     - name: Build
       run: make release GODOT=godot
     - name: Package
