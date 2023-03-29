@@ -220,7 +220,7 @@ pub fn update_packages_json() -> io::Result<()> {
         let local_packages_temp_path =
             path_to_packages_file().with_file_name(std::format!("{}-temp.json", remote_path));
 
-        match reqwest::blocking::get(&remote_packages_url) {
+        match reqwest::blocking::get(remote_packages_url) {
             Ok(mut response) => {
                 let mut dest = fs::File::create(&local_packages_temp_path)?;
                 io::copy(&mut response, &mut dest)?;

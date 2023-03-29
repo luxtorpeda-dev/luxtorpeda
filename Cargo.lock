@@ -196,7 +196,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
 dependencies = [
- "nom 7.1.1",
+ "nom",
 ]
 
 [[package]]
@@ -859,6 +859,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyvalues-serde"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da419ac133bb3ddf0dbf9c12fcc0ce01d994fcb65f6f1713faf15cc689320b5f"
+dependencies = [
+ "keyvalues-parser",
+ "once_cell",
+ "paste",
+ "regex",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1032,12 +1046,6 @@ dependencies = [
 
 [[package]]
 name = "nom"
-version = "1.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5b8c256fd9471521bcb84c3cdba98921497f1a331cbc15b8030fc63b82050ce"
-
-[[package]]
-name = "nom"
 version = "7.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8903e5a29a317527874d0402f867152a3d21c908bb0b933e416c65e301d4c36"
@@ -1129,6 +1137,12 @@ dependencies = [
  "rand_core",
  "subtle",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f746c4065a8fa3fe23974dd82f15431cc8d40779821001404d10d2e79ca7d79"
 
 [[package]]
 name = "pbkdf2"
@@ -1558,25 +1572,14 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "steamlocate"
-version = "0.1.5"
-source = "git+https://github.com/luxtorpeda-dev/steamlocate-rs?tag=0.1.5#db8ad81c6d2759793104b5602cd79d9aabf74c75"
+version = "2.0.0"
+source = "git+https://github.com/WilliamVenner/steamlocate-rs.git?rev=3f1559f#3f1559ffe5b4ef0e892c17d34a2cccf4f3995c9d"
 dependencies = [
- "anyhow",
  "dirs 3.0.2",
  "keyvalues-parser",
- "lazy_static",
- "regex",
- "steamy-vdf",
+ "keyvalues-serde",
+ "serde",
  "winreg",
-]
-
-[[package]]
-name = "steamy-vdf"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "533127ad49314bfe71c3d3fd36b3ebac3d24f40618092e70e1cfe8362c7fac79"
-dependencies = [
- "nom 1.2.4",
 ]
 
 [[package]]
