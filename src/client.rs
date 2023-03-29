@@ -101,7 +101,7 @@ impl LuxClient {
         let status_str = serde_json::to_string(&status_obj).unwrap();
         let emitter = &mut base.get_node("Container/Progress").unwrap();
         let emitter = unsafe { emitter.assume_safe() };
-        emitter.emit_signal("progress_change", &[Variant::new(&status_str)]);
+        emitter.emit_signal("progress_change", &[Variant::new(status_str)]);
     }
 
     #[method]

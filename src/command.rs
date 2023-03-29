@@ -147,7 +147,7 @@ pub fn run_setup(
         return Err(Error::new(ErrorKind::Other, "setup failed"));
     }
 
-    File::create(&setup_info["complete_path"].to_string())?;
+    File::create(setup_info["complete_path"].to_string())?;
 
     Ok(())
 }
