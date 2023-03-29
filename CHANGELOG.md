@@ -2,11 +2,14 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 62.0 (???)
+### 62.0 (2023-03-29)
 
 * [striezel] Update dependencies
 * Bump tokio from 1.22.0 to 1.23.1
 * Bump bzip2 from 0.4.3 to 0.4.4
+* [dreamer] Remove dependency on steam-vdf and nom = 1.2.4
+* Upgrade Rust to 1.68
+* Upgrade Godot to 3.5.2
 
 ### 61.0 (2022-11-29)
 
