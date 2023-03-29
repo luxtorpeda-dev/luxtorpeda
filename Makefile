@@ -1,7 +1,6 @@
 .PHONY: all build test clean doc install user-install user-uninstall
 
 # These variables are used to generate compatibilitytool.vdf:
-#
 tool_name             = luxtorpeda
 tool_name_dev         = luxtorpeda_dev
 tool_name_display     = Luxtorpeda
