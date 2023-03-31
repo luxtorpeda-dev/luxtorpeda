@@ -2,6 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
+### 63.0 (TBD)
+
+* [dreamer] Use steamlocate v2 alpha
+
 ### 62.0 (2023-03-29)
 
 * [striezel] Update dependencies
