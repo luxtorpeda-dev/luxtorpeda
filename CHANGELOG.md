@@ -5,6 +5,7 @@
 ### 63.0 (TBD)
 
 * [dreamer] Use steamlocate v2 alpha
+* Bump h2 from 0.3.15 to 0.3.17
 
 ### 62.0 (2023-03-29)
 
