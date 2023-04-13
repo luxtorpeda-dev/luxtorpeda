@@ -80,7 +80,7 @@ pub fn path_to_packages_file() -> PathBuf {
     let config_home = xdg_dirs.get_cache_home();
     let folder_path = config_home.join("luxtorpeda");
     create_dir_or_show_error(&folder_path);
-    folder_path.join("packagesruntime.json")
+    folder_path.join("packagessniper.json")
 }
 
 pub fn path_to_config() -> PathBuf {
@@ -174,7 +174,7 @@ pub fn update_packages_json() -> io::Result<()> {
     let mut should_download = true;
     let mut remote_hash_str: String = String::new();
 
-    let remote_path = "packagesruntime";
+    let remote_path = "packagessniper";
 
     let remote_hash_url = std::format!("{0}/{1}.hash", &config_parsed["host_url"], remote_path);
     match get_remote_packages_hash(&remote_hash_url) {
