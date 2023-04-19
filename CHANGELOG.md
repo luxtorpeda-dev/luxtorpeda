@@ -5,6 +5,7 @@
 ### 63.0 (TBD)
 
 * Switch to using Steam Linux Runtime - Sniper for the built engines. This provides newer tooling for builds, which should make future development easier. Note that previous clients should still work on the older soldier, but any new updates will only happen to sniper (this client and above).
+* Rust panics, if they occur, should now be caught and displayed in the Godot UI.
 * [dreamer] Use steamlocate v2 alpha
 * Bump h2 from 0.3.15 to 0.3.17
 
