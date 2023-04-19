@@ -162,6 +162,7 @@ pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
 
 pub fn update_packages_json() -> io::Result<()> {
     let config_json_file = user_env::tool_dir().join("config.json");
+    panic!("ASDASDSAD");
     let config_json_str = fs::read_to_string(config_json_file)?;
     let config_parsed = json::parse(&config_json_str).unwrap();
 
