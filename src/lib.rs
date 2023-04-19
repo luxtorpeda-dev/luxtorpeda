@@ -49,8 +49,13 @@ pub fn init_panic_hook() {
         (*(old_hook.as_ref()))(panic_info);
 
         unsafe {
-            if let Some(gd_panic_hook) = gdnative::api::utils::autoload::<gdnative::api::Node>("rust_panic_hook") {
-                gd_panic_hook.call("rust_panic_hook", &[GodotString::from_str(error_message).to_variant()]);
+            if let Some(gd_panic_hook) =
+                gdnative::api::utils::autoload::<gdnative::api::Node>("rust_panic_hook")
+            {
+                gd_panic_hook.call(
+                    "rust_panic_hook",
+                    &[GodotString::from_str(error_message).to_variant()],
+                );
             }
         }
     }));
