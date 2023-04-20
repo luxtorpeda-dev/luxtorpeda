@@ -2,8 +2,10 @@
 
 * Packages changelog can be seen at https://github.com/luxtorpeda-dev/packages/blob/master/CHANGELOG.md
 
-### 63.0 (TBD)
+### 63.0 (2023-04-20)
 
+* Switch to using Steam Linux Runtime - Sniper for the built engines. This provides newer tooling for builds, which should make future development easier, for example being able to build qt 5.15 and have gcc 10 available. The 100+ engines have been re-built. Note that previous clients should still work on the older soldier, but any new updates will only happen to sniper (this client and above). If you run into any issues with the engines, please open a new issue in the [packages](https://github.com/luxtorpeda-dev/packages/issues/new/choose) repo.
+* Rust panics, if they occur, should now be caught and displayed in the Godot UI.
 * [dreamer] Use steamlocate v2 alpha
 * Bump h2 from 0.3.15 to 0.3.17
 

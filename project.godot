@@ -62,6 +62,7 @@ config/icon="res://Resources/icon.png"
 [autoload]
 
 ControllerIcons="*res://addons/controller_icons/ControllerIcons.gd"
+rust_panic_hook="*res://rust_panic_hook.gd"
 
 [display]
 
