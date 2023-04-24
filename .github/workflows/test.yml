@@ -21,7 +21,10 @@ jobs:
     - name: Build
       run: make release GODOT=godot
     - name: Package
-      run: make version=${{ github.head_ref }}.${{ github.sha }} luxtorpeda.tar.xz GODOT=godot
+      env:
+        SHA_VALUE: ${{ github.sha }}
+        HEAD_REF: ${{ github.head_ref }}
+      run: make version="$HEAD_REF"."$SHA_VALUE" luxtorpeda.tar.xz GODOT=godot
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
