@@ -5,19 +5,8 @@ on:
     tags:
         - 'v*'
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      build_number: ${{ steps.buildnumber.outputs.build_number }}
-    steps:
-    - name: Generate build number (remove this!!)
-      id: buildnumber
-      uses: luxtorpeda-dev/build-number@v5
-      with:
-        token: ${{ secrets.github_token }}
   build:
     runs-on: ubuntu-latest
-    needs: setup
     container:
       image: rust:1.68-buster
     env:
@@ -34,7 +23,7 @@ jobs:
     - name: Build
       run: make release GODOT=godot
     - name: Package
-      run: make version=${{ needs.setup.outputs.build_number }} luxtorpeda.tar.xz GODOT=godot
+      run: make version=${{ github.ref_name }} luxtorpeda.tar.xz GODOT=godot
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
@@ -55,8 +44,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          tag_name: v${{ needs.setup.outputs.build_number }}
-          release_name: Version ${{ needs.setup.outputs.build_number }}
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
           draft: false
           prerelease: false
     - name: Upload Release Asset
@@ -67,5 +56,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: luxtorpeda.tar.xz
-        asset_name: luxtorpeda-${{ needs.setup.outputs.build_number }}.tar.xz
+        asset_name: luxtorpeda-${{ github.ref_name }}.tar.xz
         asset_content_type: application/x-xz
