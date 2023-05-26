@@ -1,6 +1,11 @@
 # Luxtorpeda-dev
 
 [![Luxtorpeda project Discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
+[![Downloads](https://img.shields.io/github/downloads/luxtorpeda-dev/luxtorpeda/total.svg)](https://github.com/luxtorpeda-dev/luxtorpeda/releases)
+[![Build Action](https://github.com/luxtorpeda-dev/luxtorpeda/actions/workflows/build.yml/badge.svg)](https://github.com/luxtorpeda-dev/luxtorpeda/actions/workflows/build.yml)
+[![GitHub contributors](https://img.shields.io/github/contributors/luxtorpeda-dev/luxtorpeda)](https://github.com/luxtorpeda-dev/luxtorpeda/graphs/contributors)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/d10sfan)](https://github.com/sponsors/d10sfan)
+
 
 Steam Play compatibility tool to run games using native Linux engines
 
