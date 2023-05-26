@@ -14,6 +14,7 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::io;
+use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use tar::Archive;
@@ -152,7 +153,7 @@ pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
 }
 
 pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
-    let mut file = fs::File::open(&file_path)?;
+    let mut file = fs::File::open(file_path)?;
     let mut hasher = Sha256::new();
     io::copy(&mut file, &mut hasher)?;
     let hash_result = hasher.finalize();
@@ -578,7 +579,8 @@ pub fn install(
     let config_parsed = json::parse(&config_json_str).unwrap();
     let mut disable_install_every_time = false;
     if !config_parsed["disable_install_every_time"].is_null() {
-        disable_install_every_time = &config_parsed["disable_install_every_time"];
+        let temp_value = &config_parsed["disable_install_every_time"];
+        disable_install_every_time = temp_value == true;
     }
 
     for file_info in packages {
@@ -603,28 +605,61 @@ pub fn install(
 
         if disable_install_every_time {
             if let Some(install_file_path) = find_cached_file(cache_dir, file) {
+                let status_obj = client::StatusObj {
+                    label: None,
+                    progress: None,
+                    complete: false,
+                    log_line: Some(format!("Checking install for {}", name)),
+                    error: None,
+                    prompt_items: None,
+                };
+                let status_str = serde_json::to_string(&status_obj).unwrap();
+                sender.send(status_str).unwrap();
+
                 info!(
                     "disable_install_every_time is enabled, checking for {}",
                     name
                 );
                 let hash_file_path = std::format!("{}.hash", name);
-                let mut should_store_hash = true;
+                let install_file_hash = generate_hash_from_file_path(&install_file_path)?;
 
-                if let Some(cached_hash_path) = find_cached_file(cache_dir, hash_file_path.as_str())
-                {
+                if let Some(cached_hash_path) = find_cached_file(&app_id, hash_file_path.as_str()) {
                     info!(
                         "{} has been found, checking hash against file",
                         hash_file_path
                     );
 
-                    // TODO: check against now generated hash of file that it's trying to extract
+                    let cached_hash_value = fs::read_to_string(cached_hash_path)?;
+                    info!(
+                        "cached hash is {}; install file hash is {}",
+                        cached_hash_value, install_file_hash
+                    );
+                    if cached_hash_value == install_file_hash {
+                        info!("hash for {} is same, skipping install", name);
 
-                    // TODO: if hash check succeeds, where it's the same, then log, send to godot status, and then continue
+                        let status_obj = client::StatusObj {
+                            label: None,
+                            progress: None,
+                            complete: false,
+                            log_line: Some(format!(
+                                "Skipping install for {}, as hash is the same",
+                                name
+                            )),
+                            error: None,
+                            prompt_items: None,
+                        };
+                        let status_str = serde_json::to_string(&status_obj).unwrap();
+                        sender.send(status_str).unwrap();
+
+                        continue;
+                    }
                 }
 
-                if should_store_hash {
-                    // TODO: store hash of file here
-                }
+                let hash_dest_path = place_cached_file(&app_id, &hash_file_path).unwrap();
+                let mut hash_dest_file = fs::File::create(&hash_dest_path)?;
+                hash_dest_file
+                    .write_all(install_file_hash.as_bytes())
+                    .unwrap();
             }
         }
 
