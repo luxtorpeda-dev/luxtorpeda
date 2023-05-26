@@ -40,7 +40,7 @@ jobs:
         name: luxtorpeda.tar.xz
         path: ./luxtorpeda.tar.xz
   deploy:
-    needs: [setup, build]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
     - name: Download Artifacts
