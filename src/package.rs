@@ -616,10 +616,7 @@ pub fn install(
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
 
-                info!(
-                    "hash_check_install is enabled, checking for {}",
-                    name
-                );
+                info!("hash_check_install is enabled, checking for {}", name);
                 let hash_file_path = std::format!("{}.hash", name);
                 let install_file_hash = generate_hash_from_file_path(&install_file_path)?;
 
