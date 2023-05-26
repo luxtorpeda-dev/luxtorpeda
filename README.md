@@ -147,6 +147,7 @@ For the UI, the Godot editor is required. It can be downloaded from https://godo
 
 * First make sure all pull requests have been merged that are wanted for the release. Then ```git pull``` on the master branch.
 * Make sure cargo-release is installed locally ```cargo install cargo-release```
+* Run ```cargo release version major``` to up the version, can also do minor, patch, etc. Run again if dry run successful: ```cargo release version major --execute```
 *
 
 ## Credits
