@@ -1,7 +1,5 @@
 # Luxtorpeda-dev
 
-moo remove later
-
 [![Luxtorpeda project Discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
 
 Steam Play compatibility tool to run games using native Linux engines
