@@ -9,7 +9,7 @@ use flate2::read::GzDecoder;
 use log::{error, info};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use sha1::{Digest, Sha1};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
@@ -152,9 +152,9 @@ pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
 }
 
 pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
-    let json_str = fs::read_to_string(file_path)?;
-    let mut hasher = Sha1::new();
-    hasher.update(json_str);
+    let mut file = fs::File::open(&file_path)?;
+    let mut hasher = Sha256::new();
+    io::copy(&mut file, &mut hasher)?;
     let hash_result = hasher.finalize();
     let hash_str = hex::encode(hash_result);
     Ok(hash_str)
@@ -176,7 +176,7 @@ pub fn update_packages_json() -> io::Result<()> {
 
     let remote_path = "packagessniper";
 
-    let remote_hash_url = std::format!("{0}/{1}.hash", &config_parsed["host_url"], remote_path);
+    let remote_hash_url = std::format!("{0}/{1}.hash256", &config_parsed["host_url"], remote_path);
     match get_remote_packages_hash(&remote_hash_url) {
         Some(tmp_hash_str) => {
             remote_hash_str = tmp_hash_str;
