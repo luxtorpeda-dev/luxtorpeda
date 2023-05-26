@@ -36,6 +36,7 @@ static LUX_ORIGINAL_EXE_FILE: &str = "LUX_ORIGINAL_EXE_FILE";
 static LUX_WRITE_LOGGING: &str = "LUX_WRITE_LOGGING";
 static LUX_STEAM_DECK: &str = "LUX_STEAM_DECK";
 static LUX_STEAM_DECK_GAMING_MODE: &str = "LUX_STEAM_DECK_GAMING_MODE";
+static LUX_STEAM_CLOUD: &str = "LUX_STEAM_CLOUD";
 
 pub fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
@@ -417,6 +418,18 @@ pub fn main() -> io::Result<()> {
             Err(err) => {
                 debug!("STEAM_OS_ENV env not found: {}", err);
             }
+        }
+    }
+
+    let config_json_file = user_env::tool_dir().join("config.json");
+    let config_json_str = fs::read_to_string(config_json_file)?;
+    let config_parsed = json::parse(&config_json_str).unwrap();
+
+    if !config_parsed["enable_steam_cloud"].is_null() {
+        let enable_steam_cloud = &config_parsed["enable_steam_cloud"];
+        if enable_steam_cloud == true {
+            info!("enable_steam_cloud");
+            env::set_var(LUX_STEAM_CLOUD, "1");
         }
     }
 
