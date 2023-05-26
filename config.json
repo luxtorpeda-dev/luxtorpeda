@@ -2,5 +2,6 @@
     "host_url": "https://luxtorpeda-dev.github.io",
     "should_do_update": true,
     "disable_default_confirm": false,
-    "enable_steam_cloud": false
+    "enable_steam_cloud": false,
+    "disable_install_every_time": false
 }

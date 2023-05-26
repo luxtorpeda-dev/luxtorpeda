@@ -573,6 +573,14 @@ pub fn install(
         setup_complete = is_setup_complete(&game_info["setup"]);
     }
 
+    let config_json_file = user_env::tool_dir().join("config.json");
+    let config_json_str = fs::read_to_string(config_json_file)?;
+    let config_parsed = json::parse(&config_json_str).unwrap();
+    let mut disable_install_every_time = false;
+    if !config_parsed["disable_install_every_time"].is_null() {
+        disable_install_every_time = &config_parsed["disable_install_every_time"];
+    }
+
     for file_info in packages {
         let file = file_info["file"]
             .as_str()
@@ -591,6 +599,33 @@ pub fn install(
             && game_info["download_config"][&name.to_string()]["setup"] == true
         {
             continue;
+        }
+
+        if disable_install_every_time {
+            if let Some(install_file_path) = find_cached_file(cache_dir, file) {
+                info!(
+                    "disable_install_every_time is enabled, checking for {}",
+                    name
+                );
+                let hash_file_path = std::format!("{}.hash", name);
+                let mut should_store_hash = true;
+
+                if let Some(cached_hash_path) = find_cached_file(cache_dir, hash_file_path.as_str())
+                {
+                    info!(
+                        "{} has been found, checking hash against file",
+                        hash_file_path
+                    );
+
+                    // TODO: check against now generated hash of file that it's trying to extract
+
+                    // TODO: if hash check succeeds, where it's the same, then log, send to godot status, and then continue
+                }
+
+                if should_store_hash {
+                    // TODO: store hash of file here
+                }
+            }
         }
 
         match find_cached_file(cache_dir, file) {
