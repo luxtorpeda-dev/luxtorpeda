@@ -34,3 +34,7 @@ log = "0.4.17"
 simplelog = "0.12.0"
 gdnative = "0.11"
 godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }
+
+[workspace.metadata.release]
+
+publish = false

@@ -2,26 +2,15 @@ name: Build Luxtorpeda
 
 on:
   push:
-    branches: [ master ]
-    paths:
-      - 'src/**'
-      - 'Cargo*'
-      - 'Makefile'
-      - 'compatibilitytool.template'
-      - 'toolmanifest.vdf'
-      - 'addons/**'
-      - 'Resources/**'
-      - 'Scenes/**'
-      - 'project.godot'
-      - 'config.json'
-
+    tags:
+        - 'v*'
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
       build_number: ${{ steps.buildnumber.outputs.build_number }}
     steps:
-    - name: Generate build number
+    - name: Generate build number (remove this!!)
       id: buildnumber
       uses: luxtorpeda-dev/build-number@v5
       with:
