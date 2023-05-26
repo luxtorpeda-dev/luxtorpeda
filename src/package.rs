@@ -9,11 +9,12 @@ use flate2::read::GzDecoder;
 use log::{error, info};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use sha1::{Digest, Sha1};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::io;
+use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use tar::Archive;
@@ -152,9 +153,9 @@ pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
 }
 
 pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
-    let json_str = fs::read_to_string(file_path)?;
-    let mut hasher = Sha1::new();
-    hasher.update(json_str);
+    let mut file = fs::File::open(file_path)?;
+    let mut hasher = Sha256::new();
+    io::copy(&mut file, &mut hasher)?;
     let hash_result = hasher.finalize();
     let hash_str = hex::encode(hash_result);
     Ok(hash_str)
@@ -176,7 +177,7 @@ pub fn update_packages_json() -> io::Result<()> {
 
     let remote_path = "packagessniper";
 
-    let remote_hash_url = std::format!("{0}/{1}.hash", &config_parsed["host_url"], remote_path);
+    let remote_hash_url = std::format!("{0}/{1}.hash256", &config_parsed["host_url"], remote_path);
     match get_remote_packages_hash(&remote_hash_url) {
         Some(tmp_hash_str) => {
             remote_hash_str = tmp_hash_str;
@@ -573,6 +574,15 @@ pub fn install(
         setup_complete = is_setup_complete(&game_info["setup"]);
     }
 
+    let config_json_file = user_env::tool_dir().join("config.json");
+    let config_json_str = fs::read_to_string(config_json_file)?;
+    let config_parsed = json::parse(&config_json_str).unwrap();
+    let mut hash_check_install = false;
+    if !config_parsed["hash_check_install"].is_null() {
+        let temp_value = &config_parsed["hash_check_install"];
+        hash_check_install = temp_value == true;
+    }
+
     for file_info in packages {
         let file = file_info["file"]
             .as_str()
@@ -591,6 +601,63 @@ pub fn install(
             && game_info["download_config"][&name.to_string()]["setup"] == true
         {
             continue;
+        }
+
+        if hash_check_install {
+            if let Some(install_file_path) = find_cached_file(cache_dir, file) {
+                let status_obj = client::StatusObj {
+                    label: None,
+                    progress: None,
+                    complete: false,
+                    log_line: Some(format!("Checking install for {}", name)),
+                    error: None,
+                    prompt_items: None,
+                };
+                let status_str = serde_json::to_string(&status_obj).unwrap();
+                sender.send(status_str).unwrap();
+
+                info!("hash_check_install is enabled, checking for {}", name);
+                let hash_file_path = std::format!("{}.hash", name);
+                let install_file_hash = generate_hash_from_file_path(&install_file_path)?;
+
+                if let Some(cached_hash_path) = find_cached_file(&app_id, hash_file_path.as_str()) {
+                    info!(
+                        "{} has been found, checking hash against file",
+                        hash_file_path
+                    );
+
+                    let cached_hash_value = fs::read_to_string(cached_hash_path)?;
+                    info!(
+                        "cached hash is {}; install file hash is {}",
+                        cached_hash_value, install_file_hash
+                    );
+                    if cached_hash_value == install_file_hash {
+                        info!("hash for {} is same, skipping install", name);
+
+                        let status_obj = client::StatusObj {
+                            label: None,
+                            progress: None,
+                            complete: false,
+                            log_line: Some(format!(
+                                "Skipping install for {}, as hash is the same",
+                                name
+                            )),
+                            error: None,
+                            prompt_items: None,
+                        };
+                        let status_str = serde_json::to_string(&status_obj).unwrap();
+                        sender.send(status_str).unwrap();
+
+                        continue;
+                    }
+                }
+
+                let hash_dest_path = place_cached_file(&app_id, &hash_file_path).unwrap();
+                let mut hash_dest_file = fs::File::create(&hash_dest_path)?;
+                hash_dest_file
+                    .write_all(install_file_hash.as_bytes())
+                    .unwrap();
+            }
         }
 
         match find_cached_file(cache_dir, file) {

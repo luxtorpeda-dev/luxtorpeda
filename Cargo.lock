@@ -959,7 +959,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_regex",
- "sha-1",
+ "sha2",
  "signal-hook",
  "simplelog",
  "steamlocate",
@@ -1468,17 +1468,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "sha-1"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5058ada175748e33390e40e872bd0fe59a19f265d0158daa551c5a88a76009c"
-dependencies = [
- "cfg-if",
- "cpufeatures",
- "digest",
 ]
 
 [[package]]
