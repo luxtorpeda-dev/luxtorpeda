@@ -36,5 +36,5 @@ gdnative = "0.11"
 godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }
 
 [workspace.metadata.release]
-
+allow-branch = ["master"]
 publish = false
