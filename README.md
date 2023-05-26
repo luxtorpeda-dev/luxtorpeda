@@ -76,7 +76,7 @@ A configuration json file named `config.json` will be located in the luxtorpeda 
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.
 - disable_default_confirm - Disables default engine confirmation dialog. Defaults to false. This can be done globally in the config.json by setting ```disable_default_confirm``` to true, or setting ```LUX_DISABLE_DEFAULT_CONFIRM=1 %command%``` in the launch options of a particular game. Setting ```LUX_DISABLE_DEFAULT_CONFIRM=0 %command%``` will enable the confirmation if the config variable is set to disabled for that particular game.
 - enable_steam_cloud - If this parameter is set to true, each engine & game with steam cloud support will enable it. This defaults to false. This can also be done by setting ```LUX_STEAM_CLOUD=1 %command%``` in the launch options of a particular game.
-- disable_install_every_time - If this parameter is set to true, hash checking will be enabled for each file the engine needs to run, so that if a file has already been extracted/installed, it won't do it again until there is an update to one of the engine files. This is defaulted to false.
+- hash_check_install - If this parameter is set to true, hash checking will be enabled for each file the engine needs to run, so that if a file has already been extracted/installed, it won't do it again until there is an update to one of the engine files. This is defaulted to false.
 
 Logs will be written to file if ```LUX_WRITE_LOGGING=1``` is set. The log file will be located at ```~/.local/state/luxtorpeda/luxtorpeda.log```.
 

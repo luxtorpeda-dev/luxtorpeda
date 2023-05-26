@@ -3,5 +3,5 @@
     "should_do_update": true,
     "disable_default_confirm": false,
     "enable_steam_cloud": false,
-    "disable_install_every_time": false
+    "hash_check_install": false
 }

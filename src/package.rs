@@ -577,10 +577,10 @@ pub fn install(
     let config_json_file = user_env::tool_dir().join("config.json");
     let config_json_str = fs::read_to_string(config_json_file)?;
     let config_parsed = json::parse(&config_json_str).unwrap();
-    let mut disable_install_every_time = false;
-    if !config_parsed["disable_install_every_time"].is_null() {
-        let temp_value = &config_parsed["disable_install_every_time"];
-        disable_install_every_time = temp_value == true;
+    let mut hash_check_install = false;
+    if !config_parsed["hash_check_install"].is_null() {
+        let temp_value = &config_parsed["hash_check_install"];
+        hash_check_install = temp_value == true;
     }
 
     for file_info in packages {
@@ -603,7 +603,7 @@ pub fn install(
             continue;
         }
 
-        if disable_install_every_time {
+        if hash_check_install {
             if let Some(install_file_path) = find_cached_file(cache_dir, file) {
                 let status_obj = client::StatusObj {
                     label: None,
@@ -617,7 +617,7 @@ pub fn install(
                 sender.send(status_str).unwrap();
 
                 info!(
-                    "disable_install_every_time is enabled, checking for {}",
+                    "hash_check_install is enabled, checking for {}",
                     name
                 );
                 let hash_file_path = std::format!("{}.hash", name);
