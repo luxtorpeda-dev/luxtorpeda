@@ -68,14 +68,6 @@ Arch
 4. In game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda&nbsp;(dev)".
 
-## Development on Steam Deck
-
-* Open desktop mode and download the luxtorpeda repo to a directory on the deck.
-* Install flatpak org.freedesktop.Sdk/21.08 (should have glibc 2.33, as of current steam deck glibc version).
-* Run the following: ```flatpak run --command=bash -d --filesystem=home --share=network org.freedesktop.Sdk//21.08```
-* Install rustup: ```curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh```
-* Go into the luxtorpeda directory and run ```cargo build```. Then copy ```target/debug/libluxtorpeda.so``` into the correct directory. The Godot project should be exportable using the engine on Steam and then copied into the correct directory.
-
 ## Configuration
 
 A configuration json file named `config.json` will be located in the luxtorpeda directory. It has the following parameters:
@@ -142,6 +134,23 @@ You can use `cargo` as with any Rust project; `make` serves only as a convenient
 frontend for packaging and triggering longer `cargo` commands.
 
 For the UI, the Godot editor is required. It can be downloaded from https://godotengine.org/download
+
+## Development on Steam Deck
+
+* Open desktop mode and download the luxtorpeda repo to a directory on the deck.
+* Install flatpak org.freedesktop.Sdk/21.08 (should have glibc 2.33, as of current steam deck glibc version).
+* Run the following: ```flatpak run --command=bash -d --filesystem=home --share=network org.freedesktop.Sdk//21.08```
+* Install rustup: ```curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh```
+* Go into the luxtorpeda directory and run ```cargo build```. Then copy ```target/debug/libluxtorpeda.so``` into the correct directory. The Godot project should be exportable using the engine on Steam and then copied into the correct directory.
+
+## Releasing a New Version
+
+* First make sure all pull requests have been merged that are wanted for the release. Then ```git pull``` on the master branch.
+* Make sure cargo-release is installed locally ```cargo install cargo-release`` (https://github.com/crate-ci/cargo-release)
+* Run ```cargo release version major``` to do a dry run of the version update. Can also use minor, patch, etc
+* Run again if dry run successful: ```cargo release version major --execute```. Make sure to commit & push to git if needed.
+* Run ```cargo release``` to do a dry run of the release.
+* Run ```cargo release --execute``` if dry run successful. This step will push the git tags.
 
 ## Credits
 
