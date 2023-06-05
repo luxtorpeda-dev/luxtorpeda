@@ -464,32 +464,28 @@ fn unpack_tarball(
             io::copy(&mut file, &mut outfile).unwrap();
         }
     } else if decode_as_7z {
-        sevenz_rust::decompress_with_extract_fn(
-            file,
-            extract_location,
-            |entry, reader, dest| {
-                if entry.is_directory() {
-                    return Ok(true);
-                }
+        sevenz_rust::decompress_with_extract_fn(file, extract_location, |entry, reader, dest| {
+            if entry.is_directory() {
+                return Ok(true);
+            }
 
-                let mut new_path = PathBuf::from(dest);
+            let mut new_path = PathBuf::from(dest);
 
-                if !strip_prefix.is_empty() {
-                    new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
-                }
+            if !strip_prefix.is_empty() {
+                new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+            }
 
-                info!("install: {:?}", &new_path);
+            info!("install: {:?}", &new_path);
 
-                if new_path.parent().is_some() {
-                    fs::create_dir_all(new_path.parent().unwrap())?;
-                }
+            if new_path.parent().is_some() {
+                fs::create_dir_all(new_path.parent().unwrap())?;
+            }
 
-                let _ = fs::remove_file(&new_path);
-                let mut outfile = fs::File::create(&new_path).unwrap();
-                io::copy(reader, &mut outfile).unwrap();
-                Ok(true)
-            },
-        )
+            let _ = fs::remove_file(&new_path);
+            let mut outfile = fs::File::create(&new_path).unwrap();
+            io::copy(reader, &mut outfile).unwrap();
+            Ok(true)
+        })
         .expect("complete");
     } else {
         let decoder: Box<dyn std::io::Read>;
