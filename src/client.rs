@@ -485,15 +485,30 @@ impl LuxClient {
 
         let mut dialog_message = String::new();
 
-        if !game_info["information"].is_null() && game_info["information"]["non_free"] == true {
-            dialog_message = std::format!(
-                "This engine uses a non-free engine ({0}). Are you sure you want to continue?",
-                game_info["information"]["license"]
-            );
-        } else if !game_info["information"].is_null()
-            && game_info["information"]["closed_source"] == true
-        {
-            dialog_message = "This engine uses assets from the closed source release. Are you sure you want to continue?".to_string();
+        let mut engine_name = game_info["name"].to_string();
+        if !game_info["engine_name"].is_null() {
+            engine_name = game_info["engine_name"].to_string();
+        }
+
+        let engines_option = package::get_engines_info();
+        let engine_name_clone = engine_name.clone();
+        let engine_name_clone2 = engine_name.clone();
+        if let Some((ref engines, ref _notice_map)) = engines_option {
+            if !engines[engine_name_clone].is_null() {
+                for entry in engines[engine_name]["notices"].members() {
+                    let engine_name_clone3 = engine_name_clone2.clone();
+                    if !entry["key"].is_null() {
+                        if entry["key"] == "non_free" {
+                            dialog_message = std::format!(
+                            "This engine uses a non-free engine ({0}). Are you sure you want to continue?",
+                            engines[engine_name_clone3]["license"]
+                        );
+                        } else if entry["key"] == "closed_source" {
+                            dialog_message = "This engine uses assets from the closed source release. Are you sure you want to continue?".to_string();
+                        }
+                    }
+                }
+            }
         }
 
         self.last_downloads = Some(downloads);
