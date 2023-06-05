@@ -405,7 +405,7 @@ fn unpack_tarball(
     let file_extension = Path::new(&tarball)
         .extension()
         .and_then(OsStr::to_str)
-        .unwrap();
+        .unwrap_or("");
 
     if !&game_info["download_config"].is_null()
         && !&game_info["download_config"][&name.to_string()].is_null()
@@ -466,7 +466,7 @@ fn unpack_tarball(
     } else if decode_as_7z {
         sevenz_rust::decompress_with_extract_fn(
             file,
-            extract_location.clone(),
+            extract_location,
             |entry, reader, dest| {
                 if entry.is_directory() {
                     return Ok(true);
@@ -498,8 +498,11 @@ fn unpack_tarball(
             decoder = Box::new(BzDecoder::new(file));
         } else if file_extension == "gz" {
             decoder = Box::new(GzDecoder::new(file));
-        } else {
+        } else if file_extension == "xz" {
             decoder = Box::new(XzDecoder::new(file));
+        } else {
+            info!("detected copy since file_extension not matching known");
+            return copy_only(tarball, sender);
         }
 
         let mut archive = Archive::new(decoder);
@@ -694,21 +697,12 @@ pub fn install(
 
         match find_cached_file(cache_dir, file) {
             Some(path) => {
-                if file_info["copy_only"] == true
-                    || (!&game_info["download_config"].is_null()
-                        && !&game_info["download_config"][&name.to_string()].is_null()
-                        && !&game_info["download_config"][&name.to_string()]["copy_only"].is_null()
-                        && game_info["download_config"][&name.to_string()]["copy_only"] == true)
-                {
-                    copy_only(&path, sender)?;
-                } else {
-                    match unpack_tarball(&path, game_info, &name, sender) {
-                        Ok(()) => {}
-                        Err(err) => {
-                            return Err(err);
-                        }
-                    };
-                }
+                match unpack_tarball(&path, game_info, &name, sender) {
+                    Ok(()) => {}
+                    Err(err) => {
+                        return Err(err);
+                    }
+                };
             }
             None => {
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
