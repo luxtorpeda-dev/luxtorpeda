@@ -400,6 +400,7 @@ fn unpack_tarball(
     let mut extract_location: String = String::new();
     let mut strip_prefix: String = String::new();
     let mut decode_as_zip = false;
+    let mut decode_as_7z = false;
 
     let file_extension = Path::new(&tarball)
         .extension()
@@ -426,6 +427,9 @@ fn unpack_tarball(
     if file_extension == "zip" || file_extension == "bin" {
         decode_as_zip = true;
         info!("install changing decoder to zip");
+    } else if file_extension == "7z" {
+        decode_as_7z = true;
+        info!("install changing decoder to 7z");
     }
 
     let file = fs::File::open(tarball)?;
@@ -459,6 +463,34 @@ fn unpack_tarball(
             let mut outfile = fs::File::create(&new_path).unwrap();
             io::copy(&mut file, &mut outfile).unwrap();
         }
+    } else if decode_as_7z {
+        sevenz_rust::decompress_with_extract_fn(
+            file,
+            extract_location.clone(),
+            |entry, reader, dest| {
+                if entry.is_directory() {
+                    return Ok(true);
+                }
+
+                let mut new_path = PathBuf::from(dest);
+
+                if !strip_prefix.is_empty() {
+                    new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+                }
+
+                info!("install: {:?}", &new_path);
+
+                if new_path.parent().is_some() {
+                    fs::create_dir_all(new_path.parent().unwrap())?;
+                }
+
+                let _ = fs::remove_file(&new_path);
+                let mut outfile = fs::File::create(&new_path).unwrap();
+                io::copy(reader, &mut outfile).unwrap();
+                Ok(true)
+            },
+        )
+        .expect("complete");
     } else {
         let decoder: Box<dyn std::io::Read>;
 
