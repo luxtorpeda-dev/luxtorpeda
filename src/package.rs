@@ -81,7 +81,7 @@ pub fn path_to_packages_file() -> PathBuf {
     let config_home = xdg_dirs.get_cache_home();
     let folder_path = config_home.join("luxtorpeda");
     create_dir_or_show_error(&folder_path);
-    folder_path.join("packagessniper.json")
+    folder_path.join("packagessniper_v2.json")
 }
 
 pub fn path_to_config() -> PathBuf {
@@ -175,7 +175,7 @@ pub fn update_packages_json() -> io::Result<()> {
     let mut should_download = true;
     let mut remote_hash_str: String = String::new();
 
-    let remote_path = "packagessniper";
+    let remote_path = "packagessniper_v2";
 
     let remote_hash_url = std::format!("{0}/{1}.hash256", &config_parsed["host_url"], remote_path);
     match get_remote_packages_hash(&remote_hash_url) {
@@ -401,6 +401,11 @@ fn unpack_tarball(
     let mut strip_prefix: String = String::new();
     let mut decode_as_zip = false;
 
+    let file_extension = Path::new(&tarball)
+        .extension()
+        .and_then(OsStr::to_str)
+        .unwrap();
+
     if !&game_info["download_config"].is_null()
         && !&game_info["download_config"][&name.to_string()].is_null()
     {
@@ -416,12 +421,11 @@ fn unpack_tarball(
             strip_prefix = file_download_config["strip_prefix"].to_string();
             info!("install changing prefix with config {}", strip_prefix);
         }
-        if !file_download_config["decode_as_zip"].is_null()
-            && file_download_config["decode_as_zip"] == true
-        {
-            decode_as_zip = true;
-            info!("install changing decoder to zip");
-        }
+    }
+
+    if file_extension == "zip" || file_extension == "bin" {
+        decode_as_zip = true;
+        info!("install changing decoder to zip");
     }
 
     let file = fs::File::open(tarball)?;
@@ -456,10 +460,6 @@ fn unpack_tarball(
             io::copy(&mut file, &mut outfile).unwrap();
         }
     } else {
-        let file_extension = Path::new(&tarball)
-            .extension()
-            .and_then(OsStr::to_str)
-            .unwrap();
         let decoder: Box<dyn std::io::Read>;
 
         if file_extension == "bz2" {
