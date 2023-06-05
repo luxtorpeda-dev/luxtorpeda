@@ -478,10 +478,6 @@ fn unpack_tarball(
                     new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
                 }
 
-                if !extract_location.is_empty() {
-                    new_path = Path::new(&extract_location).join(new_path);
-                }
-
                 info!("install: {:?}", &new_path);
 
                 if new_path.parent().is_some() {
