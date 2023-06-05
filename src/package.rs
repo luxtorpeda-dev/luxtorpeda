@@ -405,7 +405,7 @@ fn unpack_tarball(
     let file_extension = Path::new(&tarball)
         .extension()
         .and_then(OsStr::to_str)
-        .unwrap();
+        .unwrap_or("");
 
     if !&game_info["download_config"].is_null()
         && !&game_info["download_config"][&name.to_string()].is_null()
@@ -464,32 +464,28 @@ fn unpack_tarball(
             io::copy(&mut file, &mut outfile).unwrap();
         }
     } else if decode_as_7z {
-        sevenz_rust::decompress_with_extract_fn(
-            file,
-            extract_location.clone(),
-            |entry, reader, dest| {
-                if entry.is_directory() {
-                    return Ok(true);
-                }
+        sevenz_rust::decompress_with_extract_fn(file, extract_location, |entry, reader, dest| {
+            if entry.is_directory() {
+                return Ok(true);
+            }
 
-                let mut new_path = PathBuf::from(dest);
+            let mut new_path = PathBuf::from(dest);
 
-                if !strip_prefix.is_empty() {
-                    new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
-                }
+            if !strip_prefix.is_empty() {
+                new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+            }
 
-                info!("install: {:?}", &new_path);
+            info!("install: {:?}", &new_path);
 
-                if new_path.parent().is_some() {
-                    fs::create_dir_all(new_path.parent().unwrap())?;
-                }
+            if new_path.parent().is_some() {
+                fs::create_dir_all(new_path.parent().unwrap())?;
+            }
 
-                let _ = fs::remove_file(&new_path);
-                let mut outfile = fs::File::create(&new_path).unwrap();
-                io::copy(reader, &mut outfile).unwrap();
-                Ok(true)
-            },
-        )
+            let _ = fs::remove_file(&new_path);
+            let mut outfile = fs::File::create(&new_path).unwrap();
+            io::copy(reader, &mut outfile).unwrap();
+            Ok(true)
+        })
         .expect("complete");
     } else {
         let decoder: Box<dyn std::io::Read>;
@@ -498,8 +494,11 @@ fn unpack_tarball(
             decoder = Box::new(BzDecoder::new(file));
         } else if file_extension == "gz" {
             decoder = Box::new(GzDecoder::new(file));
-        } else {
+        } else if file_extension == "xz" {
             decoder = Box::new(XzDecoder::new(file));
+        } else {
+            info!("detected copy since file_extension not matching known");
+            return copy_only(tarball, sender);
         }
 
         let mut archive = Archive::new(decoder);
@@ -694,21 +693,12 @@ pub fn install(
 
         match find_cached_file(cache_dir, file) {
             Some(path) => {
-                if file_info["copy_only"] == true
-                    || (!&game_info["download_config"].is_null()
-                        && !&game_info["download_config"][&name.to_string()].is_null()
-                        && !&game_info["download_config"][&name.to_string()]["copy_only"].is_null()
-                        && game_info["download_config"][&name.to_string()]["copy_only"] == true)
-                {
-                    copy_only(&path, sender)?;
-                } else {
-                    match unpack_tarball(&path, game_info, &name, sender) {
-                        Ok(()) => {}
-                        Err(err) => {
-                            return Err(err);
-                        }
-                    };
-                }
+                match unpack_tarball(&path, game_info, &name, sender) {
+                    Ok(()) => {}
+                    Err(err) => {
+                        return Err(err);
+                    }
+                };
             }
             None => {
                 return Err(Error::new(ErrorKind::Other, "package file not found"));
