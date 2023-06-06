@@ -13,6 +13,7 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::client;
+use crate::config;
 use crate::package;
 use crate::package::place_state_file;
 use crate::user_env;
@@ -421,16 +422,10 @@ pub fn main() -> io::Result<()> {
         }
     }
 
-    let config_json_file = user_env::tool_dir().join("config.json");
-    let config_json_str = fs::read_to_string(config_json_file)?;
-    let config_parsed = json::parse(&config_json_str).unwrap();
-
-    if !config_parsed["enable_steam_cloud"].is_null() {
-        let enable_steam_cloud = &config_parsed["enable_steam_cloud"];
-        if enable_steam_cloud == true {
-            info!("enable_steam_cloud");
-            env::set_var(LUX_STEAM_CLOUD, "1");
-        }
+    let config = config::Config::from_config_file();
+    if config.enable_steam_cloud {
+        info!("enable_steam_cloud");
+        env::set_var(LUX_STEAM_CLOUD, "1");
     }
 
     Ok(())

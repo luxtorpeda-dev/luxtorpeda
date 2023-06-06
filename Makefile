@@ -17,7 +17,6 @@ files = compatibilitytool.vdf \
 	luxtorpeda.pck \
 	luxtorpeda.sh \
 	luxtorpeda.x86_64 \
-	config.json \
 	LICENSE \
 	README.md
 
@@ -81,7 +80,6 @@ $(tool_dir): \
 		release \
 		target/release/compatibilitytool.vdf \
 		target/release/toolmanifest.vdf \
-		target/release/config.json \
 		target/release/luxtorpeda.sh \
 		target/release/LICENSE \
 		target/release/README.md
@@ -104,7 +102,6 @@ user-install: \
 		build \
 		target/debug/compatibilitytool.vdf \
 		target/debug/toolmanifest.vdf \
-		target/debug/config.json \
 		target/debug/luxtorpeda.sh \
 		target/debug/LICENSE \
 		target/debug/README.md
