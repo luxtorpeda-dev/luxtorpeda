@@ -75,7 +75,7 @@ Arch
 
 ## Configuration
 
-A configuration json file named `config.json` will be located in the luxtorpeda directory. It has the following parameters:
+A configuration json file named `config.json` will be located in the `~/.config/luxtorpeda/config.json` if the application has been run at least once. The defaults can be seen at https://github.com/luxtorpeda-dev/luxtorpeda/blob/master/src/config.rs. It has the following parameters:
 
 - host_url - This is used to determine where the packages.json file is located remotely, for use in automatic updates of this file.
 - should_do_update - If this parameter is set to true, then the packages.json file will be updated automatically.

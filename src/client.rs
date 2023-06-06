@@ -16,6 +16,7 @@ use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
 use crate::command;
+use crate::config;
 use crate::package;
 use crate::package::ChoiceInfo;
 use crate::user_env;
@@ -339,17 +340,11 @@ impl LuxClient {
                 );
 
                 let mut should_show_confirm = true;
+                let config = config::Config::from_config_file();
 
-                let config_json_file = user_env::tool_dir().join("config.json");
-                let config_json_str = fs::read_to_string(config_json_file)?;
-                let config_parsed = json::parse(&config_json_str).unwrap();
-
-                if !config_parsed["disable_default_confirm"].is_null() {
-                    let disable_default_confirm = &config_parsed["disable_default_confirm"];
-                    if disable_default_confirm == true {
-                        info!("show choice. disabling default confirm because of config");
-                        should_show_confirm = false;
-                    }
+                if config.disable_default_confirm {
+                    info!("show choice. disabling default confirm because of config");
+                    should_show_confirm = false;
                 }
 
                 match env::var(package::LUX_DISABLE_DEFAULT_CONFIRM) {

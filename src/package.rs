@@ -21,6 +21,7 @@ use tar::Archive;
 use xz2::read::XzDecoder;
 
 use crate::client;
+use crate::config;
 use crate::user_env;
 
 extern crate steamlocate;
@@ -162,12 +163,8 @@ pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
 }
 
 pub fn update_packages_json() -> io::Result<()> {
-    let config_json_file = user_env::tool_dir().join("config.json");
-    let config_json_str = fs::read_to_string(config_json_file)?;
-    let config_parsed = json::parse(&config_json_str).unwrap();
-
-    let should_do_update = &config_parsed["should_do_update"];
-    if should_do_update != true {
+    let config = config::Config::from_config_file();
+    if !config.should_do_update {
         return Ok(());
     }
 
@@ -177,7 +174,7 @@ pub fn update_packages_json() -> io::Result<()> {
 
     let remote_path = "packagessniper_v2";
 
-    let remote_hash_url = std::format!("{0}/{1}.hash256", &config_parsed["host_url"], remote_path);
+    let remote_hash_url = std::format!("{0}/{1}.hash256", config.host_url, remote_path);
     match get_remote_packages_hash(&remote_hash_url) {
         Some(tmp_hash_str) => {
             remote_hash_str = tmp_hash_str;
@@ -215,8 +212,7 @@ pub fn update_packages_json() -> io::Result<()> {
     if should_download {
         info!("update_packages_json. downloading new {}.json", remote_path);
 
-        let remote_packages_url =
-            std::format!("{0}/{1}.json", &config_parsed["host_url"], remote_path);
+        let remote_packages_url = std::format!("{0}/{1}.json", config.host_url, remote_path);
         let mut download_complete = false;
         let local_packages_temp_path =
             path_to_packages_file().with_file_name(std::format!("{}-temp.json", remote_path));
@@ -605,14 +601,8 @@ pub fn install(
         setup_complete = is_setup_complete(&game_info["setup"]);
     }
 
-    let config_json_file = user_env::tool_dir().join("config.json");
-    let config_json_str = fs::read_to_string(config_json_file)?;
-    let config_parsed = json::parse(&config_json_str).unwrap();
-    let mut hash_check_install = false;
-    if !config_parsed["hash_check_install"].is_null() {
-        let temp_value = &config_parsed["hash_check_install"];
-        hash_check_install = temp_value == true;
-    }
+    let config = config::Config::from_config_file();
+    let hash_check_install = config.hash_check_install;
 
     for file_info in packages {
         let file = file_info["file"]

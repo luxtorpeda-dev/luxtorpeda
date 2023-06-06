@@ -4,6 +4,7 @@ use log::Level;
 
 mod client;
 mod command;
+mod config;
 mod package;
 mod user_env;
 
