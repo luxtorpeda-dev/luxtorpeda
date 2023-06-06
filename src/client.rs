@@ -205,6 +205,7 @@ impl LuxClient {
         }
     }
 
+    // TODO: convert to struct
     fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<()> {
         let game_info = match package::get_game_info(app_id) {
             Ok(game_info) => game_info,
@@ -401,6 +402,7 @@ impl LuxClient {
         user_env::set_controller_var(&data_str);
     }
 
+    // TODO: game_info should be struct
     #[method]
     fn choice_picked(&mut self, #[base] owner: &Node, data: Variant) {
         let app_id = user_env::steam_app_id();
@@ -796,6 +798,7 @@ impl LuxClient {
                     }
                 };
 
+            // TODO: struct
             if !game_info["setup"].is_null()
                 && !after_setup_question_mode
                 && !package::is_setup_complete(&game_info["setup"])

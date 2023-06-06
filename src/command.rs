@@ -51,6 +51,7 @@ fn json_to_args(args: &json::JsonValue) -> Vec<String> {
         .collect()
 }
 
+// TODO: struct
 fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, Vec<String>)> {
     let orig_cmd = args.join(" ");
 
@@ -77,6 +78,7 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
     None
 }
 
+// TODO: struct
 pub fn process_setup_details(
     game_info: &json::JsonValue,
 ) -> io::Result<Vec<client::PromptRequestData>> {
@@ -120,6 +122,7 @@ pub fn process_setup_details(
     Ok(setup_items)
 }
 
+// TODO: struct
 pub fn run_setup(
     game_info: &json::JsonValue,
     sender: &std::sync::mpsc::Sender<String>,
@@ -150,6 +153,7 @@ pub fn run_setup(
     Ok(())
 }
 
+// TODO: struct
 pub fn run(
     args: &[&str],
     engine_choice: String,

@@ -1,5 +1,3 @@
-#![allow(clippy::or_fun_call)]
-
 extern crate reqwest;
 extern crate tar;
 extern crate xz2;
@@ -7,7 +5,6 @@ extern crate xz2;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use log::{error, info};
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -103,20 +100,6 @@ pub fn place_state_file(file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}", file);
     xdg_dirs.place_state_file(path_str)
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct CmdReplacement {
-    #[serde(with = "serde_regex")]
-    pub match_cmd: Regex,
-    pub cmd: String,
-    pub args: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct PackageMetadata {
-    engine_version: String,
-    commands: Vec<CmdReplacement>,
 }
 
 #[derive(Clone)]
@@ -243,6 +226,7 @@ pub fn update_packages_json() -> io::Result<()> {
     Ok(())
 }
 
+// TODO: convert to struct
 pub fn convert_notice_to_str(
     notice_item: &json::JsonValue,
     notice_map: &json::JsonValue,
@@ -270,6 +254,7 @@ pub fn convert_notice_to_str(
     notice
 }
 
+// TODO: convert gameinfo and choice_data to struct
 pub fn convert_game_info_with_choice(
     choice_name: String,
     game_info: &mut json::JsonValue,
@@ -324,6 +309,7 @@ pub fn convert_game_info_with_choice(
     Ok(())
 }
 
+// TODO: convert gameinfo to struct (and download)
 pub fn json_to_downloads(
     app_id: &str,
     game_info: &json::JsonValue,
@@ -361,6 +347,7 @@ pub fn json_to_downloads(
     Ok(downloads)
 }
 
+// TODO: convert to struct
 fn unpack_tarball(
     tarball: &Path,
     game_info: &json::JsonValue,
@@ -564,6 +551,7 @@ pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
     setup_complete
 }
 
+// TODO: convert to struct
 pub fn install(
     game_info: &json::JsonValue,
     sender: &std::sync::mpsc::Sender<String>,
@@ -674,6 +662,7 @@ pub fn install(
     Ok(())
 }
 
+// TODO: convert to struct
 pub fn get_game_info(app_id: &str) -> io::Result<json::JsonValue> {
     let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
@@ -750,6 +739,7 @@ pub fn get_game_info(app_id: &str) -> io::Result<json::JsonValue> {
     }
 }
 
+// TODO: convert to struct
 pub fn get_engines_info() -> Option<(json::JsonValue, json::JsonValue)> {
     let packages_json_file = path_to_packages_file();
     let json_str = match fs::read_to_string(packages_json_file) {
@@ -774,6 +764,7 @@ pub fn get_engines_info() -> Option<(json::JsonValue, json::JsonValue)> {
     }
 }
 
+// TODO: should receive a vec of strings instead (deps should be getting from a struct)
 pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
     match SteamDir::locate() {
         Some(mut steamdir) => {
