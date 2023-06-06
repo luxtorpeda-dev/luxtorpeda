@@ -374,12 +374,8 @@ fn unpack_tarball(
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
     let status_obj = client::StatusObj {
-        label: None,
-        progress: None,
-        complete: false,
         log_line: Some(format!("Unpacking {}", package_name)),
-        error: None,
-        prompt_items: None,
+        ..Default::default()
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -525,12 +521,8 @@ fn unpack_tarball(
     }
 
     let status_obj = client::StatusObj {
-        label: None,
-        progress: None,
-        complete: false,
         log_line: Some(format!("Unpacking complete for {}", package_name)),
-        error: None,
-        prompt_items: None,
+        ..Default::default()
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -545,12 +537,9 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
         .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
 
     let status_obj = client::StatusObj {
-        label: None,
         progress: Some(0),
-        complete: false,
         log_line: Some(format!("Copying {}", package_name)),
-        error: None,
-        prompt_items: None,
+        ..Default::default()
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -559,12 +548,10 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
     fs::copy(path, package_name)?;
 
     let status_obj_complete = client::StatusObj {
-        label: None,
         progress: Some(0),
-        complete: false,
+
         log_line: Some(format!("Copying complete for {}", package_name)),
-        error: None,
-        prompt_items: None,
+        ..Default::default()
     };
     let status_str_complete = serde_json::to_string(&status_obj_complete).unwrap();
     sender.send(status_str_complete).unwrap();
@@ -588,10 +575,7 @@ pub fn install(
     let status_obj = client::StatusObj {
         label: Some("Installing".to_string()),
         progress: Some(0),
-        complete: false,
-        log_line: None,
-        error: None,
-        prompt_items: None,
+        ..Default::default()
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -627,12 +611,8 @@ pub fn install(
         if hash_check_install {
             if let Some(install_file_path) = find_cached_file(cache_dir, file) {
                 let status_obj = client::StatusObj {
-                    label: None,
-                    progress: None,
-                    complete: false,
                     log_line: Some(format!("Checking install for {}", name)),
-                    error: None,
-                    prompt_items: None,
+                    ..Default::default()
                 };
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
@@ -656,15 +636,11 @@ pub fn install(
                         info!("hash for {} is same, skipping install", name);
 
                         let status_obj = client::StatusObj {
-                            label: None,
-                            progress: None,
-                            complete: false,
                             log_line: Some(format!(
                                 "Skipping install for {}, as hash is the same",
                                 name
                             )),
-                            error: None,
-                            prompt_items: None,
+                            ..Default::default()
                         };
                         let status_str = serde_json::to_string(&status_obj).unwrap();
                         sender.send(status_str).unwrap();

@@ -130,12 +130,8 @@ pub fn run_setup(
     info!("setup run: \"{}\"", command_str);
 
     let status_obj = client::StatusObj {
-        label: None,
-        progress: None,
-        complete: false,
         log_line: Some(format!("setup run: \"{}\"", command_str)),
-        error: None,
-        prompt_items: None,
+        ..Default::default()
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -248,15 +244,11 @@ pub fn run_wrapper(
             info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
 
             let status_obj = client::StatusObj {
-                label: None,
-                progress: None,
-                complete: false,
                 log_line: Some(format!(
                     "run: \"{}\" with args: {:?} {:?}",
                     cmd, cmd_args, exe_args
                 )),
-                error: None,
-                prompt_items: None,
+                ..Default::default()
             };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();

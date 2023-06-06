@@ -49,7 +49,7 @@ pub struct LuxClient {
     last_choice: std::option::Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct StatusObj {
     pub label: std::option::Option<String>,
     pub progress: std::option::Option<i64>,
@@ -92,12 +92,8 @@ impl LuxClient {
 
     fn show_error(&mut self, base: &Node, error: std::io::Error) {
         let status_obj = StatusObj {
-            label: None,
-            progress: None,
-            complete: false,
-            log_line: None,
             error: Some(error.to_string()),
-            prompt_items: None,
+            ..Default::default()
         };
         let status_str = serde_json::to_string(&status_obj).unwrap();
         let emitter = &mut base.get_node("Container/Progress").unwrap();
@@ -642,11 +638,7 @@ impl LuxClient {
 
                     let status_obj = StatusObj {
                         label: Some(label_str),
-                        progress: None,
-                        complete: false,
-                        log_line: None,
-                        error: None,
-                        prompt_items: None,
+                        ..Default::default()
                     };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender.send(status_str).unwrap();
@@ -664,12 +656,8 @@ impl LuxClient {
                             error!("{}", error_str);
 
                             let status_obj = StatusObj {
-                                label: None,
-                                progress: None,
-                                complete: false,
-                                log_line: None,
                                 error: Some(error_str),
-                                prompt_items: None,
+                                ..Default::default()
                             };
                             let status_str = serde_json::to_string(&status_obj).unwrap();
                             sender.send(status_str).unwrap();
@@ -695,12 +683,8 @@ impl LuxClient {
 
                 if !found_error {
                     let status_obj = StatusObj {
-                        label: None,
-                        progress: None,
                         complete: true,
-                        log_line: None,
-                        error: None,
-                        prompt_items: None,
+                        ..Default::default()
                     };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender.send(status_str).unwrap();
@@ -761,12 +745,8 @@ impl LuxClient {
                 );
 
                 let status_obj = StatusObj {
-                    label: None,
                     progress: Some(percentage),
-                    complete: false,
-                    log_line: None,
-                    error: None,
-                    prompt_items: None,
+                    ..Default::default()
                 };
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
@@ -806,12 +786,8 @@ impl LuxClient {
                         error!("command::run err: {:?}", err);
 
                         let status_obj = StatusObj {
-                            label: None,
-                            progress: None,
-                            complete: false,
-                            log_line: None,
                             error: Some(err.to_string()),
-                            prompt_items: None,
+                            ..Default::default()
                         };
                         let status_str = serde_json::to_string(&status_obj).unwrap();
                         sender_err.send(status_str).unwrap();
@@ -834,12 +810,9 @@ impl LuxClient {
                                 prompt_id: "allpromptssetup".to_string(),
                             };
                             let status_obj = StatusObj {
-                                label: None,
-                                progress: None,
-                                complete: false,
                                 log_line: Some("Processing setup items".to_string()),
-                                error: None,
                                 prompt_items: Some(prompt_items),
+                                ..Default::default()
                             };
                             let status_str = serde_json::to_string(&status_obj).unwrap();
                             sender_err.send(status_str).unwrap();
@@ -852,12 +825,8 @@ impl LuxClient {
                                     error!("command::run_setup err: {:?}", err);
 
                                     let status_obj = StatusObj {
-                                        label: None,
-                                        progress: None,
-                                        complete: false,
-                                        log_line: None,
                                         error: Some(err.to_string()),
-                                        prompt_items: None,
+                                        ..Default::default()
                                     };
                                     let status_str = serde_json::to_string(&status_obj).unwrap();
                                     sender_err.send(status_str).unwrap();
@@ -871,12 +840,8 @@ impl LuxClient {
                         error!("command::process_setup_details err: {:?}", err);
 
                         let status_obj = StatusObj {
-                            label: None,
-                            progress: None,
-                            complete: false,
-                            log_line: None,
                             error: Some(err.to_string()),
-                            prompt_items: None,
+                            ..Default::default()
                         };
                         let status_str = serde_json::to_string(&status_obj).unwrap();
                         sender_err.send(status_str).unwrap();
@@ -893,12 +858,8 @@ impl LuxClient {
                         error!("command::run_setup err: {:?}", err);
 
                         let status_obj = StatusObj {
-                            label: None,
-                            progress: None,
-                            complete: false,
-                            log_line: None,
                             error: Some(err.to_string()),
-                            prompt_items: None,
+                            ..Default::default()
                         };
                         let status_str = serde_json::to_string(&status_obj).unwrap();
                         sender_err.send(status_str).unwrap();
@@ -914,12 +875,8 @@ impl LuxClient {
                     error!("command::run_wrapper err: {:?}", err);
 
                     let status_obj = StatusObj {
-                        label: None,
-                        progress: None,
-                        complete: false,
-                        log_line: None,
                         error: Some(err.to_string()),
-                        prompt_items: None,
+                        ..Default::default()
                     };
                     let status_str = serde_json::to_string(&status_obj).unwrap();
                     sender_err.send(status_str).unwrap();
