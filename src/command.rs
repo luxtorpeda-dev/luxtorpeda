@@ -16,6 +16,7 @@ use crate::client;
 use crate::config;
 use crate::package;
 use crate::package::place_state_file;
+use crate::package_metadata;
 use crate::user_env;
 
 extern crate log;
@@ -43,34 +44,22 @@ pub fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
 }
 
-fn json_to_args(args: &json::JsonValue) -> Vec<String> {
-    args.members()
-        .map(|j| j.as_str())
-        .skip_while(|o| o.is_none()) // filter?
-        .map(|j| j.unwrap().to_string())
-        .collect()
-}
-
-fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, Vec<String>)> {
+fn find_game_command(
+    info: &package_metadata::Game,
+    args: &[&str],
+) -> Option<(String, Vec<String>)> {
     let orig_cmd = args.join(" ");
 
-    if !info["command"].is_null() {
-        let new_prog = info["command"].to_string();
-        let new_args = json_to_args(&info["command_args"]);
-        return Some((new_prog, new_args));
+    if let Some(command) = &info.command {
+        return Some((command.to_string(), info.command_args.clone()));
     }
 
-    if info["commands"].is_null() {
-        return None;
-    }
-
-    let cmds = &info["commands"];
-    for (expr, new_cmd) in cmds.entries() {
-        let re = Regex::new(expr).unwrap();
-        if re.is_match(&orig_cmd) {
-            let new_prog = new_cmd["cmd"].to_string();
-            let new_args = json_to_args(&new_cmd["args"]);
-            return Some((new_prog, new_args));
+    if let Some(cmds) = &info.commands {
+        for new_cmd in cmds {
+            let re = Regex::new(&new_cmd.command_name).unwrap();
+            if re.is_match(&orig_cmd) {
+                return Some((new_cmd.cmd.clone(), new_cmd.args.clone()));
+            }
         }
     }
 
@@ -78,38 +67,37 @@ fn find_game_command(info: &json::JsonValue, args: &[&str]) -> Option<(String, V
 }
 
 pub fn process_setup_details(
-    game_info: &json::JsonValue,
+    setup_info: &package_metadata::Setup,
 ) -> io::Result<Vec<client::PromptRequestData>> {
-    let setup_info = &game_info["setup"];
     let mut setup_items = Vec::new();
 
-    if !&setup_info["license_path"].is_null()
-        && Path::new(&setup_info["license_path"].to_string()).exists()
-    {
-        let mut file = File::open(&setup_info["license_path"].to_string())?;
-        let mut file_buf = vec![];
-        file.read_to_end(&mut file_buf)?;
-        let file_str = String::from_utf8_lossy(&file_buf);
-        let file_str_milk = file_str.as_ref();
+    if let Some(license_path) = &setup_info.license_path {
+        if Path::new(&license_path).exists() {
+            let mut file = File::open(license_path)?;
+            let mut file_buf = vec![];
+            file.read_to_end(&mut file_buf)?;
+            let file_str = String::from_utf8_lossy(&file_buf);
+            let file_str_milk = file_str.as_ref();
 
-        let prompt_request = client::PromptRequestData {
-            label: Some("By clicking Ok below, you are agreeing to the following.".to_string()),
-            prompt_type: "question".to_string(),
-            title: "Closed Source Engine EULA".to_string(),
-            prompt_id: "closedsourceengineeulaconfirm".to_string(),
-            rich_text: Some(file_str_milk.to_string()),
-        };
-        setup_items.push(prompt_request);
+            let prompt_request = client::PromptRequestData {
+                label: Some("By clicking Ok below, you are agreeing to the following.".to_string()),
+                prompt_type: "question".to_string(),
+                title: "Closed Source Engine EULA".to_string(),
+                prompt_id: "closedsourceengineeulaconfirm".to_string(),
+                rich_text: Some(file_str_milk.to_string()),
+            };
+            setup_items.push(prompt_request);
+        }
     }
 
-    if !&setup_info["dialogs"].is_null() {
-        for entry in setup_info["dialogs"].members() {
-            if entry["type"] == "input" {
+    if let Some(dialogs) = &setup_info.dialogs {
+        for entry in dialogs {
+            if entry.dialog_type == "input" {
                 let prompt_request = client::PromptRequestData {
-                    label: Some(entry["label"].to_string()),
+                    label: Some(entry.label.to_string()),
                     prompt_type: "input".to_string(),
-                    title: entry["title"].to_string(),
-                    prompt_id: std::format!("dialogentryconfirm%%{}%%", entry["key"]).to_string(),
+                    title: entry.title.to_string(),
+                    prompt_id: std::format!("dialogentryconfirm%%{}%%", entry.key).to_string(),
                     rich_text: None,
                 };
                 setup_items.push(prompt_request);
@@ -121,21 +109,15 @@ pub fn process_setup_details(
 }
 
 pub fn run_setup(
-    game_info: &json::JsonValue,
+    setup_info: &package_metadata::Setup,
     sender: &std::sync::mpsc::Sender<String>,
 ) -> io::Result<()> {
-    let setup_info = &game_info["setup"];
-
-    let command_str = setup_info["command"].to_string();
+    let command_str = setup_info.command.to_string();
     info!("setup run: \"{}\"", command_str);
 
     let status_obj = client::StatusObj {
-        label: None,
-        progress: None,
-        complete: false,
         log_line: Some(format!("setup run: \"{}\"", command_str)),
-        error: None,
-        prompt_items: None,
+        ..Default::default()
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
@@ -149,7 +131,7 @@ pub fn run_setup(
         return Err(Error::new(ErrorKind::Other, "setup failed"));
     }
 
-    File::create(setup_info["complete_path"].to_string())?;
+    File::create(setup_info.complete_path.clone())?;
 
     Ok(())
 }
@@ -159,7 +141,7 @@ pub fn run(
     engine_choice: String,
     sender: &std::sync::mpsc::Sender<String>,
     after_setup_question_mode: bool,
-) -> io::Result<json::JsonValue> {
+) -> io::Result<package_metadata::Game> {
     env::set_var(LUX_ERRORS_SUPPORTED, "1");
 
     let app_id = user_env::steam_app_id();
@@ -171,11 +153,7 @@ pub fn run(
         }
     };
 
-    if game_info.is_null() {
-        return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
-    }
-
-    if !game_info["choices"].is_null() {
+    if game_info.choices.is_some() {
         match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
             Ok(()) => {
                 info!("engine choice complete");
@@ -187,9 +165,9 @@ pub fn run(
     }
 
     info!("json:");
-    info!("{:#}", game_info);
+    info!("{:?}", game_info);
 
-    if game_info["use_original_command_directory"] == true {
+    if game_info.use_original_command_directory {
         let tmp_path = Path::new(args[0]);
         let parent_path = tmp_path.parent().unwrap();
         env::set_current_dir(parent_path).unwrap();
@@ -199,7 +177,7 @@ pub fn run(
         info!("tool dir: {:?}", user_env::tool_dir());
     }
 
-    if !game_info["download"].is_null() && !after_setup_question_mode {
+    if !after_setup_question_mode {
         match package::install(&game_info, sender) {
             Ok(()) => {}
             Err(err) => {
@@ -222,7 +200,7 @@ pub fn run(
 
 pub fn run_wrapper(
     args: &[&str],
-    game_info: &json::JsonValue,
+    game_info: &package_metadata::Game,
     sender: &std::sync::mpsc::Sender<String>,
 ) -> io::Result<()> {
     if args.is_empty() {
@@ -248,15 +226,11 @@ pub fn run_wrapper(
             info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
 
             let status_obj = client::StatusObj {
-                label: None,
-                progress: None,
-                complete: false,
                 log_line: Some(format!(
                     "run: \"{}\" with args: {:?} {:?}",
                     cmd, cmd_args, exe_args
                 )),
-                error: None,
-                prompt_items: None,
+                ..Default::default()
             };
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
