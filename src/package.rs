@@ -74,14 +74,6 @@ pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
     xdg_dirs.place_config_file(path_str)
 }
 
-pub fn path_to_packages_file() -> PathBuf {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let config_home = xdg_dirs.get_cache_home();
-    let folder_path = config_home.join("luxtorpeda");
-    create_dir_or_show_error(&folder_path);
-    folder_path.join("packagessniper_v2.json")
-}
-
 pub fn path_to_config() -> PathBuf {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let config_home = xdg_dirs.get_config_home();
@@ -102,26 +94,6 @@ pub fn place_state_file(file: &str) -> io::Result<PathBuf> {
     xdg_dirs.place_state_file(path_str)
 }
 
-pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
-    let remote_hash_response = match reqwest::blocking::get(remote_hash_url) {
-        Ok(s) => s,
-        Err(err) => {
-            error!("get_remote_packages_hash error in get: {:?}", err);
-            return None;
-        }
-    };
-
-    let remote_hash_str = match remote_hash_response.text() {
-        Ok(s) => s,
-        Err(err) => {
-            error!("get_remote_packages_hash error in text: {:?}", err);
-            return None;
-        }
-    };
-
-    Some(remote_hash_str)
-}
-
 pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
     let mut file = fs::File::open(file_path)?;
     let mut hasher = Sha256::new();
@@ -129,87 +101,6 @@ pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
     let hash_result = hasher.finalize();
     let hash_str = hex::encode(hash_result);
     Ok(hash_str)
-}
-
-pub fn update_packages_json() -> io::Result<()> {
-    let config = config::Config::from_config_file();
-    if !config.should_do_update {
-        return Ok(());
-    }
-
-    let packages_json_file = path_to_packages_file();
-    let mut should_download = true;
-    let mut remote_hash_str: String = String::new();
-
-    let remote_path = "packagessniper_v2";
-
-    let remote_hash_url = std::format!("{0}/{1}.hash256", config.host_url, remote_path);
-    match get_remote_packages_hash(&remote_hash_url) {
-        Some(tmp_hash_str) => {
-            remote_hash_str = tmp_hash_str;
-        }
-        None => {
-            info!("update_packages_json in get_remote_packages_hash call. received none");
-            should_download = false;
-        }
-    }
-
-    if should_download {
-        if !Path::new(&packages_json_file).exists() {
-            should_download = true;
-            info!(
-                "update_packages_json. {:?} does not exist",
-                packages_json_file
-            );
-        } else {
-            let hash_str = generate_hash_from_file_path(&packages_json_file)?;
-            info!("update_packages_json. found hash: {}", hash_str);
-
-            info!(
-                "update_packages_json. found hash and remote hash: {0} {1}",
-                hash_str, remote_hash_str
-            );
-            if hash_str != remote_hash_str {
-                info!("update_packages_json. hash does not match. downloading");
-                should_download = true;
-            } else {
-                should_download = false;
-            }
-        }
-    }
-
-    if should_download {
-        info!("update_packages_json. downloading new {}.json", remote_path);
-
-        let remote_packages_url = std::format!("{0}/{1}.json", config.host_url, remote_path);
-        let mut download_complete = false;
-        let local_packages_temp_path =
-            path_to_packages_file().with_file_name(std::format!("{}-temp.json", remote_path));
-
-        match reqwest::blocking::get(remote_packages_url) {
-            Ok(mut response) => {
-                let mut dest = fs::File::create(&local_packages_temp_path)?;
-                io::copy(&mut response, &mut dest)?;
-                download_complete = true;
-            }
-            Err(err) => {
-                error!("update_packages_json. download err: {:?}", err);
-            }
-        }
-
-        if download_complete {
-            let new_hash_str = generate_hash_from_file_path(&local_packages_temp_path)?;
-            if new_hash_str == remote_hash_str {
-                info!("update_packages_json. new downloaded hash matches");
-                fs::rename(local_packages_temp_path, packages_json_file)?;
-            } else {
-                info!("update_packages_json. new downloaded hash does not match");
-                fs::remove_file(local_packages_temp_path)?;
-            }
-        }
-    }
-
-    Ok(())
 }
 
 pub fn convert_game_info_with_choice(

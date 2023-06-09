@@ -1,8 +1,10 @@
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::PathBuf;
+use std::io;
+use std::path::{Path, PathBuf};
 
+use crate::config;
 use crate::package;
 
 const PACKAGE_METADATA_FILENAME: &str = "packagessniper_v2";
@@ -155,17 +157,17 @@ impl PackageMetadata {
                     Ok(config) => config,
                     Err(err) => {
                         error!("error parsing packages_json_file: {:?}", err);
-                        PackageMetadata::get_packages_from_server()
+                        Default::default()
                     }
                 },
                 Err(err) => {
                     error!("error reading packages_json_file: {:?}", err);
-                    PackageMetadata::get_packages_from_server()
+                    Default::default()
                 }
             }
         } else {
             info!("packages_json_file does not exist");
-            PackageMetadata::get_packages_from_server()
+            Default::default()
         }
     }
 
@@ -190,14 +192,13 @@ impl PackageMetadata {
         if let Some(label) = &notice_item.label {
             notice = label.to_string();
         } else if let Some(value) = &notice_item.value {
-            if let Some(notice_translation) = self.find_notice_translation_by_key(&value)
-            {
+            if let Some(notice_translation) = self.find_notice_translation_by_key(value) {
                 notice = notice_translation.value;
             } else {
                 notice = value.to_string();
             }
         } else if let Some(key) = &notice_item.key {
-            if let Some(notice_translation) = self.find_notice_translation_by_key(&key) {
+            if let Some(notice_translation) = self.find_notice_translation_by_key(key) {
                 notice = notice_translation.value;
             } else {
                 notice = key.to_string();
@@ -207,9 +208,106 @@ impl PackageMetadata {
         notice
     }
 
-    fn get_packages_from_server() -> PackageMetadata {
-        // TODO: fix, move code to new function from package to here that package calls once to get download and hash; this function should just call that one
-        Default::default()
+    pub fn update_packages_json() -> io::Result<()> {
+        let config = config::Config::from_config_file();
+        if !config.should_do_update {
+            return Ok(());
+        }
+
+        let packages_json_file = PackageMetadata::path_to_packages_file();
+        let mut should_download = true;
+        let mut remote_hash_str: String = String::new();
+
+        let remote_path = PACKAGE_METADATA_FILENAME;
+
+        let remote_hash_url = std::format!("{0}/{1}.hash256", config.host_url, remote_path);
+        match PackageMetadata::get_remote_packages_hash(&remote_hash_url) {
+            Some(tmp_hash_str) => {
+                remote_hash_str = tmp_hash_str;
+            }
+            None => {
+                info!("update_packages_json in get_remote_packages_hash call. received none");
+                should_download = false;
+            }
+        }
+
+        if should_download {
+            if !Path::new(&packages_json_file).exists() {
+                should_download = true;
+                info!(
+                    "update_packages_json. {:?} does not exist",
+                    packages_json_file
+                );
+            } else {
+                let hash_str = package::generate_hash_from_file_path(&packages_json_file)?;
+                info!("update_packages_json. found hash: {}", hash_str);
+
+                info!(
+                    "update_packages_json. found hash and remote hash: {0} {1}",
+                    hash_str, remote_hash_str
+                );
+                if hash_str != remote_hash_str {
+                    info!("update_packages_json. hash does not match. downloading");
+                    should_download = true;
+                } else {
+                    should_download = false;
+                }
+            }
+        }
+
+        if should_download {
+            info!("update_packages_json. downloading new {}.json", remote_path);
+
+            let remote_packages_url = std::format!("{0}/{1}.json", config.host_url, remote_path);
+            let mut download_complete = false;
+            let local_packages_temp_path = PackageMetadata::path_to_packages_file()
+                .with_file_name(std::format!("{}-temp.json", remote_path));
+
+            match reqwest::blocking::get(remote_packages_url) {
+                Ok(mut response) => {
+                    let mut dest = fs::File::create(&local_packages_temp_path)?;
+                    io::copy(&mut response, &mut dest)?;
+                    download_complete = true;
+                }
+                Err(err) => {
+                    error!("update_packages_json. download err: {:?}", err);
+                }
+            }
+
+            if download_complete {
+                let new_hash_str =
+                    package::generate_hash_from_file_path(&local_packages_temp_path)?;
+                if new_hash_str == remote_hash_str {
+                    info!("update_packages_json. new downloaded hash matches");
+                    fs::rename(local_packages_temp_path, packages_json_file)?;
+                } else {
+                    info!("update_packages_json. new downloaded hash does not match");
+                    fs::remove_file(local_packages_temp_path)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
+        let remote_hash_response = match reqwest::blocking::get(remote_hash_url) {
+            Ok(s) => s,
+            Err(err) => {
+                error!("get_remote_packages_hash error in get: {:?}", err);
+                return None;
+            }
+        };
+
+        let remote_hash_str = match remote_hash_response.text() {
+            Ok(s) => s,
+            Err(err) => {
+                error!("get_remote_packages_hash error in text: {:?}", err);
+                return None;
+            }
+        };
+
+        Some(remote_hash_str)
     }
 
     fn path_to_packages_file() -> PathBuf {
@@ -246,7 +344,10 @@ impl Game {
                         for entry in engine_notices {
                             choice_info
                                 .notices
-                                .push(PackageMetadata::convert_notice_to_str(&package_metadata, &entry));
+                                .push(PackageMetadata::convert_notice_to_str(
+                                    &package_metadata,
+                                    &entry,
+                                ));
                         }
                     }
 
@@ -298,7 +399,10 @@ impl Game {
                     for entry in game_notices {
                         choice_info
                             .notices
-                            .push(PackageMetadata::convert_notice_to_str(&package_metadata, entry));
+                            .push(PackageMetadata::convert_notice_to_str(
+                                &package_metadata,
+                                entry,
+                            ));
                     }
                 }
 

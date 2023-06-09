@@ -173,7 +173,7 @@ impl LuxClient {
             }
         };
 
-        match package::update_packages_json() {
+        match package_metadata::PackageMetadata::update_packages_json() {
             Ok(()) => {}
             Err(err) => {
                 return Err(err);
