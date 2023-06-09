@@ -18,7 +18,7 @@ use tokio::runtime::Runtime;
 use crate::command;
 use crate::config;
 use crate::package;
-use crate::package::ChoiceInfo;
+use crate::package_metadata;
 use crate::user_env;
 
 #[derive(NativeClass)]
@@ -45,7 +45,7 @@ impl SignalEmitter {
 #[inherit(Node)]
 pub struct LuxClient {
     receiver: std::option::Option<std::sync::mpsc::Receiver<String>>,
-    last_downloads: std::option::Option<Vec<package::PackageInfo>>,
+    last_downloads: std::option::Option<Vec<package_metadata::DownloadItem>>,
     last_choice: std::option::Option<String>,
 }
 
@@ -205,126 +205,16 @@ impl LuxClient {
         }
     }
 
-    // TODO: convert to struct
     fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<()> {
-        let game_info = match package::get_game_info(app_id) {
+        let mut game_info = match package::get_game_info(app_id) {
             Ok(game_info) => game_info,
             Err(err) => {
                 return Err(err);
             }
         };
 
-        if game_info.is_null() {
-            return Err(Error::new(ErrorKind::Other, "Unknown app_id"));
-        }
-
-        if !game_info["choices"].is_null() {
-            let engines_option = package::get_engines_info();
-
-            let mut choices: Vec<ChoiceInfo> = vec![];
-            for entry in game_info["choices"].members() {
-                if entry["name"].is_null() {
-                    return Err(Error::new(ErrorKind::Other, "missing choice info"));
-                }
-
-                let mut choice_info = ChoiceInfo {
-                    name: entry["name"].to_string(),
-                    notices: Vec::new(),
-                };
-
-                let mut engine_name = entry["name"].to_string();
-                if !entry["engine_name"].is_null() {
-                    engine_name = entry["engine_name"].to_string();
-                }
-
-                let engine_name_clone = engine_name.clone();
-                if let Some((ref engines, ref notice_map)) = engines_option {
-                    if !engines[engine_name_clone].is_null() {
-                        let engine_name_clone_clone = engine_name.clone();
-                        let engine_name_clone_clone_two = engine_name.clone();
-                        let engine_name_clone_clone_three = engine_name.clone();
-                        let engine_name_clone_clone_four = engine_name.clone();
-
-                        if !engines[engine_name_clone_clone]["notices"].is_null() {
-                            for entry in engines[engine_name]["notices"].members() {
-                                choice_info
-                                    .notices
-                                    .push(package::convert_notice_to_str(entry, notice_map));
-                            }
-                        }
-
-                        let controller_not_supported =
-                            engines[engine_name_clone_clone_two]["controllerNotSupported"] == true;
-                        let controller_supported =
-                            engines[engine_name_clone_clone_three]["controllerSupported"] == true;
-                        let controller_supported_manual = engines[engine_name_clone_clone_four]
-                            ["controllerSupportedManualGame"]
-                            == true;
-
-                        if controller_not_supported {
-                            choice_info
-                                .notices
-                                .push("Engine Does Not Have Native Controller Support".to_string());
-                        } else if controller_supported
-                            && game_info["controllerSteamDefault"] == true
-                        {
-                            choice_info.notices.push(
-                                "Engine Has Native Controller Support And Works Out of the Box"
-                                    .to_string(),
-                            );
-                        } else if controller_supported_manual
-                            && game_info["controllerSteamDefault"] == true
-                        {
-                            choice_info.notices.push(
-                                "Engine Has Native Controller Support But Needs Manual In-Game Settings"
-                                    .to_string(),
-                            );
-                        } else if controller_supported
-                            && (game_info["controllerSteamDefault"].is_null()
-                                || game_info["controllerSteamDefault"] != true)
-                        {
-                            choice_info.notices.push(
-                                "Engine Has Native Controller Support But Needs Manual Steam Settings"
-                                    .to_string(),
-                            );
-                        }
-                    }
-
-                    if game_info["cloudNotAvailable"] == true {
-                        choice_info
-                            .notices
-                            .push("Game Does Not Have Cloud Saves".to_string());
-                    } else if game_info["cloudAvailable"] == true
-                        && (game_info["cloudSupported"].is_null()
-                            || game_info["cloudSupported"] != true)
-                    {
-                        choice_info
-                            .notices
-                            .push("Game Has Cloud Saves But Unknown Status".to_string());
-                    } else if game_info["cloudAvailable"] == true
-                        && game_info["cloudSupported"] == true
-                    {
-                        choice_info
-                            .notices
-                            .push("Cloud Saves Supported".to_string());
-                    } else if game_info["cloudAvailable"] == true && game_info["cloudIssue"] == true
-                    {
-                        choice_info
-                            .notices
-                            .push("Cloud Saves Not Supported".to_string());
-                    }
-
-                    if !game_info["notices"].is_null() {
-                        for entry in game_info["notices"].members() {
-                            choice_info
-                                .notices
-                                .push(package::convert_notice_to_str(entry, notice_map));
-                        }
-                    }
-                }
-
-                choices.push(choice_info);
-            }
+        if game_info.choices.is_some() {
+            let choices = game_info.choices_with_notices();
 
             let check_default_choice_file_path =
                 package::place_config_file(app_id, "default_engine_choice.txt")?;
@@ -402,7 +292,6 @@ impl LuxClient {
         user_env::set_controller_var(&data_str);
     }
 
-    // TODO: game_info should be struct
     #[method]
     fn choice_picked(&mut self, #[base] owner: &Node, data: Variant) {
         let app_id = user_env::steam_app_id();
@@ -451,8 +340,8 @@ impl LuxClient {
             }
         }
 
-        if !game_info["app_ids_deps"].is_null() {
-            match package::get_app_id_deps_paths(&game_info["app_ids_deps"]) {
+        if let Some(app_ids_deps) = &game_info.app_ids_deps {
+            match package::get_app_id_deps_paths(&app_ids_deps) {
                 Some(()) => {
                     info!("download_all. get_app_id_deps_paths completed");
                 }
@@ -460,12 +349,6 @@ impl LuxClient {
                     info!("download_all. warning: get_app_id_deps_paths not completed");
                 }
             }
-        }
-
-        if game_info["download"].is_null() {
-            info!("skipping downloads (no urls defined for this package)");
-            self.run_game(false);
-            return;
         }
 
         let downloads = package::json_to_downloads(app_id.as_str(), &game_info).unwrap();
@@ -476,37 +359,9 @@ impl LuxClient {
             return;
         }
 
-        let mut dialog_message = String::new();
-
-        let mut engine_name = game_info["name"].to_string();
-        if !game_info["engine_name"].is_null() {
-            engine_name = game_info["engine_name"].to_string();
-        }
-
-        let engines_option = package::get_engines_info();
-        let engine_name_clone = engine_name.clone();
-        let engine_name_clone2 = engine_name.clone();
-        if let Some((ref engines, ref _notice_map)) = engines_option {
-            if !engines[engine_name_clone].is_null() {
-                for entry in engines[engine_name]["notices"].members() {
-                    let engine_name_clone3 = engine_name_clone2.clone();
-                    if !entry["key"].is_null() {
-                        if entry["key"] == "non_free" {
-                            dialog_message = std::format!(
-                            "This engine uses a non-free engine ({0}). Are you sure you want to continue?",
-                            engines[engine_name_clone3]["license"]
-                        );
-                        } else if entry["key"] == "closed_source" {
-                            dialog_message = "This engine uses assets from the closed source release. Are you sure you want to continue?".to_string();
-                        }
-                    }
-                }
-            }
-        }
-
         self.last_downloads = Some(downloads);
 
-        if !dialog_message.is_empty() {
+        if let Some(dialog_message) = game_info.find_license_dialog_message() {
             let prompt_request = PromptRequestData {
                 label: Some(dialog_message),
                 prompt_type: "question".to_string(),
@@ -697,7 +552,7 @@ impl LuxClient {
 
     async fn download(
         app_id: &str,
-        info: &package::PackageInfo,
+        info: &package_metadata::DownloadItem,
         sender: std::sync::mpsc::Sender<String>,
         client: &Client,
     ) -> io::Result<()> {
@@ -798,76 +653,75 @@ impl LuxClient {
                     }
                 };
 
-            // TODO: struct
-            if !game_info["setup"].is_null()
-                && !after_setup_question_mode
-                && !package::is_setup_complete(&game_info["setup"])
-            {
-                match command::process_setup_details(&game_info) {
-                    Ok(setup_details) => {
-                        info!("setup details ready: {:?}", setup_details);
+            if let Some(setup_info) = &game_info.setup {
+                if !after_setup_question_mode && !package::is_setup_complete(&setup_info) {
+                    match command::process_setup_details(&setup_info) {
+                        Ok(setup_details) => {
+                            info!("setup details ready: {:?}", setup_details);
 
-                        if !setup_details.is_empty() {
-                            let prompt_items = PromptItemsData {
-                                prompt_items: setup_details,
-                                prompt_id: "allpromptssetup".to_string(),
-                            };
+                            if !setup_details.is_empty() {
+                                let prompt_items = PromptItemsData {
+                                    prompt_items: setup_details,
+                                    prompt_id: "allpromptssetup".to_string(),
+                                };
+                                let status_obj = StatusObj {
+                                    log_line: Some("Processing setup items".to_string()),
+                                    prompt_items: Some(prompt_items),
+                                    ..Default::default()
+                                };
+                                let status_str = serde_json::to_string(&status_obj).unwrap();
+                                sender_err.send(status_str).unwrap();
+
+                                return;
+                            } else {
+                                match command::run_setup(&setup_info, &sender) {
+                                    Ok(()) => {}
+                                    Err(err) => {
+                                        error!("command::run_setup err: {:?}", err);
+
+                                        let status_obj = StatusObj {
+                                            error: Some(err.to_string()),
+                                            ..Default::default()
+                                        };
+                                        let status_str =
+                                            serde_json::to_string(&status_obj).unwrap();
+                                        sender_err.send(status_str).unwrap();
+
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        Err(err) => {
+                            error!("command::process_setup_details err: {:?}", err);
+
                             let status_obj = StatusObj {
-                                log_line: Some("Processing setup items".to_string()),
-                                prompt_items: Some(prompt_items),
+                                error: Some(err.to_string()),
                                 ..Default::default()
                             };
                             let status_str = serde_json::to_string(&status_obj).unwrap();
                             sender_err.send(status_str).unwrap();
 
                             return;
-                        } else {
-                            match command::run_setup(&game_info, &sender) {
-                                Ok(()) => {}
-                                Err(err) => {
-                                    error!("command::run_setup err: {:?}", err);
-
-                                    let status_obj = StatusObj {
-                                        error: Some(err.to_string()),
-                                        ..Default::default()
-                                    };
-                                    let status_str = serde_json::to_string(&status_obj).unwrap();
-                                    sender_err.send(status_str).unwrap();
-
-                                    return;
-                                }
-                            }
                         }
                     }
-                    Err(err) => {
-                        error!("command::process_setup_details err: {:?}", err);
-
-                        let status_obj = StatusObj {
-                            error: Some(err.to_string()),
-                            ..Default::default()
-                        };
-                        let status_str = serde_json::to_string(&status_obj).unwrap();
-                        sender_err.send(status_str).unwrap();
-
-                        return;
-                    }
                 }
-            }
 
-            if after_setup_question_mode {
-                match command::run_setup(&game_info, &sender) {
-                    Ok(()) => {}
-                    Err(err) => {
-                        error!("command::run_setup err: {:?}", err);
+                if after_setup_question_mode {
+                    match command::run_setup(&setup_info, &sender) {
+                        Ok(()) => {}
+                        Err(err) => {
+                            error!("command::run_setup err: {:?}", err);
 
-                        let status_obj = StatusObj {
-                            error: Some(err.to_string()),
-                            ..Default::default()
-                        };
-                        let status_str = serde_json::to_string(&status_obj).unwrap();
-                        sender_err.send(status_str).unwrap();
+                            let status_obj = StatusObj {
+                                error: Some(err.to_string()),
+                                ..Default::default()
+                            };
+                            let status_str = serde_json::to_string(&status_obj).unwrap();
+                            sender_err.send(status_str).unwrap();
 
-                        return;
+                            return;
+                        }
                     }
                 }
             }

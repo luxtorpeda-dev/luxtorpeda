@@ -6,6 +6,7 @@ mod client;
 mod command;
 mod config;
 mod package;
+mod package_metadata;
 mod user_env;
 
 // Function that registers all exposed classes to Godot

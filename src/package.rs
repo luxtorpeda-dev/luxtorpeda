@@ -5,7 +5,6 @@ extern crate xz2;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use log::{error, info};
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::ffi::OsStr;
@@ -19,6 +18,7 @@ use xz2::read::XzDecoder;
 
 use crate::client;
 use crate::config;
+use crate::package_metadata;
 use crate::user_env;
 
 extern crate steamlocate;
@@ -40,7 +40,7 @@ fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
 
 // Try to create dirs of path recursively,
 // if that fails, try to show a helpful UI message
-fn create_dir_or_show_error(path: &impl AsRef<Path>) {
+pub fn create_dir_or_show_error(path: &impl AsRef<Path>) {
     let err = match fs::create_dir_all(path) {
         Ok(()) => return,
         Err(err) => err,
@@ -100,20 +100,6 @@ pub fn place_state_file(file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::new().unwrap();
     let path_str = format!("luxtorpeda/{}", file);
     xdg_dirs.place_state_file(path_str)
-}
-
-#[derive(Clone)]
-pub struct PackageInfo {
-    pub name: String,
-    pub url: String,
-    pub file: String,
-    pub cache_by_name: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ChoiceInfo {
-    pub name: String,
-    pub notices: Vec<String>,
 }
 
 pub fn get_remote_packages_hash(remote_hash_url: &str) -> Option<String> {
@@ -226,51 +212,19 @@ pub fn update_packages_json() -> io::Result<()> {
     Ok(())
 }
 
-// TODO: convert to struct
-pub fn convert_notice_to_str(
-    notice_item: &json::JsonValue,
-    notice_map: &json::JsonValue,
-) -> String {
-    let mut notice = String::new();
-
-    if !notice_item.is_null() {
-        if !notice_item["label"].is_null() {
-            notice = notice_item["label"].to_string();
-        } else if !notice_item["value"].is_null() {
-            if !notice_map[notice_item["value"].to_string()].is_null() {
-                notice = notice_map[notice_item["value"].to_string()].to_string();
-            } else {
-                notice = notice_item["value"].to_string();
-            }
-        } else if !notice_item["key"].is_null() {
-            if !notice_map[notice_item["key"].to_string()].is_null() {
-                notice = notice_map[notice_item["key"].to_string()].to_string();
-            } else {
-                notice = notice_item["key"].to_string();
-            }
-        }
-    }
-
-    notice
-}
-
-// TODO: convert gameinfo and choice_data to struct
 pub fn convert_game_info_with_choice(
     choice_name: String,
-    game_info: &mut json::JsonValue,
+    game_info: &mut package_metadata::Game,
 ) -> io::Result<()> {
     let mut choice_data = HashMap::new();
-    let mut download_array = json::JsonValue::new_array();
+    let mut new_downloads: Vec<package_metadata::DownloadItem> = vec![];
 
-    if game_info["choices"].is_null() {
-        return Err(Error::new(ErrorKind::Other, "choices array null"));
-    }
-
-    for entry in game_info["choices"].members() {
-        if entry["name"].is_null() {
-            return Err(Error::new(ErrorKind::Other, "missing choice info"));
+    if let Some(choices) = &game_info.choices {
+        for entry in choices {
+            choice_data.insert(&entry.name, entry.clone());
         }
-        choice_data.insert(entry["name"].to_string(), entry.clone());
+    } else {
+        return Err(Error::new(ErrorKind::Other, "choices array null"));
     }
 
     if !choice_data.contains_key(&choice_name) {
@@ -280,77 +234,57 @@ pub fn convert_game_info_with_choice(
         ));
     }
 
-    for (key, value) in choice_data[&choice_name].entries() {
-        if key == "name" || key == "download" {
-            continue;
-        }
-        game_info[key] = value.clone();
-    }
+    let engine_choice_data = &choice_data[&choice_name];
 
-    for entry in game_info["download"].members() {
-        if choice_data[&choice_name]["download"].is_null()
-            || choice_data[&choice_name]["download"].contains(entry["name"].clone())
-        {
-            match download_array.push(entry.clone()) {
-                Ok(()) => {}
-                Err(_) => {
-                    return Err(Error::new(
-                        ErrorKind::Other,
-                        "Error pushing to download array",
-                    ));
-                }
-            };
+    for entry in &game_info.download {
+        let mut should_push_download = true;
+        if let Some(choice_download) = &engine_choice_data.download {
+            if !choice_download.contains(&entry.name) {
+                should_push_download = false;
+            }
+        }
+
+        if should_push_download {
+            new_downloads.push(entry.clone());
         }
     }
 
-    game_info["download"] = download_array;
-    game_info.remove("choices");
+    game_info.download = new_downloads;
+    game_info.choices = None;
+
+    // TODO: replace game_info fields with engine_choice_data, other than download and name
 
     Ok(())
 }
 
-// TODO: convert gameinfo to struct (and download)
 pub fn json_to_downloads(
     app_id: &str,
-    game_info: &json::JsonValue,
-) -> io::Result<Vec<PackageInfo>> {
-    let mut downloads: Vec<PackageInfo> = Vec::new();
-
-    for entry in game_info["download"].members() {
-        if entry["name"].is_null() || entry["url"].is_null() || entry["file"].is_null() {
+    game_info: &package_metadata::Game,
+) -> io::Result<Vec<package_metadata::DownloadItem>> {
+    let mut downloads: Vec<package_metadata::DownloadItem> = Vec::new();
+    for entry in &game_info.download {
+        if entry.name.is_empty() || entry.url.is_empty() || entry.file.is_empty() {
             return Err(Error::new(ErrorKind::Other, "missing download info"));
         }
 
-        let name = entry["name"].to_string();
-        let url = entry["url"].to_string();
-        let file = entry["file"].to_string();
-        let mut cache_by_name = false;
-
         let mut cache_dir = app_id;
-        if entry["cache_by_name"] == true {
-            cache_dir = &name;
-            cache_by_name = true;
+        if entry.cache_by_name == true {
+            cache_dir = &entry.name;
         }
 
-        if find_cached_file(cache_dir, file.as_str()).is_some() {
-            info!("{} found in cache (skip)", file);
+        if find_cached_file(cache_dir, entry.file.as_str()).is_some() {
+            info!("{} found in cache (skip)", entry.file);
             continue;
         }
 
-        downloads.push(PackageInfo {
-            name,
-            url,
-            file,
-            cache_by_name,
-        });
+        downloads.push(entry.clone());
     }
     Ok(downloads)
 }
 
-// TODO: convert to struct
 fn unpack_tarball(
     tarball: &Path,
-    game_info: &json::JsonValue,
+    game_info: &package_metadata::Game,
     name: &str,
     sender: &std::sync::mpsc::Sender<String>,
 ) -> io::Result<()> {
@@ -386,19 +320,16 @@ fn unpack_tarball(
         .and_then(OsStr::to_str)
         .unwrap_or("");
 
-    if !&game_info["download_config"].is_null()
-        && !&game_info["download_config"][&name.to_string()].is_null()
-    {
-        let file_download_config = &game_info["download_config"][&name.to_string()];
-        if !file_download_config["extract_location"].is_null() {
-            extract_location = file_download_config["extract_location"].to_string();
+    if let Some(file_download_config) = game_info.find_download_config_by_name(&name) {
+        if let Some(tmp_extract_location) = file_download_config.extract_location {
+            extract_location = tmp_extract_location;
             info!(
                 "install changing extract location with config {}",
                 extract_location
             );
         }
-        if !file_download_config["strip_prefix"].is_null() {
-            strip_prefix = file_download_config["strip_prefix"].to_string();
+        if let Some(tmp_strip_prefix) = file_download_config.strip_prefix {
+            strip_prefix = tmp_strip_prefix;
             info!("install changing prefix with config {}", strip_prefix);
         }
     }
@@ -546,19 +477,16 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
     Ok(())
 }
 
-pub fn is_setup_complete(setup_info: &json::JsonValue) -> bool {
-    let setup_complete = Path::new(&setup_info["complete_path"].to_string()).exists();
+pub fn is_setup_complete(setup_info: &package_metadata::Setup) -> bool {
+    let setup_complete = Path::new(&setup_info.complete_path).exists();
     setup_complete
 }
 
-// TODO: convert to struct
 pub fn install(
-    game_info: &json::JsonValue,
+    game_info: &package_metadata::Game,
     sender: &std::sync::mpsc::Sender<String>,
 ) -> io::Result<()> {
     let app_id = user_env::steam_app_id();
-
-    let packages: std::slice::Iter<'_, json::JsonValue> = game_info["download"].members();
 
     let status_obj = client::StatusObj {
         label: Some("Installing".to_string()),
@@ -569,35 +497,33 @@ pub fn install(
     sender.send(status_str).unwrap();
 
     let mut setup_complete = false;
-    if !game_info["setup"].is_null() {
-        setup_complete = is_setup_complete(&game_info["setup"]);
+    if let Some(setup) = &game_info.setup {
+        setup_complete = is_setup_complete(&setup);
     }
 
     let config = config::Config::from_config_file();
     let hash_check_install = config.hash_check_install;
 
-    for file_info in packages {
-        let file = file_info["file"]
-            .as_str()
-            .ok_or_else(|| Error::new(ErrorKind::Other, "missing info about this game"))?;
-
-        let name = file_info["name"].to_string();
+    for file_info in &game_info.download {
+        let file = &file_info.file;
+        let name = &file_info.name;
         let mut cache_dir = &app_id;
-        if file_info["cache_by_name"] == true {
+        if file_info.cache_by_name {
             cache_dir = &name;
         }
 
-        if setup_complete
-            && !&game_info["download_config"].is_null()
-            && !&game_info["download_config"][&name.to_string()].is_null()
-            && !&game_info["download_config"][&name.to_string()]["setup"].is_null()
-            && game_info["download_config"][&name.to_string()]["setup"] == true
-        {
-            continue;
+        if setup_complete {
+            if let Some(download_config) = &game_info.download_config {
+                if let Some(download_config) = game_info.find_download_config_by_name(&name) {
+                    if download_config.setup {
+                        continue;
+                    }
+                }
+            }
         }
 
         if hash_check_install {
-            if let Some(install_file_path) = find_cached_file(cache_dir, file) {
+            if let Some(install_file_path) = find_cached_file(cache_dir, &file) {
                 let status_obj = client::StatusObj {
                     log_line: Some(format!("Checking install for {}", name)),
                     ..Default::default()
@@ -645,7 +571,7 @@ pub fn install(
             }
         }
 
-        match find_cached_file(cache_dir, file) {
+        match find_cached_file(cache_dir, &file) {
             Some(path) => {
                 match unpack_tarball(&path, game_info, &name, sender) {
                     Ok(()) => {}
@@ -662,25 +588,9 @@ pub fn install(
     Ok(())
 }
 
-// TODO: convert to struct
-pub fn get_game_info(app_id: &str) -> io::Result<json::JsonValue> {
-    let packages_json_file = path_to_packages_file();
-    let json_str = match fs::read_to_string(packages_json_file) {
-        Ok(s) => s,
-        Err(err) => {
-            info!("read err: {:?}", err);
-            return Err(err);
-        }
-    };
-    let parsed = match json::parse(&json_str) {
-        Ok(j) => j,
-        Err(err) => {
-            let error_message = std::format!("parsing err: {:?}", err);
-            error!("{}", error_message);
-            return Err(Error::new(ErrorKind::Other, error_message));
-        }
-    };
-    let game_info = parsed[app_id].clone();
+pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
+    let package_metadata = package_metadata::PackageMetadata::from_packages_file();
+    let game_info = package_metadata.find_game_by_app_id(app_id).clone();
 
     match find_user_packages_file() {
         Some(user_packages_file) => {
@@ -707,16 +617,36 @@ pub fn get_game_info(app_id: &str) -> io::Result<json::JsonValue> {
             let user_game_info = user_parsed[app_id].clone();
             if user_game_info.is_null() {
                 if !user_parsed["default"].is_null()
-                    && (game_info.is_null()
+                    && (!game_info.is_some()
                         || (!user_parsed["override_all_with_user_default"].is_null()
                             && user_parsed["override_all_with_user_default"] == true))
                 {
                     info!("game info using user default");
-                    return Ok(user_parsed["default"].clone());
+                    match serde_json::from_str::<package_metadata::Game>(&json::stringify(
+                        user_parsed["default"].clone(),
+                    )) {
+                        Ok(game) => return Ok(game),
+                        Err(err) => {
+                            let error_message =
+                                std::format!("error parsing user parsed default: {:?}", err);
+                            error!("{:?}", error_message);
+                            return Err(Error::new(ErrorKind::Other, error_message));
+                        }
+                    }
                 }
             } else {
                 info!("user_packages_file used for game_info");
-                return Ok(user_game_info);
+                match serde_json::from_str::<package_metadata::Game>(&json::stringify(
+                    user_game_info,
+                )) {
+                    Ok(game) => return Ok(game),
+                    Err(err) => {
+                        let error_message =
+                            std::format!("error parsing user parsed default: {:?}", err);
+                        error!("{:?}", error_message);
+                        return Err(Error::new(ErrorKind::Other, error_message));
+                    }
+                }
             }
         }
         None => {
@@ -724,53 +654,19 @@ pub fn get_game_info(app_id: &str) -> io::Result<json::JsonValue> {
         }
     };
 
-    if game_info.is_null() {
-        if !parsed["default"].is_null() {
-            info!("game info using default");
-            Ok(parsed["default"].clone())
-        } else {
-            Err(Error::new(
-                ErrorKind::Other,
-                "Game info not found & no default",
-            ))
-        }
+    if !game_info.is_some() {
+        info!("game info using default");
+        Ok(package_metadata.default_engine)
     } else {
-        Ok(game_info)
+        Ok(game_info.unwrap())
     }
 }
 
-// TODO: convert to struct
-pub fn get_engines_info() -> Option<(json::JsonValue, json::JsonValue)> {
-    let packages_json_file = path_to_packages_file();
-    let json_str = match fs::read_to_string(packages_json_file) {
-        Ok(s) => s,
-        Err(err) => {
-            error!("read err: {:?}", err);
-            return None;
-        }
-    };
-    let parsed = match json::parse(&json_str) {
-        Ok(j) => j,
-        Err(err) => {
-            error!("parsing err: {:?}", err);
-            return None;
-        }
-    };
-
-    if parsed["engines"].is_null() || parsed["noticeMap"].is_null() {
-        None
-    } else {
-        Some((parsed["engines"].clone(), parsed["noticeMap"].clone()))
-    }
-}
-
-// TODO: should receive a vec of strings instead (deps should be getting from a struct)
-pub fn get_app_id_deps_paths(deps: &json::JsonValue) -> Option<()> {
+pub fn get_app_id_deps_paths(deps: &Vec<u32>) -> Option<()> {
     match SteamDir::locate() {
         Some(mut steamdir) => {
-            for entry in deps.members() {
-                info!("get_app_id_deps_paths. searching for app id {}.", entry);
-                let app_id = entry.as_u32()?;
+            for app_id in deps {
+                info!("get_app_id_deps_paths. searching for app id {}.", app_id);
 
                 match steamdir.app(&app_id) {
                     Some(app_location) => {
