@@ -268,7 +268,7 @@ pub fn json_to_downloads(
         }
 
         let mut cache_dir = app_id;
-        if entry.cache_by_name == true {
+        if entry.cache_by_name {
             cache_dir = &entry.name;
         }
 
@@ -320,7 +320,7 @@ fn unpack_tarball(
         .and_then(OsStr::to_str)
         .unwrap_or("");
 
-    if let Some(file_download_config) = game_info.find_download_config_by_name(&name) {
+    if let Some(file_download_config) = game_info.find_download_config_by_name(name) {
         if let Some(tmp_extract_location) = file_download_config.extract_location {
             extract_location = tmp_extract_location;
             info!(
@@ -498,7 +498,7 @@ pub fn install(
 
     let mut setup_complete = false;
     if let Some(setup) = &game_info.setup {
-        setup_complete = is_setup_complete(&setup);
+        setup_complete = is_setup_complete(setup);
     }
 
     let config = config::Config::from_config_file();
@@ -509,21 +509,19 @@ pub fn install(
         let name = &file_info.name;
         let mut cache_dir = &app_id;
         if file_info.cache_by_name {
-            cache_dir = &name;
+            cache_dir = name;
         }
 
         if setup_complete {
-            if let Some(download_config) = &game_info.download_config {
-                if let Some(download_config) = game_info.find_download_config_by_name(&name) {
-                    if download_config.setup {
-                        continue;
-                    }
+            if let Some(download_config) = game_info.find_download_config_by_name(name) {
+                if download_config.setup {
+                    continue;
                 }
             }
         }
 
         if hash_check_install {
-            if let Some(install_file_path) = find_cached_file(cache_dir, &file) {
+            if let Some(install_file_path) = find_cached_file(cache_dir, file) {
                 let status_obj = client::StatusObj {
                     log_line: Some(format!("Checking install for {}", name)),
                     ..Default::default()
@@ -571,9 +569,9 @@ pub fn install(
             }
         }
 
-        match find_cached_file(cache_dir, &file) {
+        match find_cached_file(cache_dir, file) {
             Some(path) => {
-                match unpack_tarball(&path, game_info, &name, sender) {
+                match unpack_tarball(&path, game_info, name, sender) {
                     Ok(()) => {}
                     Err(err) => {
                         return Err(err);
@@ -590,7 +588,7 @@ pub fn install(
 
 pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
     let package_metadata = package_metadata::PackageMetadata::from_packages_file();
-    let game_info = package_metadata.find_game_by_app_id(app_id).clone();
+    let game_info = package_metadata.find_game_by_app_id(app_id);
 
     match find_user_packages_file() {
         Some(user_packages_file) => {
@@ -617,7 +615,7 @@ pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
             let user_game_info = user_parsed[app_id].clone();
             if user_game_info.is_null() {
                 if !user_parsed["default"].is_null()
-                    && (!game_info.is_some()
+                    && (game_info.is_none()
                         || (!user_parsed["override_all_with_user_default"].is_null()
                             && user_parsed["override_all_with_user_default"] == true))
                 {
@@ -654,11 +652,11 @@ pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
         }
     };
 
-    if !game_info.is_some() {
+    if let Some(ret_game_info) = game_info {
+        Ok(ret_game_info)
+    } else {
         info!("game info using default");
         Ok(package_metadata.default_engine)
-    } else {
-        Ok(game_info.unwrap())
     }
 }
 
@@ -668,7 +666,7 @@ pub fn get_app_id_deps_paths(deps: &Vec<u32>) -> Option<()> {
             for app_id in deps {
                 info!("get_app_id_deps_paths. searching for app id {}.", app_id);
 
-                match steamdir.app(&app_id) {
+                match steamdir.app(app_id) {
                     Some(app_location) => {
                         let app_location_path = app_location.path.clone();
                         let app_location_str =

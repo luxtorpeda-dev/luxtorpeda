@@ -73,7 +73,7 @@ pub fn process_setup_details(
 
     if let Some(license_path) = &setup_info.license_path {
         if Path::new(&license_path).exists() {
-            let mut file = File::open(&license_path.to_string())?;
+            let mut file = File::open(license_path)?;
             let mut file_buf = vec![];
             file.read_to_end(&mut file_buf)?;
             let file_str = String::from_utf8_lossy(&file_buf);
@@ -131,7 +131,7 @@ pub fn run_setup(
         return Err(Error::new(ErrorKind::Other, "setup failed"));
     }
 
-    File::create(setup_info.complete_path.to_string())?;
+    File::create(setup_info.complete_path.clone())?;
 
     Ok(())
 }

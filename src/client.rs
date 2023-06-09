@@ -341,7 +341,7 @@ impl LuxClient {
         }
 
         if let Some(app_ids_deps) = &game_info.app_ids_deps {
-            match package::get_app_id_deps_paths(&app_ids_deps) {
+            match package::get_app_id_deps_paths(app_ids_deps) {
                 Some(()) => {
                     info!("download_all. get_app_id_deps_paths completed");
                 }
@@ -654,8 +654,8 @@ impl LuxClient {
                 };
 
             if let Some(setup_info) = &game_info.setup {
-                if !after_setup_question_mode && !package::is_setup_complete(&setup_info) {
-                    match command::process_setup_details(&setup_info) {
+                if !after_setup_question_mode && !package::is_setup_complete(setup_info) {
+                    match command::process_setup_details(setup_info) {
                         Ok(setup_details) => {
                             info!("setup details ready: {:?}", setup_details);
 
@@ -674,7 +674,7 @@ impl LuxClient {
 
                                 return;
                             } else {
-                                match command::run_setup(&setup_info, &sender) {
+                                match command::run_setup(setup_info, &sender) {
                                     Ok(()) => {}
                                     Err(err) => {
                                         error!("command::run_setup err: {:?}", err);
@@ -708,7 +708,7 @@ impl LuxClient {
                 }
 
                 if after_setup_question_mode {
-                    match command::run_setup(&setup_info, &sender) {
+                    match command::run_setup(setup_info, &sender) {
                         Ok(()) => {}
                         Err(err) => {
                             error!("command::run_setup err: {:?}", err);

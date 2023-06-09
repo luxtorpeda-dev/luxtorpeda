@@ -207,7 +207,7 @@ impl Game {
                 }
 
                 if let Some(engine) =
-                    PackageMetadata::find_engine_by_name(&package_metadata, &engine_name)
+                    PackageMetadata::find_engine_by_name(&package_metadata, engine_name)
                 {
                     if let Some(engine_notices) = engine.notices {
                         for entry in engine_notices {
@@ -265,7 +265,7 @@ impl Game {
                     for entry in game_notices {
                         choice_info
                             .notices
-                            .push(PackageMetadata::convert_notice_to_str(&entry));
+                            .push(PackageMetadata::convert_notice_to_str(entry));
                     }
                 }
 
@@ -278,7 +278,8 @@ impl Game {
 
     pub fn find_license_dialog_message(&self) -> Option<String> {
         let package_metadata = PackageMetadata::from_packages_file();
-        if let Some(engine) = PackageMetadata::find_engine_by_name(&package_metadata, &self.engine_name)
+        if let Some(engine) =
+            PackageMetadata::find_engine_by_name(&package_metadata, &self.engine_name)
         {
             if let Some(engine_notices) = engine.notices {
                 for entry in engine_notices {
