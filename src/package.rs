@@ -219,9 +219,9 @@ pub fn convert_game_info_with_choice(
     let mut choice_data = HashMap::new();
     let mut new_downloads: Vec<package_metadata::DownloadItem> = vec![];
 
-    if let Some(choices) = &game_info.choices {
+    if let Some(choices) = game_info.choices.clone() {
         for entry in choices {
-            choice_data.insert(&entry.name, entry.clone());
+            choice_data.insert(entry.name.clone(), entry.clone());
         }
     } else {
         return Err(Error::new(ErrorKind::Other, "choices array null"));
@@ -250,9 +250,8 @@ pub fn convert_game_info_with_choice(
     }
 
     game_info.download = new_downloads;
+    game_info.update_from_choice(engine_choice_data);
     game_info.choices = None;
-
-    // TODO: replace game_info fields with engine_choice_data, other than download and name
 
     Ok(())
 }

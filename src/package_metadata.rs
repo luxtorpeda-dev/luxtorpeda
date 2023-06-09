@@ -72,6 +72,7 @@ pub struct EngineChoice {
     pub download_config: Option<Vec<DownloadConfig>>,
     notices: Option<Vec<Notice>>,
     pub commands: Option<Vec<GameCommand>>,
+    pub setup: Option<Setup>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
@@ -308,5 +309,31 @@ impl Game {
         }
 
         None
+    }
+
+    pub fn update_from_choice(&mut self, engine_choice: &EngineChoice) {
+        if let Some(engine_name) = &engine_choice.engine_name {
+            self.engine_name = engine_name.to_string();
+        }
+
+        if engine_choice.command.is_some() {
+            self.command = engine_choice.command.clone();
+        }
+
+        if !engine_choice.command_args.is_empty() {
+            self.command_args = engine_choice.command_args.clone();
+        }
+
+        if engine_choice.download_config.is_some() {
+            self.download_config = engine_choice.download_config.clone();
+        }
+
+        if engine_choice.commands.is_some() {
+            self.commands = engine_choice.commands.clone();
+        }
+
+        if engine_choice.setup.is_some() {
+            self.setup = engine_choice.setup.clone();
+        }
     }
 }
