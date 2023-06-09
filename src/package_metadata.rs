@@ -13,6 +13,7 @@ pub struct PackageMetadata {
     pub games: Vec<Game>,
     pub engines: Vec<Engine>,
     pub default_engine: Game,
+    pub notice_translation: Vec<NoticeTranslation>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
@@ -137,6 +138,13 @@ pub struct Notice {
     pub value: Option<String>,
 }
 
+#[derive(Default, Deserialize, Serialize, Debug, Clone)]
+#[serde(default)]
+pub struct NoticeTranslation {
+    pub key: String,
+    pub value: String,
+}
+
 impl PackageMetadata {
     pub fn from_packages_file() -> PackageMetadata {
         let packages_json_file = PackageMetadata::path_to_packages_file();
@@ -169,9 +177,33 @@ impl PackageMetadata {
         self.engines.iter().find(|x| x.engine_name == name).cloned()
     }
 
-    pub fn convert_notice_to_str(notice_item: &Notice) -> String {
-        // TODO: fix this!
+    pub fn find_notice_translation_by_key(&self, key: &str) -> Option<NoticeTranslation> {
+        self.notice_translation
+            .iter()
+            .find(|x| x.key == key)
+            .cloned()
+    }
+
+    pub fn convert_notice_to_str(&self, notice_item: &Notice) -> String {
         let mut notice = String::new();
+
+        if let Some(label) = &notice_item.label {
+            notice = label.to_string();
+        } else if let Some(value) = &notice_item.value {
+            if let Some(notice_translation) = self.find_notice_translation_by_key(&value)
+            {
+                notice = notice_translation.value;
+            } else {
+                notice = value.to_string();
+            }
+        } else if let Some(key) = &notice_item.key {
+            if let Some(notice_translation) = self.find_notice_translation_by_key(&key) {
+                notice = notice_translation.value;
+            } else {
+                notice = key.to_string();
+            }
+        }
+
         notice
     }
 
@@ -214,7 +246,7 @@ impl Game {
                         for entry in engine_notices {
                             choice_info
                                 .notices
-                                .push(PackageMetadata::convert_notice_to_str(&entry));
+                                .push(PackageMetadata::convert_notice_to_str(&package_metadata, &entry));
                         }
                     }
 
@@ -266,7 +298,7 @@ impl Game {
                     for entry in game_notices {
                         choice_info
                             .notices
-                            .push(PackageMetadata::convert_notice_to_str(entry));
+                            .push(PackageMetadata::convert_notice_to_str(&package_metadata, entry));
                     }
                 }
 
