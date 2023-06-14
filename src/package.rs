@@ -103,6 +103,14 @@ pub fn generate_hash_from_file_path(file_path: &Path) -> io::Result<String> {
     Ok(hash_str)
 }
 
+pub fn generate_hash_from_string(hashable_string: &String) -> io::Result<String> {
+    let mut hasher = Sha256::new();
+    hasher.update(hashable_string);
+    let hash_result = hasher.finalize();
+    let hash_str = hex::encode(hash_result);
+    Ok(hash_str)
+}
+
 pub fn convert_game_info_with_choice(
     choice_name: String,
     game_info: &mut package_metadata::Game,
@@ -419,8 +427,22 @@ pub fn install(
                 let status_str = serde_json::to_string(&status_obj).unwrap();
                 sender.send(status_str).unwrap();
 
+                let mut hash_file_path = std::format!("{}.hash", name);
+
+                if let Some(file_download_config) = game_info.find_download_config_by_name(name) {
+                    if let Some(tmp_extract_location) = file_download_config.extract_location {
+                        let hashed_extract_location =
+                            generate_hash_from_string(&tmp_extract_location)?;
+                        hash_file_path = std::format!("{}-{}.hash", name, hashed_extract_location);
+                        info!(
+                            "hash_check_install extract location with config {}",
+                            tmp_extract_location
+                        );
+                    }
+                }
+
                 info!("hash_check_install is enabled, checking for {}", name);
-                let hash_file_path = std::format!("{}.hash", name);
+
                 let install_file_hash = generate_hash_from_file_path(&install_file_path)?;
 
                 if let Some(cached_hash_path) = find_cached_file(&app_id, hash_file_path.as_str()) {
