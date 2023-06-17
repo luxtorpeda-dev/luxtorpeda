@@ -53,6 +53,7 @@ _global_script_class_icons={
 config/name="Luxtorpeda"
 run/main_scene="res://Scenes/MainScene/MainScene.tscn"
 config/use_custom_user_dir=true
+run/low_processor_mode=true
 boot_splash/show_image=false
 boot_splash/fullsize=false
 boot_splash/use_filter=false
@@ -63,6 +64,10 @@ config/icon="res://Resources/icon.png"
 
 ControllerIcons="*res://addons/controller_icons/ControllerIcons.gd"
 rust_panic_hook="*res://rust_panic_hook.gd"
+
+[debug]
+
+settings/fps/force_fps=60
 
 [display]
 
@@ -116,5 +121,21 @@ common/enable_pause_aware_picking=true
 
 [rendering]
 
+quality/driver/driver_name="GLES2"
+quality/intended_usage/framebuffer_allocation=1
+quality/intended_usage/framebuffer_allocation.mobile=1
 threads/thread_model=2
+quality/directional_shadow/size=256
+quality/directional_shadow/size.mobile=256
+quality/shadow_atlas/size=256
+quality/shadow_atlas/cubemap_size=64
+quality/shadows/filter_mode=0
+quality/reflections/texture_array_reflections=false
+quality/reflections/high_quality_ggx=false
+quality/reflections/irradiance_max_size=32
+quality/reflections/atlas_size=0
+quality/reflections/atlas_subdiv=0
+quality/depth/hdr=false
 environment/default_environment="res://default_env.tres"
+quality/subsurface_scattering/quality=0
+quality/subsurface_scattering/weight_samples=false
