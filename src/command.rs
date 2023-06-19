@@ -240,33 +240,45 @@ pub fn run_wrapper(
                 .args(exe_args)
                 .env(LUX_ORIGINAL_EXE, args[0])
                 .env(LUX_ORIGINAL_EXE_FILE, exe_file)
-                .status()
+                .spawn()
             {
-                Ok(status) => {
-                    info!("run returned with {}", status);
-                    if let Some(exit_code) = status.code() {
-                        if exit_code == 10 {
-                            info!("run returned with lux exit code");
-                            match fs::read_to_string("last_error.txt") {
-                                Ok(s) => {
-                                    ret = Err(Error::new(
-                                        ErrorKind::Other,
-                                        std::format!("Error on run: {}", s),
-                                    ));
-                                }
-                                Err(err) => {
-                                    error!("read err: {:?}", err);
-                                }
-                            };
-                        }
-                    } else {
-                        ret = Ok(());
+                Ok(mut child) => {
+                    let config = config::Config::from_config_file();
+                    if config.close_client_on_launch {
+                        info!("closing client without waiting on engine close");
+                        std::process::exit(0);
                     }
+                    match child.wait() {
+                        Ok(status) => {
+                            info!("run returned with {}", status);
+                            if let Some(exit_code) = status.code() {
+                                if exit_code == 10 {
+                                    info!("run returned with lux exit code");
+                                    match fs::read_to_string("last_error.txt") {
+                                        Ok(s) => {
+                                            ret = Err(Error::new(
+                                                ErrorKind::Other,
+                                                std::format!("Error on run: {}", s),
+                                            ));
+                                        }
+                                        Err(err) => {
+                                            error!("read err: {:?}", err);
+                                        }
+                                    };
+                                }
+                            } else {
+                                ret = Ok(());
+                            }
+                        }
+                        Err(err) => {
+                            ret = Err(err);
+                        }
+                    };
                 }
                 Err(err) => {
                     ret = Err(err);
                 }
-            };
+            }
         }
     };
 

@@ -13,6 +13,7 @@ pub struct Config {
     pub disable_default_confirm: bool,
     pub enable_steam_cloud: bool,
     pub hash_check_install: bool,
+    pub close_client_on_launch: bool,
 }
 
 impl Default for Config {
@@ -23,6 +24,7 @@ impl Default for Config {
             disable_default_confirm: false,
             enable_steam_cloud: false,
             hash_check_install: true,
+            close_client_on_launch: false,
         }
     }
 }
