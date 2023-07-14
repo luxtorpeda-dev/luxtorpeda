@@ -44,7 +44,7 @@ pub fn usage() {
     println!("usage: lux [run | wait-before-run | manual-download] <exe | app_id> [<exe_args>]");
 }
 
-fn find_game_command(
+pub fn find_game_command(
     info: &package_metadata::Game,
     args: &[&str],
 ) -> Option<(String, Vec<String>)> {

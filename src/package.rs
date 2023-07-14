@@ -17,6 +17,7 @@ use tar::Archive;
 use xz2::read::XzDecoder;
 
 use crate::client;
+use crate::command::find_game_command;
 use crate::config;
 use crate::package_metadata;
 use crate::user_env;
@@ -402,6 +403,14 @@ pub fn install(
     let config = config::Config::from_config_file();
     let hash_check_install = config.hash_check_install;
 
+    let mut game_command_file_found = false;
+    if let Some((cmd, _)) = find_game_command(game_info, &[]) {
+        let cmd_path = Path::new(&cmd);
+        if cmd_path.exists() {
+            game_command_file_found = true;
+        }
+    }
+
     for file_info in &game_info.download {
         let file = &file_info.file;
         let name = &file_info.name;
@@ -441,7 +450,10 @@ pub fn install(
                     }
                 }
 
-                info!("hash_check_install is enabled, checking for {}", name);
+                info!(
+                    "hash_check_install is enabled, checking for {}, game_command_file_found: {}",
+                    name, game_command_file_found
+                );
 
                 let install_file_hash = generate_hash_from_file_path(&install_file_path)?;
 
@@ -457,19 +469,23 @@ pub fn install(
                         cached_hash_value, install_file_hash
                     );
                     if cached_hash_value == install_file_hash {
-                        info!("hash for {} is same, skipping install", name);
+                        if game_command_file_found {
+                            info!("hash for {} is same, skipping install", name);
 
-                        let status_obj = client::StatusObj {
-                            log_line: Some(format!(
-                                "Skipping install for {}, as hash is the same",
-                                name
-                            )),
-                            ..Default::default()
-                        };
-                        let status_str = serde_json::to_string(&status_obj).unwrap();
-                        sender.send(status_str).unwrap();
+                            let status_obj = client::StatusObj {
+                                log_line: Some(format!(
+                                    "Skipping install for {}, as hash is the same",
+                                    name
+                                )),
+                                ..Default::default()
+                            };
+                            let status_str = serde_json::to_string(&status_obj).unwrap();
+                            sender.send(status_str).unwrap();
 
-                        continue;
+                            continue;
+                        } else {
+                            info!("ignorning hash match for {}, since game command file was not found", name);
+                        }
                     }
                 }
 
