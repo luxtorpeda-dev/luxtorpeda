@@ -484,7 +484,10 @@ pub fn install(
 
                             continue;
                         } else {
-                            info!("ignorning hash match for {}, since game command file was not found", name);
+                            info!(
+                                "ignoring hash match for {}, since game command file was not found",
+                                name
+                            );
                         }
                     }
                 }
