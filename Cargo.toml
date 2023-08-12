@@ -10,28 +10,28 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-serde = { version = "1.0.148", features = ["derive"] }
-serde_json = "1.0.89"
+serde = { version = "1.0.183", features = ["derive"] }
+serde_json = "1.0.104"
 serde_regex = "1.1"
 json = "0.12.4"
-regex = "1.6.0"
-reqwest = { version = "0.11.13", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
+regex = "1.9.3"
+reqwest = { version = "0.11.18", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
 users = "0.11"
-xdg = "2.4.1"
-tar = "0.4.38"
+xdg = "2.5.2"
+tar = "0.4.40"
 xz2 = "0.1.7"
 sha2 = "0.10"
 hex = "0.4.3"
 bzip2 = "0.4.4"
-zip = "0.6.2"
-flate2 = "1.0.23"
-futures-util = "0.3.21"
-tokio = { version = "1.24.2", default-features = false, features = ["full"] }
+zip = "0.6.6"
+flate2 = "1.0.26"
+futures-util = "0.3.28"
+tokio = { version = "1.31.0", default-features = false, features = ["full"] }
 which = "4.3.0"
 steamlocate = "2.0.0-alpha.0"
-signal-hook = "0.3.14"
-log = "0.4.17"
-simplelog = "0.12.0"
+signal-hook = "0.3.17"
+log = "0.4.20"
+simplelog = "0.12.1"
 gdnative = "0.11"
 godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }
 sevenz-rust = "0.4"
