@@ -2,6 +2,7 @@ extern crate reqwest;
 extern crate tar;
 extern crate xz2;
 
+use ar::Archive as ArArchive;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use log::{error, info};
@@ -213,6 +214,7 @@ fn unpack_tarball(
     let mut strip_prefix: String = String::new();
     let mut decode_as_zip = false;
     let mut decode_as_7z = false;
+    let mut decode_with_ar = false;
 
     let file_extension = Path::new(&tarball)
         .extension()
@@ -239,6 +241,9 @@ fn unpack_tarball(
     } else if file_extension == "7z" {
         decode_as_7z = true;
         info!("install changing decoder to 7z");
+    } else if file_extension == "deb" {
+        decode_with_ar = true;
+        info!("install changing decoder to ar");
     }
 
     let file = fs::File::open(tarball)?;
@@ -296,6 +301,44 @@ fn unpack_tarball(
             Ok(true)
         })
         .expect("complete");
+    } else if decode_with_ar {
+        let mut archive = ArArchive::new(file);
+        while let Some(entry_result) = archive.next_entry() {
+            let mut entry = entry_result.unwrap();
+            let filename = std::str::from_utf8(entry.header().identifier()).unwrap();
+            let new_name = format!("{}_{}", name, filename);
+            if filename == "data.tar.xz" {
+                let mut new_path = PathBuf::from(filename);
+
+                if !strip_prefix.is_empty() {
+                    new_path = new_path.strip_prefix(&strip_prefix).unwrap().to_path_buf();
+                }
+
+                if !extract_location.is_empty() {
+                    new_path = Path::new(&extract_location).join(new_path);
+                }
+
+                info!("install: {:?}", &new_path);
+
+                if new_path.parent().is_some() {
+                    fs::create_dir_all(new_path.parent().unwrap())?;
+                }
+
+                let _ = fs::remove_file(&new_path);
+                let mut outfile = fs::File::create(&new_path).unwrap();
+                io::copy(&mut entry, &mut outfile).unwrap();
+
+                info!("sending install for {}", new_name);
+                match unpack_tarball(&new_path, game_info, &new_name, sender) {
+                    Ok(()) => {}
+                    Err(err) => {
+                        error!("Error on unpack_tarball: {:?}", err)
+                    }
+                };
+            } else {
+                info!("skipping install from ar for {}", filename);
+            }
+        }
     } else {
         let decoder: Box<dyn std::io::Read>;
 
