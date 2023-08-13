@@ -35,6 +35,7 @@ simplelog = "0.12.1"
 gdnative = "0.11"
 godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }
 sevenz-rust = "0.4"
+ar = "0.9.0"
 
 [workspace.metadata.release]
 allow-branch = ["master"]
