@@ -2,6 +2,7 @@ extern crate reqwest;
 extern crate tar;
 extern crate xz2;
 
+use ar::Archive as ArArchive;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use log::{error, info};
@@ -15,7 +16,6 @@ use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use tar::Archive;
 use xz2::read::XzDecoder;
-use ar::Archive as ArArchive;
 
 use crate::client;
 use crate::command::find_game_command;
