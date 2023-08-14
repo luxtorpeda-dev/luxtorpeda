@@ -38,6 +38,7 @@ sevenz-rust = "0.4"
 ar = "0.9.0"
 iso9660 = "0.1.1"
 rbchunk = "2.0.3"
+walkdir = "2"
 
 [workspace.metadata.release]
 allow-branch = ["master"]

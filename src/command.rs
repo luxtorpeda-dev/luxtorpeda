@@ -16,6 +16,8 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
+use walkdir::WalkDir;
+use std::ffi::OsStr;
 
 use crate::client;
 use crate::config;
@@ -242,25 +244,50 @@ fn iso_extract_tree<T: ISO9660Reader>(
 }
 
 fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::Result<()> {
-    //TODO: make file_path optional and do a file path search (file path search if nothing found should not error out, just continue on)
-    match std::fs::File::open(&iso_extract_info.file_path) {
-        Ok(file) => match ISO9660::new(file) {
-            Ok(iso) => iso_extract_tree(&iso.root, "".to_string(), iso_extract_info),
+    let mut iso_path = String::new();
+    if let Some(file_path) = &iso_extract_info.file_path {
+        iso_path = (&file_path).to_string();
+    } else if let Some(recursive_start_path) = &iso_extract_info.recursive_start_path {
+        info!("run_iso_extract, recursive check starting at {}", &recursive_start_path);
+
+        for entry in WalkDir::new(&recursive_start_path).into_iter().filter_map(|e| e.ok()) {
+            let file_path = entry.path();
+            let file_extension = file_path
+            .extension()
+            .and_then(OsStr::to_str)
+            .unwrap_or("");
+
+            if file_extension == "iso" {
+                info!("run_iso_extract, recursive check found iso at {}", file_path.display());
+                iso_path = file_path.to_str().unwrap().to_string();
+                break;
+            }
+        }
+    }
+
+    if !iso_path.is_empty() {
+         match std::fs::File::open(&iso_path) {
+            Ok(file) => match ISO9660::new(file) {
+                Ok(iso) => iso_extract_tree(&iso.root, "".to_string(), iso_extract_info),
+                Err(err) => {
+                    error!("run_iso_extract iso read err: {:?}", err);
+                    return Err(Error::new(
+                        ErrorKind::Other,
+                        "run_iso_extract failed, iso read error",
+                    ))
+                }
+            },
             Err(err) => {
-                error!("run_iso_extract iso read err: {:?}", err);
-                Err(Error::new(
+                error!("run_iso_extract file open err: {:?}", err);
+                return Err(Error::new(
                     ErrorKind::Other,
-                    "run_iso_extract failed, iso read error",
+                    "run_iso_extract failed, file open error",
                 ))
             }
-        },
-        Err(err) => {
-            error!("run_iso_extract file open err: {:?}", err);
-            Err(Error::new(
-                ErrorKind::Other,
-                "run_iso_extract failed, file open error",
-            ))
         }
+    } else {
+        info!("run_iso_extract, no file path found, continuing");
+        Ok(())
     }
 }
 
@@ -298,6 +325,13 @@ pub fn run_setup(
 
     if let Some(iso_extract_info) = &setup_info.iso_extract {
         info!("setup run iso_extract");
+        let status_obj = client::StatusObj {
+            log_line: Some("setup running iso extract".to_string()),
+            ..Default::default()
+        };
+        let status_str = serde_json::to_string(&status_obj).unwrap();
+        sender.send(status_str).unwrap();
+
         match run_iso_extract(iso_extract_info) {
             Ok(()) => {}
             Err(err) => {

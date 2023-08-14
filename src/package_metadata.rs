@@ -134,7 +134,8 @@ pub struct SetupBChunkGenerateCueFile {
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
 #[serde(default)]
 pub struct SetupIsoExtract {
-    pub file_path: String,
+    pub file_path: Option<String>,
+    pub recursive_start_path: Option<String>,
     pub extract_prefix: Option<String>,
     pub extract_to_prefix: Option<String>,
 }
