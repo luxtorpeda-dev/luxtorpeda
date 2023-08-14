@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.68-buster
+      image: rust:1.71-buster
     env:
       CARGO_HOME: ./cargo
     steps:
@@ -43,7 +43,7 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.68-buster
+      image: rust:1.71-buster
     env:
       CARGO_HOME: ./cargo
     steps:
@@ -58,7 +58,7 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.68-buster
+      image: rust:1.71-buster
     env:
       CARGO_HOME: ./cargo
     steps:
@@ -71,7 +71,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.68-buster
+      image: rust:1.71-buster
     env:
       CARGO_HOME: ./cargo
     steps:
