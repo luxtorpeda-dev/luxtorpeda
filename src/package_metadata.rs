@@ -101,6 +101,8 @@ pub struct Setup {
     pub uninstall_command: Option<String>,
     pub license_path: Option<String>,
     pub dialogs: Option<Vec<SetupDialog>>,
+    pub bchunk: Option<SetupBChunk>,
+    pub iso_extract: Option<SetupIsoExtract>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
@@ -111,6 +113,31 @@ pub struct SetupDialog {
     pub title: String,
     pub label: String,
     pub key: String,
+}
+
+#[derive(Default, Deserialize, Serialize, Debug, Clone)]
+#[serde(default)]
+pub struct SetupBChunk {
+    pub bin_file: String,
+    pub cue_file: String,
+    pub base_name: String,
+    pub generate_cue_file: Option<SetupBChunkGenerateCueFile>,
+}
+
+#[derive(Default, Deserialize, Serialize, Debug, Clone)]
+#[serde(default)]
+pub struct SetupBChunkGenerateCueFile {
+    pub original: String,
+    pub first_lines: usize,
+}
+
+#[derive(Default, Deserialize, Serialize, Debug, Clone)]
+#[serde(default)]
+pub struct SetupIsoExtract {
+    pub file_path: Option<String>,
+    pub recursive_start_path: Option<String>,
+    pub extract_prefix: Option<String>,
+    pub extract_to_prefix: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]

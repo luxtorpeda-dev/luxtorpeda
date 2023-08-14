@@ -2,15 +2,22 @@ extern crate hex;
 extern crate json;
 extern crate reqwest;
 
+use iso9660::{DirectoryEntry, ISO9660Reader, ISODirectory, ISO9660};
 use regex::Regex;
 use std::env;
+use std::ffi::OsStr;
 use std::fs;
 use std::fs::File;
 use std::io;
+use std::io::BufRead;
+use std::io::BufReader;
 use std::io::Read;
+use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
+use walkdir::WalkDir;
 
 use crate::client;
 use crate::config;
@@ -108,6 +115,194 @@ pub fn process_setup_details(
     Ok(setup_items)
 }
 
+fn run_bchunk(bchunk_info: &package_metadata::SetupBChunk) -> io::Result<()> {
+    if let Some(generate_cue_file) = &bchunk_info.generate_cue_file {
+        let file = match File::open(&generate_cue_file.original) {
+            Ok(f) => f,
+            Err(err) => {
+                error!("run_bchunk cue file open original failed {}", err);
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    format!("run_bchunk cue file failed - {}", err),
+                ));
+            }
+        };
+        let reader = BufReader::new(file);
+
+        let mut idx = 0;
+        let mut cue_lines = String::new();
+        for line in reader.lines() {
+            match line {
+                Ok(line) => {
+                    cue_lines = format!("{}{}\n", cue_lines, line);
+                    idx += 1;
+                    if idx >= generate_cue_file.first_lines {
+                        break;
+                    }
+                }
+                Err(err) => {
+                    error!("run_bchunk cue file read original failed {}", err);
+                    return Err(Error::new(
+                        ErrorKind::Other,
+                        format!("run_bchunk cue read failed - {}", err),
+                    ));
+                }
+            }
+        }
+
+        let _ = fs::remove_file(&bchunk_info.cue_file);
+        fs::write(&bchunk_info.cue_file, cue_lines).unwrap();
+    }
+
+    let args = rbchunk::Args {
+        bin_file: bchunk_info.bin_file.to_string(),
+        cue_file: bchunk_info.cue_file.to_string(),
+        verbose: true,
+        output_name: "TRACK".to_string(),
+        psx_truncate: false,
+        raw: false,
+        swap_audo_bytes: false,
+        to_wav: false,
+    };
+    match rbchunk::convert(args) {
+        Ok(()) => {
+            info!("run_bchunk, Conversion complete!");
+            Ok(())
+        }
+        Err(err) => {
+            error!("run_bchunk failed {}", err);
+            Err(Error::new(
+                ErrorKind::Other,
+                format!("run_bchunk failed - {}", err),
+            ))
+        }
+    }
+}
+
+fn iso_extract_tree<T: ISO9660Reader>(
+    dir: &ISODirectory<T>,
+    path: String,
+    iso_extract_info: &package_metadata::SetupIsoExtract,
+) -> io::Result<()> {
+    for entry_item in dir.contents() {
+        match entry_item {
+            Ok(entry) => match entry {
+                DirectoryEntry::Directory(dir) => {
+                    if dir.identifier == "." || dir.identifier == ".." {
+                        continue;
+                    }
+                    match iso_extract_tree(
+                        &dir,
+                        format!("{}/{}", path, dir.identifier),
+                        iso_extract_info,
+                    ) {
+                        Ok(()) => {}
+                        Err(err) => {
+                            error!("iso_extract_tree err: {:?}", err);
+                            return Err(Error::new(ErrorKind::Other, "iso_extract_tree failed"));
+                        }
+                    }
+                }
+                DirectoryEntry::File(file) => {
+                    let mut file_path = format!("{}/{}", path, file.identifier);
+                    let mut should_extract = true;
+
+                    if let Some(extract_prefix) = &iso_extract_info.extract_prefix {
+                        if !file_path.starts_with(extract_prefix) {
+                            should_extract = false;
+                        }
+
+                        if should_extract {
+                            if let Some(extract_to_prefix) = &iso_extract_info.extract_to_prefix {
+                                file_path = file_path.replace(extract_prefix, extract_to_prefix);
+                            }
+                        }
+                    } else if let Some(extract_to_prefix) = &iso_extract_info.extract_to_prefix {
+                        file_path = format!("{}/{}", extract_to_prefix, file_path);
+                    }
+
+                    if should_extract {
+                        let new_path = PathBuf::from(file_path);
+                        info!("iso install: {:?}", &new_path);
+
+                        if new_path.parent().is_some() {
+                            fs::create_dir_all(new_path.parent().unwrap())?;
+                        }
+
+                        let _ = fs::remove_file(&new_path);
+                        let mut outfile = fs::File::create(&new_path).unwrap();
+                        let mut contents = Vec::new();
+                        file.read().read_to_end(&mut contents).unwrap();
+                        outfile.write_all(contents.as_slice()).unwrap();
+                    } else {
+                        info!("ignore iso file: {}", file_path);
+                    }
+                }
+            },
+            Err(err) => {
+                error!("iso_extract_tree err: {:?}", err);
+                return Err(Error::new(ErrorKind::Other, "iso_extract_tree failed"));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::Result<()> {
+    let mut iso_path = String::new();
+    if let Some(file_path) = &iso_extract_info.file_path {
+        iso_path = (&file_path).to_string();
+    } else if let Some(recursive_start_path) = &iso_extract_info.recursive_start_path {
+        info!(
+            "run_iso_extract, recursive check starting at {}",
+            &recursive_start_path
+        );
+
+        for entry in WalkDir::new(recursive_start_path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let file_path = entry.path();
+            let file_extension = file_path.extension().and_then(OsStr::to_str).unwrap_or("");
+
+            if file_extension == "iso" {
+                info!(
+                    "run_iso_extract, recursive check found iso at {}",
+                    file_path.display()
+                );
+                iso_path = file_path.to_str().unwrap().to_string();
+                break;
+            }
+        }
+    }
+
+    if !iso_path.is_empty() {
+        match std::fs::File::open(&iso_path) {
+            Ok(file) => match ISO9660::new(file) {
+                Ok(iso) => iso_extract_tree(&iso.root, "".to_string(), iso_extract_info),
+                Err(err) => {
+                    error!("run_iso_extract iso read err: {}", err);
+                    Err(Error::new(
+                        ErrorKind::Other,
+                        "run_iso_extract failed, iso read error",
+                    ))
+                }
+            },
+            Err(err) => {
+                error!("run_iso_extract file open err: {:?}", err);
+                Err(Error::new(
+                    ErrorKind::Other,
+                    "run_iso_extract failed, file open error",
+                ))
+            }
+        }
+    } else {
+        info!("run_iso_extract, no file path found, continuing");
+        Ok(())
+    }
+}
+
 pub fn run_setup(
     setup_info: &package_metadata::Setup,
     sender: &std::sync::mpsc::Sender<String>,
@@ -121,6 +316,42 @@ pub fn run_setup(
     };
     let status_str = serde_json::to_string(&status_obj).unwrap();
     sender.send(status_str).unwrap();
+
+    if let Some(bchunk_info) = &setup_info.bchunk {
+        info!("setup run bchunk");
+        let status_obj = client::StatusObj {
+            log_line: Some("setup running bchunk".to_string()),
+            ..Default::default()
+        };
+        let status_str = serde_json::to_string(&status_obj).unwrap();
+        sender.send(status_str).unwrap();
+
+        match run_bchunk(bchunk_info) {
+            Ok(()) => {}
+            Err(err) => {
+                error!("command::run_bchunk err: {:?}", err);
+                return Err(err);
+            }
+        }
+    }
+
+    if let Some(iso_extract_info) = &setup_info.iso_extract {
+        info!("setup run iso_extract");
+        let status_obj = client::StatusObj {
+            log_line: Some("setup running iso extract".to_string()),
+            ..Default::default()
+        };
+        let status_str = serde_json::to_string(&status_obj).unwrap();
+        sender.send(status_str).unwrap();
+
+        match run_iso_extract(iso_extract_info) {
+            Ok(()) => {}
+            Err(err) => {
+                error!("command::run_iso_extract err: {:?}", err);
+                return Err(err);
+            }
+        }
+    }
 
     let setup_cmd = Command::new(command_str)
         .env("LD_PRELOAD", "")
