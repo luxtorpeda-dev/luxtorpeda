@@ -1035,7 +1035,7 @@ dependencies = [
 
 [[package]]
 name = "luxtorpeda"
-version = "65.1.1"
+version = "66.0.0"
 dependencies = [
  "ar",
  "bzip2",
