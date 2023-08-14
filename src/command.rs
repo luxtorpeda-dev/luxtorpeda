@@ -191,11 +191,17 @@ fn iso_extract_tree<T: ISO9660Reader>(
                     if dir.identifier == "." || dir.identifier == ".." {
                         continue;
                     }
-                    return iso_extract_tree(
+                    match iso_extract_tree(
                         &dir,
                         format!("{}/{}", path, dir.identifier),
                         iso_extract_info,
-                    );
+                    ) {
+                        Ok(()) => {},
+                        Err(err) => {
+                            error!("iso_extract_tree err: {:?}", err);
+                            return Err(Error::new(ErrorKind::Other, "iso_extract_tree failed"));
+                        }
+                    }
                 }
                 DirectoryEntry::File(file) => {
                     let mut file_path = format!("{}/{}", path, file.identifier);
@@ -270,7 +276,7 @@ fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::
             Ok(file) => match ISO9660::new(file) {
                 Ok(iso) => iso_extract_tree(&iso.root, "".to_string(), iso_extract_info),
                 Err(err) => {
-                    error!("run_iso_extract iso read err: {:?}", err);
+                    error!("run_iso_extract iso read err: {}", err);
                     return Err(Error::new(
                         ErrorKind::Other,
                         "run_iso_extract failed, iso read error",

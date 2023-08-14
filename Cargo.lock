@@ -913,8 +913,7 @@ checksum = "28b29a3cd74f0f4598934efe3aeba42bae0eb4680554128851ebbecb02af14e6"
 [[package]]
 name = "iso9660"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40596d62fc30ad9c7b0c6eb52974f696d14b8f2faf98a76dbfb93435769aa0ff"
+source = "git+https://github.com/luxtorpeda-dev/iso9660-rs.git?rev=43a76ed#43a76ed5d2620d0a350faaaa0835364eea098d44"
 dependencies = [
  "bitflags 2.4.0",
  "nom",
