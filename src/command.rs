@@ -5,6 +5,7 @@ extern crate reqwest;
 use iso9660::{DirectoryEntry, ISO9660Reader, ISODirectory, ISO9660};
 use regex::Regex;
 use std::env;
+use std::ffi::OsStr;
 use std::fs;
 use std::fs::File;
 use std::io;
@@ -17,7 +18,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 use walkdir::WalkDir;
-use std::ffi::OsStr;
 
 use crate::client;
 use crate::config;
@@ -196,7 +196,7 @@ fn iso_extract_tree<T: ISO9660Reader>(
                         format!("{}/{}", path, dir.identifier),
                         iso_extract_info,
                     ) {
-                        Ok(()) => {},
+                        Ok(()) => {}
                         Err(err) => {
                             error!("iso_extract_tree err: {:?}", err);
                             return Err(Error::new(ErrorKind::Other, "iso_extract_tree failed"));
@@ -254,17 +254,23 @@ fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::
     if let Some(file_path) = &iso_extract_info.file_path {
         iso_path = (&file_path).to_string();
     } else if let Some(recursive_start_path) = &iso_extract_info.recursive_start_path {
-        info!("run_iso_extract, recursive check starting at {}", &recursive_start_path);
+        info!(
+            "run_iso_extract, recursive check starting at {}",
+            &recursive_start_path
+        );
 
-        for entry in WalkDir::new(&recursive_start_path).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(recursive_start_path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
             let file_path = entry.path();
-            let file_extension = file_path
-            .extension()
-            .and_then(OsStr::to_str)
-            .unwrap_or("");
+            let file_extension = file_path.extension().and_then(OsStr::to_str).unwrap_or("");
 
             if file_extension == "iso" {
-                info!("run_iso_extract, recursive check found iso at {}", file_path.display());
+                info!(
+                    "run_iso_extract, recursive check found iso at {}",
+                    file_path.display()
+                );
                 iso_path = file_path.to_str().unwrap().to_string();
                 break;
             }
@@ -272,12 +278,12 @@ fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::
     }
 
     if !iso_path.is_empty() {
-         match std::fs::File::open(&iso_path) {
+        match std::fs::File::open(&iso_path) {
             Ok(file) => match ISO9660::new(file) {
                 Ok(iso) => iso_extract_tree(&iso.root, "".to_string(), iso_extract_info),
                 Err(err) => {
                     error!("run_iso_extract iso read err: {}", err);
-                    return Err(Error::new(
+                    Err(Error::new(
                         ErrorKind::Other,
                         "run_iso_extract failed, iso read error",
                     ))
@@ -285,7 +291,7 @@ fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::
             },
             Err(err) => {
                 error!("run_iso_extract file open err: {:?}", err);
-                return Err(Error::new(
+                Err(Error::new(
                     ErrorKind::Other,
                     "run_iso_extract failed, file open error",
                 ))
