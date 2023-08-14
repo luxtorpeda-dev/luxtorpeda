@@ -128,14 +128,15 @@ pub struct SetupBChunk {
 #[serde(default)]
 pub struct SetupBChunkGenerateCueFile {
     pub original: String,
-    pub first_lines: u8,
+    pub first_lines: usize,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
 #[serde(default)]
 pub struct SetupIsoExtract {
     pub file_path: String,
-    pub extract: String,
+    pub extract_prefix: Option<String>,
+    pub extract_to_prefix: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
