@@ -15,7 +15,7 @@ serde_json = "1.0.104"
 serde_regex = "1.1"
 json = "0.12.4"
 regex = "1.9.3"
-reqwest = { version = "0.11.18", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
+reqwest = { version = "0.11.19", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
 users = "0.11"
 xdg = "2.5.2"
 tar = "0.4.40"
@@ -33,7 +33,7 @@ signal-hook = "0.3.17"
 log = "0.4.20"
 simplelog = "0.12.1"
 gdnative = "0.11"
-godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }
+godot-logger = "1.1.0"
 sevenz-rust = "0.4"
 ar = "0.9.0"
 iso9660 = { git = "https://github.com/luxtorpeda-dev/iso9660-rs.git", "rev" = "43a76ed" }
