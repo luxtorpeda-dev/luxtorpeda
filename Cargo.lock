@@ -702,7 +702,8 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 [[package]]
 name = "godot-logger"
 version = "1.1.0"
-source = "git+https://github.com/jdno/godot-logger.git?rev=74a7e49#74a7e49f00aab475575a45c7b1c7ca4be7d6d8b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60e251437ebc87a64cdfb26ef35eb982489786ccae76b3927f4817f59a93579c"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1042,8 +1043,7 @@ checksum = "a94d21414c1f4a51209ad204c1776a3d0765002c76c6abcb602a6f09f1e881c7"
 [[package]]
 name = "log4rs"
 version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d36ca1786d9e79b8193a68d480a0907b612f109537115c6ff655a3a1967533fd"
+source = "git+https://github.com/estk/log4rs?rev=1b988ed#1b988edd87c47d1c85afe4af8dee0aff38254456"
 dependencies = [
  "anyhow",
  "arc-swap",
