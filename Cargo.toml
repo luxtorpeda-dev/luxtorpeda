@@ -33,10 +33,10 @@ signal-hook = "0.3.17"
 log = "0.4.20"
 simplelog = "0.12.1"
 gdnative = "0.11"
-godot-logger = "1.1.0"
+godot-logger = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }
 sevenz-rust = "0.4"
 ar = "0.9.0"
-iso9660 = { git = "https://github.com/luxtorpeda-dev/godot-logger.git", "rev" = "f0db7f7" }
+iso9660 = { git = "https://github.com/luxtorpeda-dev/iso9660-rs.git", "rev" = "43a76ed" }
 rbchunk = "2.0.3"
 walkdir = "2"
 
