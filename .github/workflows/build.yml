@@ -48,23 +48,17 @@ jobs:
       with:
         name: luxtorpeda.tar.xz
         path: ./
+    - name: Rename Artifact for Release Prep
+      run: mv luxtorpeda.tar.xz luxtorpeda-${{ github.ref_name }}.tar.xz
     - name: Create Release
       id: create_release
-      uses: luxtorpeda-dev/create-release@v2
+      uses: softprops/action-gh-release@v0.1.15
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           draft: false
           prerelease: false
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: luxtorpeda-dev/upload-release-asset@v3
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: luxtorpeda.tar.xz
-        asset_name: luxtorpeda-${{ github.ref_name }}.tar.xz
-        asset_content_type: application/x-xz
+          generate_release_notes: true
+          files: luxtorpeda-${{ github.ref_name }}.tar.xz
