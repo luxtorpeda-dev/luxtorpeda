@@ -344,7 +344,7 @@ fn unpack_tarball(
 
         if file_extension == "bz2" {
             decoder = Box::new(BzDecoder::new(file));
-        } else if file_extension == "gz" {
+        } else if file_extension == "gz" || file_extension == "tgz" {
             decoder = Box::new(GzDecoder::new(file));
         } else if file_extension == "xz" {
             decoder = Box::new(XzDecoder::new(file));
