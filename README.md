@@ -82,7 +82,8 @@ You will need Rust, Cargo, OpenSSL, Godot3 and export templates.
 
 #### 2. Get export templates for Godot
 
-You can either open Godot, go to settings and install the export templates from there. If you prefer to use the terminal these commands should work:
+- You can either open Godot, go to settings and install the export templates from there.
+- If you prefer to use the terminal these commands should work:
 
     ```bash
     $ mkdir -p ~/.local/share/godot/templates/3.5.2.stable/
