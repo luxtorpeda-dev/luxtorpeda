@@ -14,6 +14,9 @@ use std::io;
 use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::thread;
+use std::time::Duration;
 use tar::Archive;
 use xz2::read::XzDecoder;
 
@@ -634,7 +637,12 @@ pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
     }
 }
 
-pub fn get_app_id_deps_paths(deps: &Vec<u32>) -> Option<()> {
+pub fn get_app_id_deps_paths(
+    deps: &Vec<u32>,
+    retry: bool,
+    sender: &std::sync::mpsc::Sender<String>,
+) -> io::Result<()> {
+    let mut steam_app_id_install_completed = false;
     match SteamDir::locate() {
         Some(mut steamdir) => {
             for app_id in deps {
@@ -643,29 +651,161 @@ pub fn get_app_id_deps_paths(deps: &Vec<u32>) -> Option<()> {
                 match steamdir.app(app_id) {
                     Some(app_location) => {
                         let app_location_path = app_location.path.clone();
-                        let app_location_str =
-                            &app_location_path.into_os_string().into_string().unwrap();
-                        info!(
-                            "get_app_id_deps_paths. app id {} found at {:#?}.",
-                            app_id, app_location_str
-                        );
-                        user_env::set_env_var(
-                            &std::format!("DEPPATH_{}", app_id).to_string(),
-                            app_location_str,
-                        );
+
+                        if app_location_path.exists()
+                            && !app_location_path.read_dir()?.next().is_none()
+                        {
+                            let app_location_str =
+                                &app_location_path.into_os_string().into_string().unwrap();
+                            let info_message = std::format!(
+                                "get_app_id_deps_paths. app id {} found at {:#?}.",
+                                app_id,
+                                app_location_str
+                            );
+                            info!("{}", info_message);
+                            user_env::set_env_var(
+                                &std::format!("DEPPATH_{}", app_id).to_string(),
+                                app_location_str,
+                            );
+
+                            let status_obj = client::StatusObj {
+                                log_line: Some(info_message),
+                                ..Default::default()
+                            };
+                            let status_str = serde_json::to_string(&status_obj).unwrap();
+                            sender.send(status_str).unwrap();
+                        } else {
+                            match get_app_id_dep_path_retry(app_id, retry, &sender.clone()) {
+                                Ok(()) => steam_app_id_install_completed = true,
+                                Err(err) => {
+                                    return Err(err);
+                                }
+                            }
+                        }
                     }
-                    None => {
-                        info!("get_app_id_deps_paths. app id {} not found.", app_id);
-                    }
+                    None => match get_app_id_dep_path_retry(app_id, retry, &sender.clone()) {
+                        Ok(()) => steam_app_id_install_completed = true,
+                        Err(err) => {
+                            return Err(err);
+                        }
+                    },
                 }
             }
 
-            Some(())
+            if steam_app_id_install_completed {
+                get_app_id_deps_paths(deps, true, &sender)
+            } else {
+                Ok(())
+            }
         }
         None => {
-            info!("get_app_id_deps_paths. steamdir not found.");
-            None
+            let error_message = "get_app_id_deps_paths. steamdir not found.";
+            error!("{}", error_message);
+            Err(Error::new(ErrorKind::Other, error_message))
         }
+    }
+}
+
+pub fn get_app_id_dep_path_retry(
+    app_id: &u32,
+    retry: bool,
+    sender: &std::sync::mpsc::Sender<String>,
+) -> io::Result<()> {
+    let error_message = std::format!(
+        "get_app_id_deps_paths. app id {} not found. retry = {}",
+        app_id,
+        retry
+    );
+    info!("{}", error_message);
+
+    if retry {
+        return Err(Error::new(ErrorKind::Other, error_message));
+    } else {
+        let status_obj = client::StatusObj {
+            log_line: Some(std::format!(
+                "get_app_id_deps_paths. app id {} requesting install",
+                app_id
+            )),
+            ..Default::default()
+        };
+        let status_str = serde_json::to_string(&status_obj).unwrap();
+        sender.send(status_str).unwrap();
+        match request_steam_app_id_install(app_id) {
+            Ok(()) => {
+                let info_message = std::format!("steam_app_id_install_completed for {}", app_id);
+                info!("{}", info_message);
+                let status_obj = client::StatusObj {
+                    log_line: Some(info_message),
+                    ..Default::default()
+                };
+                let status_str = serde_json::to_string(&status_obj).unwrap();
+                sender.send(status_str).unwrap();
+                Ok(())
+            }
+            Err(err) => {
+                let error_message = std::format!(
+                    "get_app_id_deps_paths. app id {} not found. error = {:?}",
+                    app_id,
+                    err
+                );
+                error!("{}", error_message);
+                return Err(Error::new(ErrorKind::Other, error_message));
+            }
+        }
+    }
+}
+
+pub fn request_steam_app_id_install(app_id: &u32) -> io::Result<()> {
+    match Command::new("xdg-open")
+        .args([std::format!("steam://install/{}", app_id)])
+        .spawn()
+    {
+        Ok(mut child) => {
+            match child.wait() {
+                Ok(status) => {
+                    info!("request_steam_app_id_install returned with {}", status);
+                    let mut tries = 1;
+                    let mut found_app = false;
+
+                    while tries < 60 {
+                        // wait for 5 seconds
+                        info!(
+                            "request_steam_app_id_install checking app of {} installed tries = {}",
+                            app_id, tries
+                        );
+                        if let Some(mut steamdir) = SteamDir::locate() {
+                            if let Some(app_location) = steamdir.app(app_id) {
+                                if app_location.path.exists()
+                                    && !app_location.path.read_dir()?.next().is_none()
+                                {
+                                    info!(
+                                        "request_steam_app_id_install found app location of {}",
+                                        app_id
+                                    );
+                                    found_app = true;
+                                    break;
+                                }
+                            }
+                        }
+                        tries += 1;
+                        thread::sleep(Duration::from_secs(5));
+                    }
+
+                    if found_app {
+                        Ok(())
+                    } else {
+                        let error_message = std::format!(
+                            "request_steam_app_id_install. app not found of {}.",
+                            app_id
+                        );
+                        error!("{}", error_message);
+                        Err(Error::new(ErrorKind::Other, error_message))
+                    }
+                }
+                Err(err) => Err(err),
+            }
+        }
+        Err(err) => Err(err),
     }
 }
 
