@@ -629,6 +629,8 @@ impl LuxClient {
                         };
                         let status_str = serde_json::to_string(&status_obj).unwrap();
                         sender_err.send(status_str).unwrap();
+
+                        return;
                     }
                 }
             }
