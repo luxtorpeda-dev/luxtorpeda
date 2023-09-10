@@ -14,14 +14,11 @@ Steam Play compatibility tool to run games using native Linux engines
 ## Pre-requisites
 
 Compatibility tool will work on any modern 64-bit Linux distribution.
-All packaged games are compiled for Steam Runtime Soldier environment and require no
-additional dependencies.
+All packaged games are compiled for Steam Runtime Sniper environment and any additional dependencies are provided in the download.
 
 **Using Luxtorpeda with [Steam native runtime](https://wiki.archlinux.org/index.php/Steam/Troubleshooting#Steam_native_runtime) may or may not work, but is not supported.**
 
 ## Installation (using tarball)
-
-*This is pre-release quality software, expect bugs and missing features.*
 
 *The packages.json for the supported packages and getting the latest versions will get updated on each launch of luxtorpeda, without any input needed from the user. New releases of the luxtorpeda client will need to be downloaded manually, but a new release of the client is not required when a package is created or updated, unless that package depends on a new feature (which will be noted in the release notes).*
 
