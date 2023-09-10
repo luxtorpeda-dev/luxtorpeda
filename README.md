@@ -46,9 +46,11 @@ additional dependencies.
    compatibility tool" and select "Luxtorpeda".
 <img height="220px" src="https://user-images.githubusercontent.com/54072917/139227152-0536ac68-0d4b-44bf-be88-42105f5c3dd6.png" />
 
-## Installation (debug build, from source)
+## Installation (debug build from source)
 
-0. Download the latest version of Rust: https://www.rust-lang.org/ and verify that openssl is installed on your system. As well, ensure that Godot is downloaded. Currently, 3.5.1 is in use.
+1. [Download and install Rust](https://www.rust-lang.org/).
+2. Ensure that OpenSSL and Cargo are installed on your system.
+3. Download [Godot](https://godotengine.org/) and the corresponding export templates. We are currently using version 3.5.1.
 
 Debian, Ubuntu and variants
 
@@ -56,21 +58,24 @@ Debian, Ubuntu and variants
        
 Fedora 
 
-       $ sudo dnf install openssl-devel
+       $ sudo dnf install openssl-devel rust cargo godot3
+       $ mkdir -p ~/.local/share/godot/templates/3.5.2.stable/
+       $ wget https://github.com/godotengine/godot/releases/download/3.5.2-stable/Godot_v3.5.2-stable_export_templates.tpz
+       $ unzip -j Godot_v3.5.2-stable_export_templates.tpz -d ~/.local/share/godot/templates/3.5.2.stable/
 
 Arch
        
        $ sudo pacman -S openssl rust
        
-1. Close Steam.
-2. Clone the repository, then use makefile to trigger `cargo build` and install:
+4. Close Steam.
+5. Clone the repository, then use makefile to trigger `cargo build` and install:
 
        $ git clone https://github.com/luxtorpeda-dev/luxtorpeda.git
        $ cd luxtorpeda
        $ make user-install GODOT=godot-path-here
 
-3. Start Steam.
-4. In game properties window select "Force the use of a specific Steam Play
+6. Start Steam.
+7. In game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda&nbsp;(dev)".
 
 ## Configuration
