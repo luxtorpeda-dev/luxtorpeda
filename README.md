@@ -48,34 +48,59 @@ additional dependencies.
 
 ## Installation (debug build from source)
 
-1. [Download and install Rust](https://www.rust-lang.org/).
-2. Ensure that OpenSSL and Cargo are installed on your system.
-3. Download [Godot](https://godotengine.org/) and the corresponding export templates. We are currently using version 3.5.1.
+### Prerequisites
+You will need Rust, Cargo, OpenSSL, Godot3 and export templates. 
 
-Debian, Ubuntu and variants
+#### 1. Install required software
 
-       $ sudo apt install libssl-dev
-       
-Fedora 
+**Official method**:
+- [Rust and Cargo](https://www.rust-lang.org/learn/get-started): You can install Rust and Cargo using rustup.
+- [Godot 3](https://godotengine.org/download/3.x/linux/): Download and install Godot 3 and export templates from their official webpage.
+- OpenSSL: Install OpenSSL from your distribution's package manager.
 
-       $ sudo dnf install openssl-devel rust cargo godot3
-       $ mkdir -p ~/.local/share/godot/templates/3.5.2.stable/
-       $ wget https://github.com/godotengine/godot/releases/download/3.5.2-stable/Godot_v3.5.2-stable_export_templates.tpz
-       $ unzip -j Godot_v3.5.2-stable_export_templates.tpz -d ~/.local/share/godot/templates/3.5.2.stable/
+**Terminal installation** (for those who prefer the terminal):
 
-Arch
-       
-       $ sudo pacman -S openssl rust
-       
-4. Close Steam.
-5. Clone the repository, then use makefile to trigger `cargo build` and install:
+- **Debian, Ubuntu, and variants**: Open a terminal and run:
 
-       $ git clone https://github.com/luxtorpeda-dev/luxtorpeda.git
-       $ cd luxtorpeda
-       $ make user-install GODOT=godot-path-here
+  ```bash
+  $ sudo apt install cargo libssl-dev godot3
+  ```
 
-6. Start Steam.
-7. In game properties window select "Force the use of a specific Steam Play
+- **Fedora**: Use the following command:
+
+     ```bash
+     $ sudo dnf install openssl-devel rust cargo godot3
+     ```
+
+- **Arch Linux**: You can download Godot3 from the webpage or use the godot3 AUR package.
+
+     ```bash
+     $ sudo pacman -S openssl rust
+     ```
+
+#### 2. Get export templates for Godot
+
+You can either open Godot, go to settings and install the export templates from there. If you prefer to use the terminal these commands should work:
+
+```bash
+$ mkdir -p ~/.local/share/godot/templates/3.5.2.stable/
+$ wget https://github.com/godotengine/godot/releases/download/3.5.2-stable/Godot_v3.5.2-stable_export_templates.tpz
+$ unzip -j Godot_v3.5.2-stable_export_templates.tpz -d ~/.local/share/godot/templates/3.5.2.stable/
+```
+
+#### 3. Install and lauch the debug build
+
+1. Close Steam.
+2. Clone the repository, then use makefile to trigger `cargo build` and install:
+
+```bash
+$ git clone https://github.com/luxtorpeda-dev/luxtorpeda.git
+$ cd luxtorpeda
+$ make user-install GODOT=godot-path-here
+```
+
+3. Start Steam.
+4. In game properties window select "Force the use of a specific Steam Play
    compatibility tool" and select "Luxtorpeda&nbsp;(dev)".
 
 ## Configuration
