@@ -1,6 +1,7 @@
 extern crate users;
 extern crate xdg;
 
+use log::warn;
 use std::env;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
@@ -14,6 +15,7 @@ static XDG_RUNTIME_DIR: &str = "XDG_RUNTIME_DIR";
 static LUX_TOOL_DIR: &str = "LUX_TOOL_DIR";
 static STEAM_APPID: &str = "SteamAppId";
 static LUX_CONTROLLER: &str = "LUX_CONTROLLER";
+static STEAM_COMPAT_CLIENT_INSTALL_PATH: &str = "STEAM_COMPAT_CLIENT_INSTALL_PATH";
 
 /// Assure, that XDG_RUNTIME_DIR is set with correct access mode.
 ///
@@ -52,6 +54,16 @@ pub fn steam_app_id() -> String {
     match env::var(STEAM_APPID) {
         Ok(app_id) => app_id,
         Err(_) => "0".to_string(),
+    }
+}
+
+pub fn steam_install_path() -> Option<String> {
+    match env::var(STEAM_COMPAT_CLIENT_INSTALL_PATH) {
+        Ok(path) => Some(path),
+        Err(err) => {
+            warn!("steam_install_path err: {}", err);
+            None
+        }
     }
 }
 
