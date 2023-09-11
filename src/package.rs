@@ -5,7 +5,7 @@ extern crate xz2;
 use ar::Archive as ArArchive;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
-use log::{error, info};
+use log::{error, info, warn};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::ffi::OsStr;
@@ -665,6 +665,78 @@ pub fn get_app_id_deps_paths(deps: &Vec<u32>) -> Option<()> {
         None => {
             info!("get_app_id_deps_paths. steamdir not found.");
             None
+        }
+    }
+}
+
+pub fn install_steam_input_template(app_id: &u32, steam_input_template_path: &Path) {
+    match SteamDir::locate() {
+        Some(mut steamdir) => {
+            info!(
+                "install_steam_input_template. searching for app id {}.",
+                app_id
+            );
+
+            match steamdir.app(app_id) {
+                Some(app_location) => {
+                    info!("install_steam_input_template. app id {} found", app_id);
+                    if let Some(last_user) = app_location.last_user {
+                        let account_id = last_user.account_id();
+                        info!(
+                            "install_steam_input_template. app id {} last_user found {:?}, account_id = {}", app_id, last_user, account_id);
+
+                        if let Some(steam_path) = user_env::steam_install_path() {
+                            let input_folder_path = Path::new(&steam_path)
+                                .join("userdata")
+                                .join(account_id.to_string())
+                                .join("241100")
+                                .join("remote")
+                                .join("controller_config")
+                                .join(app_id.to_string());
+
+                            let full_input_path =
+                                input_folder_path.join("steam_input_template.vdf");
+
+                            if !full_input_path.exists() {
+                                info!(
+                                    "install_steam_input_template. full_input_path = {}",
+                                    full_input_path.display()
+                                );
+
+                                match fs::create_dir_all(input_folder_path.clone()) {
+                                    Ok(()) => {
+                                        match fs::copy(steam_input_template_path, full_input_path) {
+                                            Ok(_) => {
+                                                info!(
+                                                    "install_steam_input_template copy successful"
+                                                );
+                                            }
+                                            Err(err) => {
+                                                warn!(
+                                                    "install_steam_input_template. copy error {:?}",
+                                                    err
+                                                );
+                                            }
+                                        }
+                                    }
+                                    Err(err) => {
+                                        warn!("install_steam_input_template. create_dir_all error {:?}", err);
+                                    }
+                                }
+                            } else {
+                                info!(
+                            "install_steam_input_template. full_input_path {} already exists", full_input_path.display());
+                            }
+                        }
+                    }
+                }
+                None => {
+                    info!("install_steam_input_template. app id {} not found.", app_id);
+                }
+            }
+        }
+        None => {
+            info!("install_steam_input_template. steamdir not found.");
         }
     }
 }

@@ -726,6 +726,12 @@ impl LuxClient {
                 }
             }
 
+            let steam_input_template_path = std::path::Path::new("steam_input_template.vdf");
+            if steam_input_template_path.exists() {
+                let app_id = user_env::steam_app_id().parse::<u32>().unwrap();
+                package::install_steam_input_template(&app_id, steam_input_template_path);
+            }
+
             match command::run_wrapper(cmd_args, &game_info, &sender_err) {
                 Ok(()) => {}
                 Err(err) => {
