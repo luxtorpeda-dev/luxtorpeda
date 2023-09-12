@@ -27,10 +27,17 @@ func _convert_joypad_path(path: String, fallback) -> String:
 			return _convert_joypad_to_xboxseries(path)
 		ControllerSettings.Devices.STEAM_DECK:
 			return _convert_joypad_to_steamdeck(path)
+		ControllerSettings.Devices.OUYA:
+			return _convert_joypad_to_ouya(path)
 		_:
 			return ""
 
 func _get_joypad_type(fallback):
+	# If on editor, default to fallback always, to avoid editing scene
+	# files on controller reload
+	if Engine.is_editor_hint():
+		return fallback
+
 	var controller_name = Input.get_joy_name(0)
 	if "Luna Controller" in controller_name:
 		return ControllerSettings.Devices.LUNA
@@ -60,6 +67,8 @@ func _get_joypad_type(fallback):
 	elif "Steam Deck" in controller_name or \
 		"Steam Virtual Gamepad" in controller_name:
 		return ControllerSettings.Devices.STEAM_DECK
+	elif "OUYA Controller" in controller_name:
+		return ControllerSettings.Devices.OUYA
 	else:
 		return fallback
 
@@ -75,8 +84,7 @@ func _convert_joypad_to_luna(path: String):
 		_:
 			return path
 
-func _convert_joypad_to_ps3(path: String):
-	path = path.replace("joypad", "ps3")
+func _convert_joypad_to_playstation(path: String):
 	match path.substr(path.find("/") + 1):
 		"a":
 			return path.replace("/a", "/cross")
@@ -97,25 +105,12 @@ func _convert_joypad_to_ps3(path: String):
 		_:
 			return path
 
+func _convert_joypad_to_ps3(path: String):
+	return _convert_joypad_to_playstation(path.replace("joypad", "ps3"))
+
 func _convert_joypad_to_ps4(path: String):
-	path = path.replace("joypad", "ps4")
+	path = _convert_joypad_to_playstation(path.replace("joypad", "ps4"))
 	match path.substr(path.find("/") + 1):
-		"a":
-			return path.replace("/a", "/cross")
-		"b":
-			return path.replace("/b", "/circle")
-		"x":
-			return path.replace("/x", "/square")
-		"y":
-			return path.replace("/y", "/triangle")
-		"lb":
-			return path.replace("/lb", "/l1")
-		"rb":
-			return path.replace("/rb", "/r1")
-		"lt":
-			return path.replace("/lt", "/l2")
-		"rt":
-			return path.replace("/rt", "/r2")
 		"select":
 			return path.replace("/select", "/share")
 		"start":
@@ -126,24 +121,8 @@ func _convert_joypad_to_ps4(path: String):
 			return path
 
 func _convert_joypad_to_ps5(path: String):
-	path = path.replace("joypad", "ps5")
+	path = _convert_joypad_to_playstation(path.replace("joypad", "ps5"))
 	match path.substr(path.find("/") + 1):
-		"a":
-			return path.replace("/a", "/cross")
-		"b":
-			return path.replace("/b", "/circle")
-		"x":
-			return path.replace("/x", "/square")
-		"y":
-			return path.replace("/y", "/triangle")
-		"lb":
-			return path.replace("/lb", "/l1")
-		"rb":
-			return path.replace("/rb", "/r1")
-		"lt":
-			return path.replace("/lt", "/l2")
-		"rt":
-			return path.replace("/rt", "/r2")
 		"select":
 			return path.replace("/select", "/share")
 		"start":
@@ -212,6 +191,14 @@ func _convert_joypad_to_switch(path: String):
 			return path.replace("/x", "/y")
 		"y":
 			return path.replace("/y", "/x")
+		"lb":
+			return path.replace("/lb", "/l")
+		"rb":
+			return path.replace("/rb", "/r")
+		"lt":
+			return path.replace("/lt", "/zl")
+		"rt":
+			return path.replace("/rt", "/zr")
 		"select":
 			return path.replace("/select", "/minus")
 		"start":
@@ -222,16 +209,8 @@ func _convert_joypad_to_switch(path: String):
 			return path
 
 func _convert_joypad_to_joycon(path: String):
-	path = path.replace("joypad", "switch")
+	path = _convert_joypad_to_switch(path)
 	match path.substr(path.find("/") + 1):
-		"a":
-			return path.replace("/a", "/b")
-		"b":
-			return path.replace("/b", "/a")
-		"x":
-			return path.replace("/x", "/y")
-		"y":
-			return path.replace("/y", "/x")
 		"dpad_up":
 			return path.replace("/dpad_up", "/up")
 		"dpad_down":
@@ -240,12 +219,6 @@ func _convert_joypad_to_joycon(path: String):
 			return path.replace("/dpad_left", "/left")
 		"dpad_right":
 			return path.replace("/dpad_right", "/right")
-		"select":
-			return path.replace("/select", "/minus")
-		"start":
-			return path.replace("/start", "/plus")
-		"share":
-			return path.replace("/share", "/square")
 		_:
 			return path
 
@@ -257,8 +230,7 @@ func _convert_joypad_to_xbox360(path: String):
 		_:
 			return path
 
-func _convert_joypad_to_xboxone(path: String):
-	path = path.replace("joypad", "xboxone")
+func _convert_joypad_to_xbox_modern(path: String):
 	match path.substr(path.find("/") + 1):
 		"select":
 			return path.replace("/select", "/view")
@@ -267,15 +239,11 @@ func _convert_joypad_to_xboxone(path: String):
 		_:
 			return path
 
+func _convert_joypad_to_xboxone(path: String):
+	return _convert_joypad_to_xbox_modern(path.replace("joypad", "xboxone"))
+
 func _convert_joypad_to_xboxseries(path: String):
-	path = path.replace("joypad", "xboxseries")
-	match path.substr(path.find("/") + 1):
-		"select":
-			return path.replace("/select", "/view")
-		"start":
-			return path.replace("/start", "/menu")
-		_:
-			return path
+	return _convert_joypad_to_xbox_modern(path.replace("joypad", "xboxseries"))
 
 func _convert_joypad_to_steamdeck(path: String):
 	path = path.replace("joypad", "steamdeck")
@@ -296,5 +264,29 @@ func _convert_joypad_to_steamdeck(path: String):
 			return path.replace("/home", "/steam")
 		"share":
 			return path.replace("/share", "/dots")
+		_:
+			return path
+
+func _convert_joypad_to_ouya(path: String):
+	path = path.replace("joypad", "ouya")
+	match path.substr(path.find("/") + 1):
+		"a":
+			return path.replace("/a", "/o")
+		"x":
+			return path.replace("/x", "/u")
+		"b":
+			return path.replace("/b", "/a")
+		"lb":
+			return path.replace("/lb", "/l1")
+		"rb":
+			return path.replace("/rb", "/r1")
+		"lt":
+			return path.replace("/lt", "/l2")
+		"rt":
+			return path.replace("/rt", "/r2")
+		"start":
+			return path.replace("/start", "/menu")
+		"share":
+			return path.replace("/share", "/microphone")
 		_:
 			return path

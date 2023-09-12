@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/lb.png-6801064bd1c155e4e4cafb2a90cecfd3.stex"
+path="res://.import/y.png-5d0ac3a56f44813490c7f2c4bfb2a86b.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/controller_icons/assets/switch/lb.png"
-dest_files=[ "res://.import/lb.png-6801064bd1c155e4e4cafb2a90cecfd3.stex" ]
+source_file="res://addons/controller_icons/assets/ouya/y.png"
+dest_files=[ "res://.import/y.png-5d0ac3a56f44813490c7f2c4bfb2a86b.stex" ]
 
 [params]
 
