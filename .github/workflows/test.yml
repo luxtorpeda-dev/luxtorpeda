@@ -62,7 +62,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Install Rust
       run: |
-        rustup toolchain install 1.72 --no-self-update
+        rustup toolchain install 1.72 --profile default
         rustup default 1.72
     - name: Clippy Run
       run: cargo clippy
@@ -73,7 +73,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Install Rust
       run: |
-        rustup toolchain install 1.72 --no-self-update
+        rustup toolchain install 1.72 --profile default
         rustup default 1.72
     - name: fmt Run
       run: cargo fmt --all -- --check
@@ -84,7 +84,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Install Rust
       run: |
-        rustup toolchain install 1.72 --no-self-update
+        rustup toolchain install 1.72 --profile default
         rustup default 1.72
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
