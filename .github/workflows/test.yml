@@ -9,10 +9,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: 1.72.0
+      run: |
+        rustup toolchain install 1.72 --profile minimal --no-self-update
+        rustup default 1.72
+      shell: bash
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
     - name: Install Deps
@@ -33,13 +33,15 @@ jobs:
       uses: juliangruber/read-file-action@v1
       with:
         path: ./godot_version.txt
+        trim: true
     - name: Install Godot
       uses: paulloz/godot-action@v1.2.2
       with:
         version: ${{ steps.godot_version.outputs.content }}
+        export-templates: false
     - name: Move Godot Export Template
       run: |
-        mkdir -p ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable
+        mkdir -p ~/.local/share/godot/templates/"${{ steps.godot_version.outputs.content }}.stable"
         mv ./linux_x11_64_release ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable/linux_x11_64_release
     - name: Build
       run: make release GODOT=godot
@@ -59,9 +61,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: 1.72.0
+      run: |
+        rustup toolchain install 1.72 --no-self-update
+        rustup default 1.72
     - name: Clippy Run
       run: cargo clippy
   fmt:
@@ -70,9 +72,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: 1.72.0
+      run: |
+        rustup toolchain install 1.72 --no-self-update
+        rustup default 1.72
     - name: fmt Run
       run: cargo fmt --all -- --check
   audit:
@@ -81,12 +83,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: 1.72.0
+      run: |
+        rustup toolchain install 1.72 --no-self-update
+        rustup default 1.72
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
-    - name: Install Audit
-      run: cargo install cargo-audit
     - name: Audit Run
       run: cargo audit

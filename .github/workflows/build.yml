@@ -13,10 +13,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: 1.72.0
+      run: |
+        rustup toolchain install 1.72 --profile minimal --no-self-update
+        rustup default 1.72
+      shell: bash
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
     - name: Install Deps
@@ -37,10 +37,12 @@ jobs:
       uses: juliangruber/read-file-action@v1
       with:
         path: ./godot_version.txt
+        trim: true
     - name: Install Godot
       uses: paulloz/godot-action@v1.2.2
       with:
         version: ${{ steps.godot_version.outputs.content }}
+        export-templates: false
     - name: Move Godot Export Template
       run: |
         mkdir -p ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable
