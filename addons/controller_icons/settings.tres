@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource( 1 )
-joypad_fallback = 6
+joypad_fallback = 9
 joypad_deadzone = 0.5
 allow_mouse_remap = true
 mouse_min_movement = 200

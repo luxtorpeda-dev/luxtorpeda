@@ -2,25 +2,25 @@
 
 [ext_resource path="res://addons/controller_icons/objects/TextureRect.gd" type="Script" id=1]
 [ext_resource path="res://addons/controller_icons/example/IconRemapper.gd" type="Script" id=2]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_right.png" type="Texture" id=3]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/r_stick_click.png" type="Texture" id=4]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/rt.png" type="Texture" id=5]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/x.png" type="Texture" id=6]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/b.png" type="Texture" id=7]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/lt.png" type="Texture" id=8]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_up.png" type="Texture" id=9]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/l_stick.png" type="Texture" id=10]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/start.png" type="Texture" id=11]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/lb.png" type="Texture" id=12]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/a.png" type="Texture" id=13]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/a.png" type="Texture" id=3]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/x.png" type="Texture" id=4]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/b.png" type="Texture" id=5]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_right.png" type="Texture" id=6]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/l_stick_click.png" type="Texture" id=7]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/r_stick_click.png" type="Texture" id=8]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/rb.png" type="Texture" id=9]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/rt.png" type="Texture" id=10]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/back.png" type="Texture" id=11]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/r_stick.png" type="Texture" id=12]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/start.png" type="Texture" id=13]
 [ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_down.png" type="Texture" id=14]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/l_stick_click.png" type="Texture" id=15]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/back.png" type="Texture" id=16]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/rb.png" type="Texture" id=17]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_left.png" type="Texture" id=18]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad.png" type="Texture" id=19]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/y.png" type="Texture" id=20]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/r_stick.png" type="Texture" id=21]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/lt.png" type="Texture" id=15]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/y.png" type="Texture" id=16]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/lb.png" type="Texture" id=17]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad.png" type="Texture" id=18]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/l_stick.png" type="Texture" id=19]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_up.png" type="Texture" id=20]
+[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_left.png" type="Texture" id=21]
 
 [node name="Control" type="Control"]
 anchor_right = 1.0
@@ -60,7 +60,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 13 )
+texture = ExtResource( 3 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/a"
@@ -82,7 +82,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 7 )
+texture = ExtResource( 5 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/b"
@@ -104,7 +104,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 6 )
+texture = ExtResource( 4 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/x"
@@ -126,7 +126,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 20 )
+texture = ExtResource( 16 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/y"
@@ -148,7 +148,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 12 )
+texture = ExtResource( 17 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/lb"
@@ -170,7 +170,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 17 )
+texture = ExtResource( 9 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/rb"
@@ -192,7 +192,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 8 )
+texture = ExtResource( 15 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/lt"
@@ -214,7 +214,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 5 )
+texture = ExtResource( 10 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/rt"
@@ -236,7 +236,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 15 )
+texture = ExtResource( 7 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/l_stick_click"
@@ -258,7 +258,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 4 )
+texture = ExtResource( 8 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/r_stick_click"
@@ -280,7 +280,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 16 )
+texture = ExtResource( 11 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/select"
@@ -308,7 +308,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 11 )
+texture = ExtResource( 13 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/start"
@@ -330,7 +330,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 19 )
+texture = ExtResource( 18 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/dpad"
@@ -352,7 +352,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 9 )
+texture = ExtResource( 20 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/dpad_up"
@@ -396,7 +396,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 18 )
+texture = ExtResource( 21 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/dpad_left"
@@ -418,7 +418,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 3 )
+texture = ExtResource( 6 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/dpad_right"
@@ -482,7 +482,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 10 )
+texture = ExtResource( 19 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/l_stick"
@@ -504,7 +504,7 @@ custom_constants/separation = 0
 margin_right = 40.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 21 )
+texture = ExtResource( 12 )
 expand = true
 script = ExtResource( 1 )
 path = "joypad/r_stick"
@@ -523,89 +523,96 @@ margin_bottom = 467.0
 
 [node name="Auto" type="Button" parent="Buttons"]
 margin_right = 452.0
-margin_bottom = 32.0
+margin_bottom = 29.0
 size_flags_vertical = 3
 text = "[ Set to automatic ]"
 
 [node name="Luna" type="Button" parent="Buttons"]
-margin_top = 36.0
+margin_top = 33.0
 margin_right = 452.0
-margin_bottom = 68.0
+margin_bottom = 63.0
 size_flags_vertical = 3
 text = "Amazon Luna"
 
 [node name="PS3" type="Button" parent="Buttons"]
-margin_top = 72.0
+margin_top = 67.0
 margin_right = 452.0
-margin_bottom = 104.0
+margin_bottom = 96.0
 size_flags_vertical = 3
 text = "PlayStation 3"
 
 [node name="PS4" type="Button" parent="Buttons"]
-margin_top = 108.0
+margin_top = 100.0
 margin_right = 452.0
-margin_bottom = 140.0
+margin_bottom = 130.0
 size_flags_vertical = 3
 text = "PlayStation 4"
 
 [node name="PS5" type="Button" parent="Buttons"]
-margin_top = 144.0
+margin_top = 134.0
 margin_right = 452.0
-margin_bottom = 177.0
+margin_bottom = 164.0
 size_flags_vertical = 3
 text = "PlayStation 5"
 
 [node name="Stadia" type="Button" parent="Buttons"]
-margin_top = 181.0
+margin_top = 168.0
 margin_right = 452.0
-margin_bottom = 213.0
+margin_bottom = 197.0
 size_flags_vertical = 3
 text = "Google Stadia"
 
 [node name="Steam" type="Button" parent="Buttons"]
-margin_top = 217.0
+margin_top = 201.0
 margin_right = 452.0
-margin_bottom = 249.0
+margin_bottom = 231.0
 size_flags_vertical = 3
 text = "Steam Controller"
 
 [node name="SteamDeck" type="Button" parent="Buttons"]
-margin_top = 253.0
+margin_top = 235.0
 margin_right = 452.0
-margin_bottom = 285.0
+margin_bottom = 265.0
 size_flags_vertical = 3
 text = "Steam Deck"
 
 [node name="Switch" type="Button" parent="Buttons"]
-margin_top = 289.0
+margin_top = 269.0
 margin_right = 452.0
-margin_bottom = 322.0
+margin_bottom = 298.0
 size_flags_vertical = 3
 text = "Nintendo Switch Controller"
 
 [node name="Joycon" type="Button" parent="Buttons"]
-margin_top = 326.0
+margin_top = 302.0
 margin_right = 452.0
-margin_bottom = 358.0
+margin_bottom = 332.0
 size_flags_vertical = 3
 text = "Nintendo Switch JoyCon"
 
-[node name="Xbox360" type="Button" parent="Buttons"]
-margin_top = 362.0
+[node name="OUYA" type="Button" parent="Buttons"]
+margin_top = 336.0
 margin_right = 452.0
-margin_bottom = 394.0
+margin_bottom = 366.0
+size_flags_vertical = 3
+text = "OUYA"
+
+[node name="Xbox360" type="Button" parent="Buttons"]
+margin_top = 370.0
+margin_right = 452.0
+margin_bottom = 399.0
 size_flags_vertical = 3
 text = "Xbox 360"
 
 [node name="XboxOne" type="Button" parent="Buttons"]
-margin_top = 398.0
+margin_top = 403.0
 margin_right = 452.0
-margin_bottom = 430.0
+margin_bottom = 433.0
 size_flags_vertical = 3
 text = "Xbox One"
 
 [node name="XboxSeries" type="Button" parent="Buttons"]
-margin_top = 434.0
+margin_top = 437.0
 margin_right = 452.0
 margin_bottom = 467.0
 size_flags_vertical = 3
@@ -621,6 +628,7 @@ text = "Xbox Series"
 [connection signal="pressed" from="Buttons/SteamDeck" to="." method="_on_SteamDeck_pressed"]
 [connection signal="pressed" from="Buttons/Switch" to="." method="_on_Switch_pressed"]
 [connection signal="pressed" from="Buttons/Joycon" to="." method="_on_Joycon_pressed"]
+[connection signal="pressed" from="Buttons/OUYA" to="." method="_on_ouya_pressed"]
 [connection signal="pressed" from="Buttons/Xbox360" to="." method="_on_Xbox360_pressed"]
 [connection signal="pressed" from="Buttons/XboxOne" to="." method="_on_XboxOne_pressed"]
 [connection signal="pressed" from="Buttons/XboxSeries" to="." method="_on_XboxSeries_pressed"]

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/rb.png-76e839721b897c401463e70931968e95.stex"
+path="res://.import/r.png-5ff5051242ce222b42f687a41d922ea1.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/controller_icons/assets/switch/rb.png"
-dest_files=[ "res://.import/rb.png-76e839721b897c401463e70931968e95.stex" ]
+source_file="res://addons/controller_icons/assets/switch/r.png"
+dest_files=[ "res://.import/r.png-5ff5051242ce222b42f687a41d922ea1.stex" ]
 
 [params]
 
