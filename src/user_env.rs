@@ -1,37 +1,16 @@
-extern crate users;
 extern crate xdg;
 
 use log::warn;
 use std::env;
-use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
 
 use crate::command;
-use users::get_current_uid;
 
-static XDG_RUNTIME_DIR: &str = "XDG_RUNTIME_DIR";
 static LUX_TOOL_DIR: &str = "LUX_TOOL_DIR";
 static STEAM_APPID: &str = "SteamAppId";
 static LUX_CONTROLLER: &str = "LUX_CONTROLLER";
 static STEAM_COMPAT_CLIENT_INSTALL_PATH: &str = "STEAM_COMPAT_CLIENT_INSTALL_PATH";
-
-/// Assure, that XDG_RUNTIME_DIR is set with correct access mode.
-///
-pub fn assure_xdg_runtime_dir() -> Result<(), std::io::Error> {
-    let xdg_dirs = xdg::BaseDirectories::new()?;
-    if xdg_dirs.has_runtime_directory() {
-        return Ok(());
-    }
-    let runtime_dir = format!("/tmp/luxtorpeda_{}", get_current_uid());
-    if !Path::new(&runtime_dir).is_dir() {
-        fs::create_dir(&runtime_dir)?;
-    }
-    fs::set_permissions(&runtime_dir, fs::Permissions::from_mode(0o700))?;
-    env::set_var(XDG_RUNTIME_DIR, &runtime_dir);
-    Ok(())
-}
 
 pub fn assure_tool_dir(arg0: &str) -> Result<(), std::io::Error> {
     let tool_path = Path::new(arg0);
