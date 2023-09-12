@@ -1,6 +1,6 @@
 use gdnative::prelude::*;
 use godot_logger::GodotLogger;
-use log::{Level,warn};
+use log::{warn, Level};
 
 mod client;
 mod command;
@@ -12,10 +12,8 @@ mod user_env;
 // Function that registers all exposed classes to Godot
 fn init(handle: InitHandle) {
     if cfg!(debug_assertions) {
-        match GodotLogger::builder()
-            .default_log_level(Level::Info)
-            .init() {
-            Ok(()) => {},
+        match GodotLogger::builder().default_log_level(Level::Info).init() {
+            Ok(()) => {}
             Err(err) => {
                 // this seems to happen on exit from the editor
                 warn!("godotlogger init error: {:?}", err);
