@@ -5,29 +5,44 @@ on: pull_request
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: rust:1.71-buster
-    env:
-      CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Install Rust
+      run: |
+        rustup toolchain install 1.72 --profile minimal --no-self-update
+        rustup default 1.72
+      shell: bash
+    - name: Use rust cache
+      uses: Swatinem/rust-cache@v2
     - name: Install Deps
-      run: apt-get update && apt-get -y install clang libsdl2-dev scons libpng-dev
-    - name: Cache Godot deps
-      id: cache-godot
-      uses: actions/cache@v3
+      uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        key: ${{ runner.os }}-build-godot351
-        path: |
-          /usr/local/bin/godot
-          ~/.local/share/godot/templates/3.5.2.stable/linux_x11_64_release
+        packages: clang libsdl2-dev
+        version: 1.0
+    - name: Download Godot Export Template
+      uses: robinraju/release-downloader@v1.8
+      with:
+        repository: luxtorpeda-dev/godot_release_template
+        latest: true
+        fileName: "*"
+        tarBall: false
+        zipBall: false
+    - name: Read godot version
+      id: godot_version
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: ./godot_version.txt
+        trim: true
     - name: Install Godot
-      if: steps.cache-godot.outputs.cache-hit != 'true'
-      run: wget https://downloads.tuxfamily.org/godotengine/3.5.2/Godot_v3.5.2-stable_linux_headless.64.zip && unzip Godot_v3.5.2-stable_linux_headless.64.zip && chmod +x Godot_v3.5.2-stable_linux_headless.64 && rm Godot_v3.5.2-stable_linux_headless.64.zip && mv Godot_v3.5.2-stable_linux_headless.64 /usr/local/bin/godot
-    - name: Build Godot Export Template
-      if: steps.cache-godot.outputs.cache-hit != 'true'
-      run: make godot-export-template SCONS="python3 /usr/bin/scons" && mkdir -p ~/.local/share/godot/templates/3.5.2.stable && mv ./godot-build/bin/godot.x11.opt.64 ~/.local/share/godot/templates/3.5.2.stable/linux_x11_64_release
+      uses: paulloz/godot-action@v1.2.2
+      with:
+        version: ${{ steps.godot_version.outputs.content }}
+        export-templates: false
+    - name: Move Godot Export Template
+      run: |
+        mkdir -p ~/.local/share/godot/templates/"${{ steps.godot_version.outputs.content }}.stable"
+        mv ./linux_x11_64_release ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable/linux_x11_64_release
     - name: Build
       run: make release GODOT=godot
     - name: Package
@@ -42,42 +57,38 @@ jobs:
         path: ./luxtorpeda.tar.xz
   clippy:
     runs-on: ubuntu-latest
-    container:
-      image: rust:1.71-buster
-    env:
-      CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install Deps
-      run: apt-get update && apt-get -y install clang
-    - name: Install Clippy
-      run: rustup component add clippy
+    - name: Install Rust
+      run: |
+        rustup toolchain install 1.72 --profile default
+        rustup default 1.72
+    - name: Use rust cache
+      uses: Swatinem/rust-cache@v2
     - name: Clippy Run
       run: cargo clippy
   fmt:
     runs-on: ubuntu-latest
-    container:
-      image: rust:1.71-buster
-    env:
-      CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install fmt
-      run: rustup component add rustfmt
+    - name: Install Rust
+      run: |
+        rustup toolchain install 1.72 --profile default
+        rustup default 1.72
     - name: fmt Run
       run: cargo fmt --all -- --check
   audit:
     runs-on: ubuntu-latest
-    container:
-      image: rust:1.71-buster
-    env:
-      CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install Audit
-      run: cargo install cargo-audit
+    - name: Install Rust
+      run: |
+        rustup toolchain install 1.72 --profile default
+        rustup default 1.72
+    - name: Use rust cache
+      uses: Swatinem/rust-cache@v2
     - name: Audit Run
       run: cargo audit
