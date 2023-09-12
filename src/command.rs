@@ -564,7 +564,6 @@ pub fn main() -> io::Result<()> {
         std::process::exit(0)
     }
 
-    user_env::assure_xdg_runtime_dir()?;
     user_env::assure_tool_dir(args[0])?;
 
     match env::var(LUX_WRITE_LOGGING) {
