@@ -4,12 +4,11 @@ extern crate fs_extra;
 use fs_extra::copy_items;
 use std::fs;
 use std::process::Command;
-
-// TODO: destdir, use from make file if provided, skip install if not, for use in the install commands
+extern crate tar;
+use xz2::write::XzEncoder;
 
 // These variables are used to generate compatibilitytool.vdf
 const TOOL_NAME: &str = "luxtorpeda";
-const TOOL_NAME_DEV: &str = "luxtorpeda_dev";
 const TOOL_NAME_DISPLAY: &str = "Luxtorpeda";
 const TOOL_NAME_DISPLAY_DEV: &str = "Luxtorpeda (dev)";
 
@@ -17,7 +16,8 @@ const TOOL_NAME_DISPLAY_DEV: &str = "Luxtorpeda (dev)";
 const ROOT_FILES: &[&str] = &[
     "toolmanifest.vdf",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "luxtorpeda.sh"
 ];
 
 // Files that should be copied from target to the final destination
@@ -25,17 +25,12 @@ const FILES: &[&str] = &[
     "compatibilitytool.vdf",
     "libluxtorpeda.so",
     "luxtorpeda.pck",
-    "luxtorpeda.sh",
     "luxtorpeda.x86_64",
 ];
 
 fn main() {
     let out_dir = env::var("CRATE_OUT_DIR").unwrap();
     let profile = env::var("CRATE_PROFILE").unwrap();
-
-    for (key, value) in env::vars() {
-        println!("{key}: {value}");
-    }
 
     create_target_gdignore(&out_dir);
     if profile == "release" {
@@ -45,7 +40,7 @@ fn main() {
 
     match env::var("GODOT") {
         Ok(godot_path) => build_godot_project(&out_dir, &godot_path),
-        Err(err) => {
+        Err(_) => {
             eprintln!("godot not provided so skipping");
         }
     };
@@ -55,10 +50,10 @@ fn main() {
     match env::var("TARGET") {
         Ok(target) => {
             if !target.is_empty() {
-                install(&out_dir, &target);
+                resolve_target(&out_dir, &target);
             }
         },
-        Err(err) => {
+        Err(_) => {
             eprintln!("target not provided so skipping");
         }
     }
@@ -119,6 +114,61 @@ fn create_compatibilitytool_vdf(out_dir: &str, profile: &str) {
     fs::write(output_path, file_str).expect("create_compatibilitytool_vdf write error");
 }
 
-fn install(out_dir: &str, target: &str) {
+fn resolve_target(out_dir: &str, target: &str) {
+    println!("resolve_target, target is {}", target);
 
+    build_folder(&out_dir, TOOL_NAME);
+
+    match target {
+        "luxtorpeda" => {},
+        "luxtorpeda.tar.xz" => {
+            create_archive(TOOL_NAME, &target);
+        },
+        "user_install" => {},
+        "install" => {},
+        _ => {
+            eprintln!("resolve_target - Unknown target of {}", target);
+        }
+    };
+}
+
+fn build_folder(out_dir: &str, folder_path: &str) {
+    println!("build_folder with {}", folder_path);
+    fs::create_dir_all(folder_path).expect("build_tool_folder create dir failed");
+
+    let options = fs_extra::dir::CopyOptions {
+        overwrite: true,
+        copy_inside: true,
+        ..Default::default()
+    };
+
+    let mut files = Vec::new();
+    for filename in ROOT_FILES.iter() {
+        files.push(Path::new(out_dir).join(filename));
+    }
+    for filename in FILES.iter() {
+        files.push(Path::new(out_dir).join(filename));
+    }
+
+    copy_items(&files, folder_path, &options).expect("build_tool_folder copy failed");
+
+    match env::var("VERSION") {
+        Ok(version) => {
+            if !version.is_empty() {
+                fs::write(Path::new(folder_path).join("version"), version).expect("build_folder version write error");
+            }
+        },
+        Err(_) => {
+            eprintln!("version not provided so skipping");
+        }
+    }
+}
+
+fn create_archive(folder_path: &str, archive_name: &str) {
+    println!("create_archive from folder {}", folder_path);
+
+    let tar_xz = std::fs::File::create(archive_name).expect("create_archive file create error");
+    let enc = XzEncoder::new(tar_xz, 6);
+    let mut tar = tar::Builder::new(enc);
+    tar.append_dir_all(TOOL_NAME, folder_path).expect("create_archive append error");
 }

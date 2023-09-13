@@ -21,7 +21,7 @@ build:
 	GODOT=$(GODOT) TARGET=$(MAKECMDGOALS) cargo post build
 
 release:
-	GODOT=$(GODOT) TARGET=$(MAKECMDGOALS) cargo post build --release
+	GODOT=$(GODOT) TARGET=$(MAKECMDGOALS) VERSION=$(version) cargo post build --release
 
 clean:
 	cargo clean
@@ -30,35 +30,20 @@ clean:
 	rm -rf godot-build
 
 $(tool_dir): \
-		release \
-		target/release/compatibilitytool.vdf \
-		target/release/toolmanifest.vdf \
-		target/release/luxtorpeda.sh \
-		target/release/LICENSE \
-		target/release/README.md
-	mkdir -p $(tool_dir)
-	cd target/release && cp -r --reflink=auto -t ../../$(tool_dir) $(files)
+		release
+	echo "Packaging complete"
 
 $(tool_dir).tar.xz: $(tool_dir)
-	@if [ "$(version)" != "" ]; then\
-		echo "$(version)" > "$(tool_dir)/version";\
-	fi
-
-	tar -cJf $@ $(tool_dir)
+	echo "Archiving complete"
 
 install: $(tool_dir)
 	mkdir -p $(install_dir)
 	cp -av $(tool_dir)/* $(install_dir)/
 
 user-install: \
-		build \
-		target/debug/compatibilitytool.vdf \
-		target/debug/toolmanifest.vdf \
-		target/debug/luxtorpeda.sh \
-		target/debug/LICENSE \
-		target/debug/README.md
+		build
 	mkdir -p $(dev_install_dir)
-	cd target/debug && cp -r --reflink=auto -t $(dev_install_dir) $(files)
+	cp -av $(tool_dir)/* $(dev_install_dir)/
 
 user-uninstall:
 	rm -rf $(dev_install_dir)
