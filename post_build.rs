@@ -51,6 +51,17 @@ fn main() {
     };
 
     create_compatibilitytool_vdf(&out_dir, &profile);
+
+    match env::var("TARGET") {
+        Ok(target) => {
+            if !target.is_empty() {
+                install(&out_dir, &target);
+            }
+        },
+        Err(err) => {
+            eprintln!("target not provided so skipping");
+        }
+    }
 }
 
 fn create_target_gdignore(out_dir: &str) {
@@ -106,4 +117,8 @@ fn create_compatibilitytool_vdf(out_dir: &str, profile: &str) {
     };
     let file_str = template_str.replace("%display_name%", display_name);
     fs::write(output_path, file_str).expect("create_compatibilitytool_vdf write error");
+}
+
+fn install(out_dir: &str, target: &str) {
+
 }

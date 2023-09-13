@@ -18,10 +18,10 @@ install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
 dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
 
 build:
-	GODOT=$(GODOT) cargo post build
+	GODOT=$(GODOT) TARGET=$(MAKECMDGOALS) cargo post build
 
 release:
-	GODOT=$(GODOT) cargo post build --release
+	GODOT=$(GODOT) TARGET=$(MAKECMDGOALS) cargo post build --release
 
 clean:
 	cargo clean
