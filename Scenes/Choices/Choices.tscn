@@ -8,14 +8,14 @@ anchor_bottom = 1.0
 script = ExtResource( 2 )
 
 [node name="ScrollContainer" type="VBoxContainer" parent="."]
-margin_right = 1024.0
-margin_bottom = 600.0
+offset_right = 1024.0
+offset_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="ChoiceList" type="ItemList" parent="ScrollContainer"]
-margin_right = 1024.0
-margin_bottom = 600.0
+offset_right = 1024.0
+offset_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 same_column_width = true
@@ -23,21 +23,21 @@ icon_scale = 0.3
 
 [node name="Separator" type="VSeparator" parent="."]
 visible = false
-margin_left = 1016.0
-margin_right = 1024.0
-margin_bottom = 600.0
+offset_left = 1016.0
+offset_right = 1024.0
+offset_bottom = 600.0
 
 [node name="LabelScrollContainer" type="ScrollContainer" parent="."]
 visible = false
-margin_left = 516.0
-margin_right = 1024.0
-margin_bottom = 600.0
+offset_left = 516.0
+offset_right = 1024.0
+offset_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Label" type="Label" parent="LabelScrollContainer"]
-margin_right = 508.0
-margin_bottom = 600.0
+offset_right = 508.0
+offset_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 autowrap = true

@@ -1,4 +1,4 @@
-tool
+@tool
 extends Resource
 class_name ControllerSettings
 
@@ -20,21 +20,21 @@ enum Devices {
 
 ## Controller type to fallback to if automatic
 ## controller detection fails
-export(Devices) var joypad_fallback = Devices.XBOX360
+@export var joypad_fallback : Devices = Devices.XBOX360
 
 # Controller deadzone for triggering an icon remap when input
 # is analogic (movement sticks or triggers)
-export(float, 0.0, 1.0) var joypad_deadzone := 0.5
+@export_range(0.0, 1.0) var joypad_deadzone : float = 0.5
 
 # Allow mouse movement to trigger an icon remap
-export(bool) var allow_mouse_remap := true
+@export var allow_mouse_remap : bool = true
 
 # Minimum mouse "instantaneous" movement for
 # triggering an icon remap
-export(int, 0, 10000) var mouse_min_movement := 200
+@export_range(0, 10000) var mouse_min_movement : int = 200
 
 # Custom asset lookup folder for custom icons
-export(String, DIR) var custom_asset_dir := ""
+@export_dir var custom_asset_dir : String = ""
 
 # Custom generic joystick mapper script
-export(Script) var custom_mapper : Script
+@export var custom_mapper : Script

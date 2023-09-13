@@ -1,8 +1,9 @@
 [remap]
 
 importer="texture"
-type="StreamTexture"
-path="res://.import/disconnected.png-459773ea7f2a3f5eca9fe5104acb9105.stex"
+type="CompressedTexture2D"
+uid="uid://b5j0idk4yjkkj"
+path="res://.godot/imported/disconnected.png-459773ea7f2a3f5eca9fe5104acb9105.ctex"
 metadata={
 "vram_texture": false
 }
@@ -10,26 +11,24 @@ metadata={
 [deps]
 
 source_file="res://addons/controller_icons/assets/disconnected.png"
-dest_files=[ "res://.import/disconnected.png-459773ea7f2a3f5eca9fe5104acb9105.stex" ]
+dest_files=["res://.godot/imported/disconnected.png-459773ea7f2a3f5eca9fe5104acb9105.ctex"]
 
 [params]
 
 compress/mode=0
+compress/high_quality=false
 compress/lossy_quality=0.7
-compress/hdr_mode=0
-compress/bptc_ldr=0
+compress/hdr_compression=1
 compress/normal_map=0
-flags/repeat=0
-flags/filter=true
-flags/mipmaps=false
-flags/anisotropic=false
-flags/srgb=2
+compress/channel_pack=0
+mipmaps/generate=false
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
 process/fix_alpha_border=true
 process/premult_alpha=false
-process/HDR_as_SRGB=false
-process/invert_color=false
 process/normal_map_invert_y=false
-stream=false
-size_limit=0
-detect_3d=true
-svg/scale=1.0
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1

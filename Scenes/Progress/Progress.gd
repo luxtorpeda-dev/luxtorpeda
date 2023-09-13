@@ -7,19 +7,19 @@ signal progress_change
 # warning-ignore:unused_signal
 signal hide_progress
 
-onready var progress_label = get_node("Label")
-onready var progress_bar = get_node("ProgressBar")
-onready var progress_log = get_node("ProgressLog")
+@onready var progress_label = get_node("Label")
+@onready var progress_bar = get_node("ProgressBar")
+@onready var progress_log = get_node("ProgressLog")
 
 var mode_id = "download"
 
 func _ready():
 	# warning-ignore:return_value_discarded
-	connect("show_progress", self, "show_progress_handler")
+	connect("show_progress", Callable(self, "show_progress_handler"))
 	# warning-ignore:return_value_discarded
-	connect("progress_change", self, "progress_change_handler")
+	connect("progress_change", Callable(self, "progress_change_handler"))
 	# warning-ignore:return_value_discarded
-	connect("hide_progress", self, "hide_progress_handler")
+	connect("hide_progress", Callable(self, "hide_progress_handler"))
 	
 	rust_panic_hook.progress_node = self
 	
@@ -30,7 +30,9 @@ func show_progress_handler(_data):
 	get_node("../Controls").emit_signal("mode_changed", "progress", mode_id)
 	
 func progress_change_handler(change_str):
-	var change = parse_json(change_str)
+	var test_json_conv = JSON.new()
+	test_json_conv.parse(change_str)
+	var change = test_json_conv.get_data()
 	
 	if change.label:
 		progress_label.text = change.label

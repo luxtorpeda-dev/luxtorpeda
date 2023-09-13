@@ -14,22 +14,22 @@ var last_mode = "choice"
 var last_mode_id
 var last_default_choice = null
 
-onready var ok_button = get_node("OkButton")
-onready var secondary_button = get_node("SecondaryButton")
-onready var cancel_button = get_node("CancelButton")
+@onready var ok_button = get_node("OkButton")
+@onready var secondary_button = get_node("SecondaryButton")
+@onready var cancel_button = get_node("CancelButton")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# warning-ignore:return_value_discarded
-	connect("choice_selected", self, "signal_handler")
+	connect("choice_selected", Callable(self, "signal_handler"))
 	# warning-ignore:return_value_discarded
-	connect("mode_changed", self, "mode_changed_handler")
+	connect("mode_changed", Callable(self, "mode_changed_handler"))
 	# warning-ignore:return_value_discarded
-	connect("default_choice_selected", self, "default_choice_selected_handler")
+	connect("default_choice_selected", Callable(self, "default_choice_selected_handler"))
 	# warning-ignore:return_value_discarded
-	connect("simulate_button", self, "simulate_button_handler")
+	connect("simulate_button", Callable(self, "simulate_button_handler"))
 	# warning-ignore:return_value_discarded
-	ControllerIcons.connect("input_type_changed", self, "_on_input_type_changed")
+	ControllerIcons.connect("input_type_changed", Callable(self, "_on_input_type_changed"))
 	
 func signal_handler(choice_data):
 	last_choice = choice_data.name
@@ -93,7 +93,7 @@ func _on_input_type_changed(value):
 func _on_OkButton_pressed():
 	if last_mode == "choice":
 		var choice_picked_obj = {"engine_choice": last_choice, "default_engine_choice": last_default_choice}
-		get_node("../../SignalEmitter").emit_signal("choice_picked", to_json(choice_picked_obj))
+		get_node("../../SignalEmitter").emit_signal("choice_picked", JSON.stringify(choice_picked_obj))
 		get_node("../Choices").emit_signal("choice_picked", last_choice)
 	elif last_mode == "question":
 		get_node("../../SignalEmitter").emit_signal("question_confirmed", last_mode_id)
@@ -107,7 +107,7 @@ func _on_OkButton_pressed():
 	elif last_mode == "default_choice":
 		get_node("../Prompt").emit_signal("hide_prompt")
 		var choice_picked_obj = {"engine_choice": last_choice, "default_engine_choice": last_default_choice}
-		get_node("../../SignalEmitter").emit_signal("choice_picked", to_json(choice_picked_obj))
+		get_node("../../SignalEmitter").emit_signal("choice_picked", JSON.stringify(choice_picked_obj))
 
 func _on_CancelButton_pressed():
 	if last_mode == "default_choice":

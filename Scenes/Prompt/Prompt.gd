@@ -9,10 +9,10 @@ signal show_prompts
 # warning-ignore:unused_signal
 signal clipboard_paste
 
-onready var prompt_label = get_node("PromptLabel")
-onready var prompt_rich_text = get_node("PromptRichText")
-onready var text_edit = get_node("TextEdit")
-onready var timer = get_node("Timer")
+@onready var prompt_label = get_node("PromptLabel")
+@onready var prompt_rich_text = get_node("PromptRichText")
+@onready var text_edit = get_node("TextEdit")
+@onready var timer = get_node("Timer")
 
 var DEFAULT_TIMER_START = 4
 var timer_left = DEFAULT_TIMER_START
@@ -24,25 +24,27 @@ var last_prompts_id
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# warning-ignore:return_value_discarded
-	connect("show_prompt", self, "show_prompt_handler")
+	connect("show_prompt", Callable(self, "show_prompt_handler"))
 	# warning-ignore:return_value_discarded
-	connect("hide_prompt", self, "hide_prompt_handler")
+	connect("hide_prompt", Callable(self, "hide_prompt_handler"))
 	# warning-ignore:return_value_discarded
-	connect("show_prompts", self, "show_prompts_handler")
+	connect("show_prompts", Callable(self, "show_prompts_handler"))
 	# warning-ignore:return_value_discarded
-	connect("clipboard_paste", self, "clipboard_paste_handler")
+	connect("clipboard_paste", Callable(self, "clipboard_paste_handler"))
 	
 func _input(event: InputEvent):
 	if visible:
 		if event.is_action_pressed("ui_down"):
-			yield(get_tree(), "idle_frame")
+			await get_tree().idle_frame
 			prompt_rich_text.get_v_scroll().set_value(prompt_rich_text.get_v_scroll().value + 100)
 		elif event.is_action_pressed("ui_up"):
-			yield(get_tree(), "idle_frame")
+			await get_tree().idle_frame
 			prompt_rich_text.get_v_scroll().set_value(prompt_rich_text.get_v_scroll().value - 100)
 
 func show_prompt_handler(data_str):
-	var prompt = parse_json(data_str)
+	var test_json_conv = JSON.new()
+	test_json_conv.parse(data_str)
+	var prompt = test_json_conv.get_data()
 	process_show_prompt(prompt)
 	
 func show_prompts_handler(prompts):
@@ -97,7 +99,7 @@ func hide_prompt_handler():
 	timer.stop()
 	
 func clipboard_paste_handler():
-	var clipboard_value = OS.clipboard
+	var clipboard_value = DisplayServer.clipboard_get()
 	if clipboard_value:
 		text_edit.text = clipboard_value
 
