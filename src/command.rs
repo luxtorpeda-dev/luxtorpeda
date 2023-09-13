@@ -21,6 +21,7 @@ use walkdir::WalkDir;
 
 use crate::client;
 use crate::config;
+use crate::godot_logger;
 use crate::package;
 use crate::package::place_state_file;
 use crate::package_metadata;
@@ -530,6 +531,7 @@ fn setup_logging(file: Option<File>) {
                 ColorChoice::Auto,
             ),
             WriteLogger::new(LevelFilter::Info, Config::default(), file),
+            godot_logger::GodotLogger::new(LevelFilter::Info, Config::default()),
         ]) {
             Ok(()) => {
                 info!("setup_logging with write success");
@@ -539,12 +541,15 @@ fn setup_logging(file: Option<File>) {
             }
         }
     } else {
-        match CombinedLogger::init(vec![TermLogger::new(
-            LevelFilter::Info,
-            Config::default(),
-            TerminalMode::Mixed,
-            ColorChoice::Auto,
-        )]) {
+        match CombinedLogger::init(vec![
+            TermLogger::new(
+                LevelFilter::Info,
+                Config::default(),
+                TerminalMode::Mixed,
+                ColorChoice::Auto,
+            ),
+            godot_logger::GodotLogger::new(LevelFilter::Info, Config::default()),
+        ]) {
             Ok(()) => {
                 info!("setup_logging success");
             }

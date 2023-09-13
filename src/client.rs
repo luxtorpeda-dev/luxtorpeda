@@ -1,7 +1,6 @@
 extern crate reqwest;
 
 use futures_util::StreamExt;
-use gdnative::prelude::*;
 use log::{error, info};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -15,38 +14,23 @@ use std::io::{Error, ErrorKind};
 use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
+use godot::engine::NodeVirtual;
+use godot::prelude::*;
+
 use crate::command;
 use crate::config;
 use crate::package;
 use crate::package_metadata;
 use crate::user_env;
 
-#[derive(NativeClass)]
-#[inherit(Node)]
-// register_with attribute can be used to specify custom register function for node signals and properties
-#[register_with(Self::register_signals)]
-pub struct SignalEmitter;
-
-#[methods]
-impl SignalEmitter {
-    fn register_signals(builder: &ClassBuilder<Self>) {
-        builder.signal("choice_picked").done();
-        builder.signal("question_confirmed").done();
-        builder.signal("clear_default_choice").done();
-        builder.signal("controller_detection_change").done();
-    }
-
-    fn new(_owner: &Node) -> Self {
-        SignalEmitter
-    }
-}
-
-#[derive(NativeClass)]
-#[inherit(Node)]
+#[derive(GodotClass)]
+#[class(base=Node)]
 pub struct LuxClient {
     receiver: std::option::Option<std::sync::mpsc::Receiver<String>>,
     last_downloads: std::option::Option<Vec<package_metadata::DownloadItem>>,
     last_choice: std::option::Option<String>,
+    #[base]
+    base: Base<Node>,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug)]
@@ -80,91 +64,75 @@ struct ChoiceData {
     default_engine_choice: std::option::Option<String>,
 }
 
-#[methods]
-impl LuxClient {
-    fn new(_base: &Node) -> Self {
-        LuxClient {
+#[godot_api]
+impl NodeVirtual for LuxClient {
+    fn init(base: Base<Node>) -> Self {
+        Self {
             receiver: None,
             last_downloads: None,
             last_choice: None,
+            base,
         }
     }
 
-    fn show_error(&mut self, base: &Node, error: std::io::Error) {
+    fn ready(&mut self) {
+        match self.init() {
+            Ok(()) => {}
+            Err(err) => {
+                error!("init err: {:?}", err);
+                self.show_error(err);
+            }
+        };
+    }
+
+    fn physics_process(&mut self, _delta: f64) {
+        if let Some(receiver) = &self.receiver {
+            if let Ok(new_data) = receiver.try_recv() {
+                self.emit_signal(
+                    "Container/Progress",
+                    "progress_change",
+                    &new_data.to_string(),
+                );
+
+                if new_data.contains("\"complete\":true") {
+                    self.run_game(false);
+                }
+            }
+        }
+    }
+}
+
+#[godot_api]
+impl LuxClient {
+    fn show_error(&mut self, error: std::io::Error) {
         let status_obj = StatusObj {
             error: Some(error.to_string()),
             ..Default::default()
         };
         let status_str = serde_json::to_string(&status_obj).unwrap();
-        let emitter = &mut base.get_node("Container/Progress").unwrap();
-        let emitter = unsafe { emitter.assume_safe() };
-        emitter.emit_signal("progress_change", &[Variant::new(status_str)]);
+        self.emit_signal(
+            "Container/Progress",
+            "progress_change",
+            &status_str.to_string(),
+        );
     }
 
-    #[method]
-    fn _ready(&mut self, #[base] base: TRef<Node>) {
-        let emitter = &mut base.get_node("SignalEmitter").unwrap();
-        let emitter = unsafe { emitter.assume_safe() };
-
-        emitter
-            .connect(
-                "choice_picked",
-                base,
-                "choice_picked",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
-
-        emitter
-            .connect(
-                "question_confirmed",
-                base,
-                "question_confirmed",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
-
-        emitter
-            .connect(
-                "clear_default_choice",
-                base,
-                "clear_default_choice",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
-
-        emitter
-            .connect(
-                "controller_detection_change",
-                base,
-                "controller_detection_change",
-                VariantArray::new_shared(),
-                0,
-            )
-            .unwrap();
-
-        match self.init(&base) {
-            Ok(()) => {}
-            Err(err) => {
-                error!("init err: {:?}", err);
-                self.show_error(&base, err);
+    fn emit_signal(&mut self, path: &str, name: &str, value: &str) {
+        if let Some(parent) = &mut self.base.get_parent() {
+            if let Some(mut emitter) = parent.get_node(path.into()) {
+                emitter.emit_signal(name.into(), &[Variant::from(value)]);
+            } else {
+                error!("emit_signal get_node not found for {}", path);
             }
-        };
+        } else {
+             error!("emit_signal parent not found for {}", path);
+        }
     }
 
-    fn init(&mut self, base: &Node) -> io::Result<()> {
+    fn init(&mut self) -> io::Result<()> {
         let app_id = user_env::steam_app_id();
         let env_args: Vec<String> = env::args().collect();
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
-
-        info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
-        info!("steam_app_id: {:?}", &app_id);
-        info!("original command: {:?}", args);
-        info!("working dir: {:?}", env::current_dir());
-        info!("tool dir: {:?}", user_env::tool_dir());
 
         match command::main() {
             Ok(()) => {}
@@ -173,6 +141,12 @@ impl LuxClient {
             }
         };
 
+        info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
+        info!("steam_app_id: {:?}", &app_id);
+        info!("original command: {:?}", args);
+        info!("working dir: {:?}", env::current_dir());
+        info!("tool dir: {:?}", user_env::tool_dir());
+
         match package_metadata::PackageMetadata::update_packages_json() {
             Ok(()) => {}
             Err(err) => {
@@ -180,7 +154,7 @@ impl LuxClient {
             }
         };
 
-        match self.ask_for_engine_choice(app_id.as_str(), base) {
+        match self.ask_for_engine_choice(app_id.as_str()) {
             Ok(()) => {}
             Err(err) => {
                 return Err(err);
@@ -190,22 +164,7 @@ impl LuxClient {
         Ok(())
     }
 
-    #[method]
-    fn _physics_process(&mut self, #[base] base: TRef<Node>, _delta: f64) {
-        if let Some(receiver) = &self.receiver {
-            if let Ok(new_data) = receiver.try_recv() {
-                let emitter = &mut base.get_node("Container/Progress").unwrap();
-                let emitter = unsafe { emitter.assume_safe() };
-                emitter.emit_signal("progress_change", &[Variant::new(&new_data)]);
-
-                if new_data.contains("\"complete\":true") {
-                    self.run_game(false);
-                }
-            }
-        }
-    }
-
-    fn ask_for_engine_choice(&mut self, app_id: &str, owner: &Node) -> io::Result<()> {
+    fn ask_for_engine_choice(&mut self, app_id: &str) -> io::Result<()> {
         let mut game_info = match package::get_game_info(app_id) {
             Ok(game_info) => game_info,
             Err(err) => {
@@ -259,53 +218,54 @@ impl LuxClient {
                     };
                     let prompt_request_str = serde_json::to_string(&prompt_request).unwrap();
 
-                    let emitter = &mut owner.get_node("Container/Prompt").unwrap();
-                    let emitter = unsafe { emitter.assume_safe() };
-                    emitter.emit_signal("show_prompt", &[Variant::new(prompt_request_str)]);
+                    self.emit_signal(
+                        "Container/Prompt",
+                        "show_prompt",
+                        &prompt_request_str.to_string(),
+                    );
                 } else {
                     let choice_obj = ChoiceData {
                         engine_choice: Some(default_engine_choice_str.to_string()),
                         default_engine_choice: Some(default_engine_choice_str),
                     };
                     let choice_str = serde_json::to_string(&choice_obj).unwrap();
-                    self.choice_picked(owner, Variant::new(choice_str));
+                    self.choice_picked(Variant::from(choice_str));
                 }
             } else {
                 let choices_str = serde_json::to_string(&choices).unwrap();
-                let emitter = &mut owner.get_node("Container/Choices").unwrap();
-                let emitter = unsafe { emitter.assume_safe() };
-                emitter.emit_signal("choices_found", &[Variant::new(choices_str)]);
+                self.emit_signal(
+                    "Container/Choices",
+                    "choices_found",
+                    &choices_str.to_string(),
+                );
             }
         } else {
             let downloads = package::json_to_downloads(app_id, &game_info).unwrap();
             self.last_downloads = Some(downloads);
-            self.choice_picked(owner, Variant::new("".to_string()));
+            self.choice_picked(Variant::from("".to_string()));
         }
 
         Ok(())
     }
 
-    #[method]
-    fn controller_detection_change(&mut self, #[base] _owner: &Node, data: Variant) {
+    #[func]
+    fn controller_detection_change(&mut self, data: Variant) {
         let data_str = data.try_to::<String>().unwrap();
         info!("controller_detection_change: {}", data_str);
         user_env::set_controller_var(&data_str);
     }
 
-    #[method]
-    fn choice_picked(&mut self, #[base] owner: &Node, data: Variant) {
+    fn choice_picked(&mut self, data: Variant) {
         let app_id = user_env::steam_app_id();
         let mut game_info = match package::get_game_info(app_id.as_str()) {
             Ok(game_info) => game_info,
             Err(err) => {
-                self.show_error(owner, err);
+                self.show_error(err);
                 return;
             }
         };
 
-        let emitter = &mut owner.get_node("Container/Progress").unwrap();
-        let emitter = unsafe { emitter.assume_safe() };
-        emitter.emit_signal("show_progress", &[Variant::new("")]);
+        self.emit_signal("Container/Progress", "show_progress", "");
 
         let data_str = data.try_to::<String>().unwrap();
 
@@ -333,7 +293,7 @@ impl LuxClient {
                     }
                     Err(err) => {
                         error!("convert_game_info_with_choice err: {:?}", err);
-                        self.show_error(owner, err);
+                        self.show_error(err);
                         return;
                     }
                 };
@@ -371,24 +331,23 @@ impl LuxClient {
             };
             let prompt_request_str = serde_json::to_string(&prompt_request).unwrap();
 
-            let emitter = &mut owner.get_node("Container/Prompt").unwrap();
-            let emitter = unsafe { emitter.assume_safe() };
-            emitter.emit_signal("show_prompt", &[Variant::new(prompt_request_str)]);
+            self.emit_signal(
+                "Container/Prompt",
+                "show_prompt",
+                &prompt_request_str.to_string(),
+            );
         } else {
             self.process_download();
         }
     }
 
-    #[method]
-    fn question_confirmed(&mut self, #[base] owner: &Node, data: Variant) {
+    #[func]
+    fn question_confirmed(&mut self, data: Variant) {
         let mode_id = data.try_to::<String>().unwrap();
         info!("question_confirmed with mode: {}", mode_id);
 
         if mode_id == "confirmlicensedownload" {
-            let emitter = &mut owner.get_node("Container/Progress").unwrap();
-            let emitter = unsafe { emitter.assume_safe() };
-            emitter.emit_signal("show_progress", &[Variant::new("")]);
-
+            self.emit_signal("Container/Progress", "show_progress", "");
             self.process_download();
         } else if mode_id.contains("dialogentryconfirm") {
             let mode_split = mode_id.split("%%");
@@ -411,10 +370,7 @@ impl LuxClient {
             if mode_items.len() == 2 {
                 let mode_id = mode_items[1];
                 if mode_id == "setup" {
-                    let emitter = &mut owner.get_node("Container/Progress").unwrap();
-                    let emitter = unsafe { emitter.assume_safe() };
-                    emitter.emit_signal("show_progress", &[Variant::new("")]);
-
+                    self.emit_signal("Container/Progress", "show_progress", "");
                     self.run_game(true);
                 }
             }
@@ -446,8 +402,8 @@ impl LuxClient {
         }
     }
 
-    #[method]
-    fn clear_default_choice(&mut self, #[base] owner: &Node, _data: Variant) {
+    #[func]
+    fn clear_default_choice(&mut self, _data: Variant) {
         let app_id = user_env::steam_app_id();
         let config_path = package::path_to_config();
         let folder_path = config_path.join(&app_id);
@@ -460,11 +416,11 @@ impl LuxClient {
             }
         }
 
-        match self.ask_for_engine_choice(app_id.as_str(), owner) {
+        match self.ask_for_engine_choice(app_id.as_str()) {
             Ok(()) => {}
             Err(err) => {
                 error!("clear_default_choice ask err: {:?}", err);
-                self.show_error(owner, err);
+                self.show_error(err);
             }
         };
     }

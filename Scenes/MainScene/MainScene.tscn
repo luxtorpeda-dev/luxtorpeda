@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bp58drjdgvxsi" path="res://addons/controller_icons/assets/key/enter_alt.png" id="4"]
 [ext_resource type="Texture2D" uid="uid://coqj2fcsaxvcn" path="res://addons/controller_icons/assets/key/space.png" id="5"]
 [ext_resource type="Texture2D" uid="uid://cnghdqiitl0fu" path="res://addons/controller_icons/assets/key/esc.png" id="7"]
-[ext_resource type="PackedScene" path="res://Scenes/Choices/Choices.tscn" id="8"]
+[ext_resource type="PackedScene" uid="uid://csmcqsj428pin" path="res://Scenes/Choices/Choices.tscn" id="8"]
 [ext_resource type="Script" path="res://Scenes/MainScene/Controls.gd" id="9"]
 [ext_resource type="PackedScene" uid="uid://kl1iyl6xknhw" path="res://Scenes/Progress/Progress.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://Scenes/Prompt/Prompt.tscn" id="11"]
@@ -86,6 +86,8 @@ text = "Cancel"
 icon = ExtResource("7")
 script = ExtResource("3")
 path = "ui_cancel"
+
+[node name="LuxClient" type="LuxClient" parent="."]
 
 [connection signal="pressed" from="Container/Controls/SecondaryButton" to="Container/Controls" method="_on_SecondaryButton_pressed"]
 [connection signal="pressed" from="Container/Controls/OkButton" to="Container/Controls" method="_on_OkButton_pressed"]
