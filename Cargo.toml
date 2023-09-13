@@ -40,6 +40,14 @@ rbchunk = "2.0.3"
 walkdir = "2"
 steamid-ng = "1.0.0"
 
+[package.metadata.cargo-post.dependencies]
+fs_extra = "1.3.0"
+tar = "0.4.40"
+xz2 = "0.1.7"
+
 [workspace.metadata.release]
 allow-branch = ["master"]
 publish = false
+
+[profile.release]
+strip = "symbols"

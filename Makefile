@@ -1,32 +1,13 @@
-.PHONY: all build test clean doc install user-install user-uninstall
+.PHONY: all build clean install user-install user-uninstall
 
-# These variables are used to generate compatibilitytool.vdf:
-tool_name             = luxtorpeda
-tool_name_dev         = luxtorpeda_dev
-tool_name_display     = Luxtorpeda
-tool_name_display_dev = Luxtorpeda (dev)
-
-# Default names for installation directories:
-#
 tool_dir     = luxtorpeda
 tool_dir_dev = luxtorpeda-dev
-
-files = compatibilitytool.vdf \
-	toolmanifest.vdf \
-	libluxtorpeda.so \
-	luxtorpeda.pck \
-	luxtorpeda.sh \
-	luxtorpeda.x86_64 \
-	LICENSE \
-	README.md
 
 ifeq ($(origin XDG_DATA_HOME), undefined)
 	data_home := ${HOME}/.local/share
 else
 	data_home := ${XDG_DATA_HOME}
 endif
-
-STRIP := strip
 
 PREFIX := /usr/local
 
@@ -37,22 +18,12 @@ install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
 dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
 
 build:
-	cargo build
-	touch target/.gdignore
-	$(GODOT) --path . --export "Linux/X11" target/debug/luxtorpeda.x86_64 --no-window
+	cargo install cargo-post
+	GODOT=$(GODOT) TARGET=$(MAKECMDGOALS) cargo post build
 
 release:
-	cargo build --release
-	touch target/.gdignore
-	mkdir -p target/debug
-	cp -r target/release/* target/debug
-	$(GODOT) --path . --export "Linux/X11" target/release/luxtorpeda.x86_64 --no-window
-
-lint:
-	cargo clippy -- -D warnings
-
-test:
-	cargo test
+	cargo install cargo-post
+	GODOT=$(GODOT) TARGET=$(MAKECMDGOALS) VERSION=$(version) cargo post build --release
 
 clean:
 	cargo clean
@@ -60,55 +31,21 @@ clean:
 	rm -f $(tool_dir).tar.xz
 	rm -rf godot-build
 
-doc:
-	cargo doc --document-private-items --open
-
-target/debug/compatibilitytool.vdf: compatibilitytool.template
-	sed 's/%name%/$(tool_name_dev)/; s/%display_name%/$(tool_name_display_dev)/' $< > $@
-
-target/release/compatibilitytool.vdf: compatibilitytool.template
-	sed 's/%name%/$(tool_name)/; s/%display_name%/$(tool_name_display)/' $< > $@
-
-target/debug/%: %
-	cp -r --reflink=auto $< $@
-
-target/release/%: %
-	cp -r --reflink=auto $< $@
-
 $(tool_dir): \
-		release \
-		target/release/compatibilitytool.vdf \
-		target/release/toolmanifest.vdf \
-		target/release/luxtorpeda.sh \
-		target/release/LICENSE \
-		target/release/README.md
-	mkdir -p $(tool_dir)
-	cd target/release && cp -r --reflink=auto -t ../../$(tool_dir) $(files)
-	$(STRIP) luxtorpeda/libluxtorpeda.so
+		release
+	echo "Packaging complete"
 
 $(tool_dir).tar.xz: $(tool_dir)
-	@if [ "$(version)" != "" ]; then\
-		echo "$(version)" > "$(tool_dir)/version";\
-	fi
-
-	tar -cJf $@ $(tool_dir)
+	echo "Archiving complete"
 
 install: $(tool_dir)
 	mkdir -p $(install_dir)
 	cp -av $(tool_dir)/* $(install_dir)/
 
 user-install: \
-		build \
-		target/debug/compatibilitytool.vdf \
-		target/debug/toolmanifest.vdf \
-		target/debug/luxtorpeda.sh \
-		target/debug/LICENSE \
-		target/debug/README.md
+		build
 	mkdir -p $(dev_install_dir)
-	cd target/debug && cp -r --reflink=auto -t $(dev_install_dir) $(files)
+	cp -av $(tool_dir)/* $(dev_install_dir)/
 
 user-uninstall:
 	rm -rf $(dev_install_dir)
-
-check-formatting:
-	cargo fmt -- --check

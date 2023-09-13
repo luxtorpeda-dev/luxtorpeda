@@ -20,10 +20,8 @@ jobs:
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
     - name: Install Deps
-      uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: clang libsdl2-dev
-        version: 1.0
+      run: sudo apt-get update && sudo apt-get -y install clang libsdl2-dev
+      shell: bash
     - name: Download Godot Export Template
       uses: robinraju/release-downloader@v1.8
       with:
