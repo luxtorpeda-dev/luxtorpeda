@@ -113,6 +113,7 @@ A configuration json file named `config.json` will be located in the `~/.config/
 - enable_steam_cloud - If this parameter is set to true, each engine & game with steam cloud support will enable it. This defaults to false. This can also be done by setting ```LUX_STEAM_CLOUD=1 %command%``` in the launch options of a particular game.
 - hash_check_install - If this parameter is set to true, hash checking will be enabled for each file the engine needs to run, so that if a file has already been extracted/installed, it won't do it again until there is an update to one of the engine files. This is defaulted to false.
 - close_client_on_launch - If this parameter is set to true, the client will close as soon as the game launches, instead of waiting for the engine to complete like normal behavior. This is defaulted to false.
+- steam_app_id_install_wait_in_seconds - How long to wait for the install to complete when installing game dependencies. Defaults to 600.
 
 Logs will be written to file if ```LUX_WRITE_LOGGING=1``` is set. The log file will be located at ```~/.local/state/luxtorpeda/luxtorpeda.log```.
 

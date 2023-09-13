@@ -14,6 +14,7 @@ pub struct Config {
     pub enable_steam_cloud: bool,
     pub hash_check_install: bool,
     pub close_client_on_launch: bool,
+    pub steam_app_id_install_wait_in_seconds: u32,
 }
 
 impl Default for Config {
@@ -25,6 +26,7 @@ impl Default for Config {
             enable_steam_cloud: false,
             hash_check_install: true,
             close_client_on_launch: false,
+            steam_app_id_install_wait_in_seconds: 600,
         }
     }
 }

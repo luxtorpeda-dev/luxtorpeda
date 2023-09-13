@@ -653,7 +653,7 @@ pub fn get_app_id_deps_paths(
                         let app_location_path = app_location.path.clone();
 
                         if app_location_path.exists()
-                            && !app_location_path.read_dir()?.next().is_none()
+                            && app_location_path.read_dir()?.next().is_some()
                         {
                             let app_location_str =
                                 &app_location_path.into_os_string().into_string().unwrap();
@@ -693,7 +693,7 @@ pub fn get_app_id_deps_paths(
             }
 
             if steam_app_id_install_completed {
-                get_app_id_deps_paths(deps, true, &sender)
+                get_app_id_deps_paths(deps, true, sender)
             } else {
                 Ok(())
             }
@@ -719,11 +719,11 @@ pub fn get_app_id_dep_path_retry(
     info!("{}", error_message);
 
     if retry {
-        return Err(Error::new(ErrorKind::Other, error_message));
+        Err(Error::new(ErrorKind::Other, error_message))
     } else {
         let status_obj = client::StatusObj {
             log_line: Some(std::format!(
-                "get_app_id_deps_paths. app id {} requesting install",
+                "get_app_id_deps_paths. app id {} requesting install. This game needs this dependency to work, please press install on the steam dialog and wait for the install to complete. Luxtorpeda will launch the game when ready.",
                 app_id
             )),
             ..Default::default()
@@ -749,7 +749,7 @@ pub fn get_app_id_dep_path_retry(
                     err
                 );
                 error!("{}", error_message);
-                return Err(Error::new(ErrorKind::Other, error_message));
+                Err(Error::new(ErrorKind::Other, error_message))
             }
         }
     }
@@ -767,7 +767,10 @@ pub fn request_steam_app_id_install(app_id: &u32) -> io::Result<()> {
                     let mut tries = 1;
                     let mut found_app = false;
 
-                    while tries < 60 {
+                    let config = config::Config::from_config_file();
+                    let num_tries = config.steam_app_id_install_wait_in_seconds / 5;
+
+                    while tries < num_tries {
                         // wait for 5 seconds
                         info!(
                             "request_steam_app_id_install checking app of {} installed tries = {}",
@@ -776,7 +779,7 @@ pub fn request_steam_app_id_install(app_id: &u32) -> io::Result<()> {
                         if let Some(mut steamdir) = SteamDir::locate() {
                             if let Some(app_location) = steamdir.app(app_id) {
                                 if app_location.path.exists()
-                                    && !app_location.path.read_dir()?.next().is_none()
+                                    && app_location.path.read_dir()?.next().is_some()
                                 {
                                     info!(
                                         "request_steam_app_id_install found app location of {}",
