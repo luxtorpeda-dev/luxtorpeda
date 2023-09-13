@@ -1,32 +1,13 @@
-.PHONY: all build test clean doc install user-install user-uninstall
+.PHONY: all build clean install user-install user-uninstall
 
-# These variables are used to generate compatibilitytool.vdf:
-tool_name             = luxtorpeda
-tool_name_dev         = luxtorpeda_dev
-tool_name_display     = Luxtorpeda
-tool_name_display_dev = Luxtorpeda (dev)
-
-# Default names for installation directories:
-#
 tool_dir     = luxtorpeda
 tool_dir_dev = luxtorpeda-dev
-
-files = compatibilitytool.vdf \
-	toolmanifest.vdf \
-	libluxtorpeda.so \
-	luxtorpeda.pck \
-	luxtorpeda.sh \
-	luxtorpeda.x86_64 \
-	LICENSE \
-	README.md
 
 ifeq ($(origin XDG_DATA_HOME), undefined)
 	data_home := ${HOME}/.local/share
 else
 	data_home := ${XDG_DATA_HOME}
 endif
-
-STRIP := strip
 
 PREFIX := /usr/local
 
@@ -37,43 +18,16 @@ install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
 dev_install_dir = $(data_home)/Steam/compatibilitytools.d/$(tool_dir_dev)
 
 build:
-	cargo build
-	touch target/.gdignore
-	$(GODOT) --path . --export "Linux/X11" target/debug/luxtorpeda.x86_64 --no-window
+	GODOT=$(GODOT) cargo post build
 
 release:
-	cargo build --release
-	touch target/.gdignore
-	mkdir -p target/debug
-	cp -r target/release/* target/debug
-	$(GODOT) --path . --export "Linux/X11" target/release/luxtorpeda.x86_64 --no-window
-
-lint:
-	cargo clippy -- -D warnings
-
-test:
-	cargo test
+	GODOT=$(GODOT) cargo post build --release
 
 clean:
 	cargo clean
 	rm -rf $(tool_dir)
 	rm -f $(tool_dir).tar.xz
 	rm -rf godot-build
-
-doc:
-	cargo doc --document-private-items --open
-
-target/debug/compatibilitytool.vdf: compatibilitytool.template
-	sed 's/%name%/$(tool_name_dev)/; s/%display_name%/$(tool_name_display_dev)/' $< > $@
-
-target/release/compatibilitytool.vdf: compatibilitytool.template
-	sed 's/%name%/$(tool_name)/; s/%display_name%/$(tool_name_display)/' $< > $@
-
-target/debug/%: %
-	cp -r --reflink=auto $< $@
-
-target/release/%: %
-	cp -r --reflink=auto $< $@
 
 $(tool_dir): \
 		release \
@@ -84,7 +38,6 @@ $(tool_dir): \
 		target/release/README.md
 	mkdir -p $(tool_dir)
 	cd target/release && cp -r --reflink=auto -t ../../$(tool_dir) $(files)
-	$(STRIP) luxtorpeda/libluxtorpeda.so
 
 $(tool_dir).tar.xz: $(tool_dir)
 	@if [ "$(version)" != "" ]; then\
@@ -109,6 +62,3 @@ user-install: \
 
 user-uninstall:
 	rm -rf $(dev_install_dir)
-
-check-formatting:
-	cargo fmt -- --check
