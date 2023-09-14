@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://csmcqsj428pin" path="res://Scenes/Choices/Choices.tscn" id="8"]
 [ext_resource type="Script" path="res://Scenes/MainScene/Controls.gd" id="9"]
 [ext_resource type="PackedScene" uid="uid://kl1iyl6xknhw" path="res://Scenes/Progress/Progress.tscn" id="10"]
-[ext_resource type="PackedScene" path="res://Scenes/Prompt/Prompt.tscn" id="11"]
+[ext_resource type="PackedScene" uid="uid://b1k4ekp8y8p7c" path="res://Scenes/Prompt/Prompt.tscn" id="11"]
 
 [sub_resource type="InputEventAction" id="InputEventAction_5q6pw"]
 action = &"ui_select"
@@ -45,7 +45,6 @@ alignment = 1
 [node name="Choices" parent="Container" instance=ExtResource("8")]
 visible = false
 layout_mode = 2
-size_flags_vertical = 3
 
 [node name="Progress" parent="Container" instance=ExtResource("10")]
 visible = false

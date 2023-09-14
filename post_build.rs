@@ -36,7 +36,6 @@ fn main() {
     if profile == "release" {
         release_godot_workaround(&out_dir);
     }
-    copy_root_files(&out_dir);
 
     match env::var("GODOT") {
         Ok(godot_path) => build_godot_project(&out_dir, &godot_path),
@@ -46,6 +45,7 @@ fn main() {
     };
 
     create_compatibilitytool_vdf(&out_dir, &profile);
+    copy_root_files(&out_dir);
 
     match env::var("TARGET") {
         Ok(target) => {

@@ -12,6 +12,3 @@ struct Luxtorpeda;
 
 #[gdextension]
 unsafe impl ExtensionLibrary for Luxtorpeda {}
-
-// TODO: restore init_panic_hook
-// TODO: test all the rest of the screens

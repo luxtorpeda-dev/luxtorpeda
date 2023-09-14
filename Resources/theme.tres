@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=20 format=3 uid="uid://bl7xwmevat0by"]
+[gd_resource type="Theme" load_steps=23 format=3 uid="uid://bl7xwmevat0by"]
 
 [sub_resource type="StyleBoxFlat" id="62"]
 content_margin_right = 10.0
@@ -164,6 +164,55 @@ corner_detail = 6
 
 [sub_resource type="StyleBoxEmpty" id="39"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tv08a"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.75)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cqh2b"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.233926, 0.233925, 0.233925, 0.6)
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ck1g8"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.1, 0.1, 0.3)
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0.3)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g17le"]
 content_margin_left = 8.0
 content_margin_top = 2.0
@@ -208,4 +257,7 @@ Label/font_sizes/font_size = 22
 PanelContainer/styles/panel = SubResource("71")
 ProgressBar/styles/background = SubResource("StyleBoxFlat_jtobc")
 ScrollContainer/styles/bg = SubResource("39")
+TextEdit/styles/focus = SubResource("StyleBoxFlat_tv08a")
+TextEdit/styles/normal = SubResource("StyleBoxFlat_cqh2b")
+TextEdit/styles/read_only = SubResource("StyleBoxFlat_ck1g8")
 TooltipPanel/styles/panel = SubResource("StyleBoxFlat_g17le")
