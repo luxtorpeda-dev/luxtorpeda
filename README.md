@@ -48,13 +48,13 @@ All packaged games are compiled for Steam Runtime Sniper environment and any add
 ## Installation (debug build from source)
 
 ### Prerequisites
-You will need Rust, Cargo, OpenSSL, Godot3 and export templates. 
+You will need Rust, Cargo, OpenSSL, Godot4 and export templates.
 
 #### 1. Install required software
 
 **Official method**:
 - [Rust and Cargo](https://www.rust-lang.org/learn/get-started): You can install Rust and Cargo using rustup.
-- [Godot 3](https://godotengine.org/download/3.x/linux/): Download and install Godot 3 and export templates from their official webpage.
+- [Godot 4](https://godotengine.org/download/linux/): Download and install Godot 4 and export templates from their official webpage.
 - OpenSSL: Install OpenSSL from your distribution's package manager.
 
 **Terminal installation** (for those who prefer the terminal):
@@ -62,16 +62,16 @@ You will need Rust, Cargo, OpenSSL, Godot3 and export templates.
 - **Debian, Ubuntu, and variants**: Open a terminal and run:
 
     ```bash
-    $ sudo apt install cargo libssl-dev godot3
+    $ sudo apt install cargo libssl-dev godot
     ```
 
 - **Fedora**: Use the following command:
 
     ```bash
-    $ sudo dnf install openssl-devel rust cargo godot3
+    $ sudo dnf install openssl-devel rust cargo godot
     ```
 
-- **Arch Linux**: You can download Godot3 from the webpage or use the godot3 AUR package.
+- **Arch Linux**: You can download Godot4 from the webpage or use the godot AUR package.
 
     ```bash
     $ sudo pacman -S openssl rust
@@ -83,9 +83,9 @@ You will need Rust, Cargo, OpenSSL, Godot3 and export templates.
 - If you prefer to use the terminal these commands should work:
 
     ```bash
-    $ mkdir -p ~/.local/share/godot/templates/3.5.2.stable/
-    $ wget https://github.com/godotengine/godot/releases/download/3.5.2-stable/Godot_v3.5.2-stable_export_templates.tpz
-    $ unzip -j Godot_v3.5.2-stable_export_templates.tpz -d ~/.local/share/godot/templates/3.5.2.stable/
+    $ mkdir -p ~/.local/share/godot/templates/4.1.stable/
+    $ wget https://github.com/godotengine/godot/releases/download/4.1-stable/Godot_v4.1-stable_export_templates.tpz
+    $ unzip -j Godot_v4.1-stable_export_templates.tpz -d ~/.local/share/godot/templates/4.1.stable/
     ```
 
 #### 3. Install and lauch the debug build
