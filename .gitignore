@@ -15,3 +15,5 @@ export.cfg
 data_*/
 
 godot-build
+
+.godot

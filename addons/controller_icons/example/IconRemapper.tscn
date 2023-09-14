@@ -1,620 +1,446 @@
-[gd_scene load_steps=22 format=2]
+[gd_scene load_steps=22 format=3 uid="uid://cmopiwmgjwjb8"]
 
-[ext_resource path="res://addons/controller_icons/objects/TextureRect.gd" type="Script" id=1]
-[ext_resource path="res://addons/controller_icons/example/IconRemapper.gd" type="Script" id=2]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/a.png" type="Texture" id=3]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/x.png" type="Texture" id=4]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/b.png" type="Texture" id=5]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_right.png" type="Texture" id=6]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/l_stick_click.png" type="Texture" id=7]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/r_stick_click.png" type="Texture" id=8]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/rb.png" type="Texture" id=9]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/rt.png" type="Texture" id=10]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/back.png" type="Texture" id=11]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/r_stick.png" type="Texture" id=12]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/start.png" type="Texture" id=13]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_down.png" type="Texture" id=14]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/lt.png" type="Texture" id=15]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/y.png" type="Texture" id=16]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/lb.png" type="Texture" id=17]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad.png" type="Texture" id=18]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/l_stick.png" type="Texture" id=19]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_up.png" type="Texture" id=20]
-[ext_resource path="res://addons/controller_icons/assets/xbox360/dpad_left.png" type="Texture" id=21]
+[ext_resource type="Script" path="res://addons/controller_icons/objects/TextureRect.gd" id="1"]
+[ext_resource type="Script" path="res://addons/controller_icons/example/IconRemapper.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://d284wkmo0vqfk" path="res://addons/controller_icons/assets/xbox360/a.png" id="2_518mb"]
+[ext_resource type="Texture2D" uid="uid://bufx8lu1tny4o" path="res://addons/controller_icons/assets/xbox360/b.png" id="4_4ab0g"]
+[ext_resource type="Texture2D" uid="uid://jcc3t88rfxh0" path="res://addons/controller_icons/assets/xbox360/x.png" id="5_nfuy6"]
+[ext_resource type="Texture2D" uid="uid://bva4iswwvta5d" path="res://addons/controller_icons/assets/xbox360/y.png" id="6_8iybr"]
+[ext_resource type="Texture2D" uid="uid://bamrmda3in3qq" path="res://addons/controller_icons/assets/xbox360/lb.png" id="7_dhavb"]
+[ext_resource type="Texture2D" uid="uid://cw2jo5xbteqdu" path="res://addons/controller_icons/assets/xbox360/rb.png" id="8_hoxxr"]
+[ext_resource type="Texture2D" uid="uid://dhhjoq01cc2oh" path="res://addons/controller_icons/assets/xbox360/lt.png" id="9_3s3cu"]
+[ext_resource type="Texture2D" uid="uid://d2qha4gd4x604" path="res://addons/controller_icons/assets/xbox360/rt.png" id="10_82tca"]
+[ext_resource type="Texture2D" uid="uid://mh6if65g6eob" path="res://addons/controller_icons/assets/xbox360/l_stick_click.png" id="11_3rx8a"]
+[ext_resource type="Texture2D" uid="uid://db7d0vqnfyuin" path="res://addons/controller_icons/assets/xbox360/r_stick_click.png" id="12_fw7j3"]
+[ext_resource type="Texture2D" uid="uid://cdjnpcxgnxrxb" path="res://addons/controller_icons/assets/xbox360/back.png" id="13_rkxrv"]
+[ext_resource type="Texture2D" uid="uid://coxp4sapp4g8n" path="res://addons/controller_icons/assets/xbox360/start.png" id="14_pejnt"]
+[ext_resource type="Texture2D" uid="uid://cuds8v7pvi4tj" path="res://addons/controller_icons/assets/xbox360/dpad.png" id="15_u7uri"]
+[ext_resource type="Texture2D" uid="uid://bh66fibu352gl" path="res://addons/controller_icons/assets/xbox360/dpad_up.png" id="16_8pfh4"]
+[ext_resource type="Texture2D" uid="uid://dt4m6u4nau82r" path="res://addons/controller_icons/assets/xbox360/dpad_down.png" id="17_2wsg3"]
+[ext_resource type="Texture2D" uid="uid://7r70kxgen0mv" path="res://addons/controller_icons/assets/xbox360/dpad_left.png" id="18_s5fk2"]
+[ext_resource type="Texture2D" uid="uid://7qkn2dva6jv" path="res://addons/controller_icons/assets/xbox360/dpad_right.png" id="19_3qb24"]
+[ext_resource type="Texture2D" uid="uid://fxgoiilpipsd" path="res://addons/controller_icons/assets/xbox360/l_stick.png" id="20_yio6b"]
+[ext_resource type="Texture2D" uid="uid://d6jwqg6mq8dk" path="res://addons/controller_icons/assets/xbox360/r_stick.png" id="21_wowfx"]
 
 [node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 100.0
-margin_top = 60.0
-margin_right = -567.0
-margin_bottom = -60.0
-script = ExtResource( 2 )
+offset_left = 100.0
+offset_top = 60.0
+offset_right = -695.0
+offset_bottom = -108.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2")
 
 [node name="Controls" type="Control" parent="."]
-margin_right = 357.0
-margin_bottom = 480.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
+layout_mode = 1
+anchors_preset = 0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Controls"]
-margin_right = 357.0
-margin_bottom = 480.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
+layout_mode = 0
+offset_right = 435.0
+offset_bottom = 1140.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Controls/HBoxContainer"]
-margin_right = 176.0
-margin_bottom = 480.0
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="A" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_right = 176.0
-margin_bottom = 40.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/A"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 3 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("2_518mb")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/a"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/A"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 53.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " A"
 
 [node name="B" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 44.0
-margin_right = 176.0
-margin_bottom = 84.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/B"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 5 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("4_4ab0g")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/b"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/B"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 53.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " B"
 
 [node name="X" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 88.0
-margin_right = 176.0
-margin_bottom = 128.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/X"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 4 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("5_nfuy6")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/x"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/X"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 52.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " X"
 
 [node name="Y" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 132.0
-margin_right = 176.0
-margin_bottom = 172.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/Y"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 16 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("6_8iybr")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/y"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/Y"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 51.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Y"
 
 [node name="LB" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 176.0
-margin_right = 176.0
-margin_bottom = 216.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/LB"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 17 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("7_dhavb")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/lb"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/LB"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 115.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Left Button"
 
 [node name="RB" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 220.0
-margin_right = 176.0
-margin_bottom = 260.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/RB"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 9 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("8_hoxxr")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/rb"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/RB"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 123.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Right Button"
 
 [node name="LT" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 264.0
-margin_right = 176.0
-margin_bottom = 304.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/LT"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 15 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("9_3s3cu")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/lt"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/LT"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 115.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Left Trigger"
 
 [node name="RT" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 308.0
-margin_right = 176.0
-margin_bottom = 348.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/RT"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 10 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("10_82tca")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/rt"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/RT"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 123.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Right Trigger"
 
 [node name="L_Stick_Click" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 352.0
-margin_right = 176.0
-margin_bottom = 392.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/L_Stick_Click"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 7 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("11_3rx8a")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/l_stick_click"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/L_Stick_Click"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 136.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Left Stick Click"
 
 [node name="R_Stick_Click" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 396.0
-margin_right = 176.0
-margin_bottom = 436.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/R_Stick_Click"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 8 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("12_fw7j3")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/r_stick_click"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/R_Stick_Click"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 144.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Right Stick Click"
 
 [node name="Select" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer"]
-margin_top = 440.0
-margin_right = 176.0
-margin_bottom = 480.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer/Select"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 11 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("13_rkxrv")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/select"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer/Select"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 83.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Select"
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="Controls/HBoxContainer"]
-margin_left = 180.0
-margin_right = 357.0
-margin_bottom = 480.0
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Start" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_right = 177.0
-margin_bottom = 40.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/Start"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 13 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("14_pejnt")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/start"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/Start"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 73.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Start"
 
 [node name="DPAD" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 44.0
-margin_right = 177.0
-margin_bottom = 84.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/DPAD"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 18 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("15_u7uri")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/dpad"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/DPAD"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 81.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " DPAD"
 
 [node name="DPAD_Up" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 88.0
-margin_right = 177.0
-margin_bottom = 128.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Up"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 20 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("16_8pfh4")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/dpad_up"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Up"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 103.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " DPAD Up"
 
 [node name="DPAD_Down" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 132.0
-margin_right = 177.0
-margin_bottom = 172.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Down"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 14 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("17_2wsg3")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/dpad_down"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Down"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 121.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " DPAD Down"
 
 [node name="DPAD_Left" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 176.0
-margin_right = 177.0
-margin_bottom = 216.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Left"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 21 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("18_s5fk2")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/dpad_left"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Left"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 109.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " DPAD Left"
 
 [node name="DPAD_Right" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 220.0
-margin_right = 177.0
-margin_bottom = 260.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Right"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 6 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("19_3qb24")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/dpad_right"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/DPAD_Right"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 117.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " DPAD Right"
 
 [node name="Home" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 264.0
-margin_right = 177.0
-margin_bottom = 304.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/Home"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/home"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/Home"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 83.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Home"
 
 [node name="Share" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 308.0
-margin_right = 177.0
-margin_bottom = 348.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/Share"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/share"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/Share"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 79.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Share"
 
 [node name="L-Stick" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 352.0
-margin_right = 177.0
-margin_bottom = 392.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/L-Stick"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 19 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("20_yio6b")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/l_stick"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/L-Stick"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 102.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Left Stick"
 
 [node name="R-Stick" type="HBoxContainer" parent="Controls/HBoxContainer/VBoxContainer2"]
-margin_top = 396.0
-margin_right = 177.0
-margin_bottom = 436.0
-custom_constants/separation = 0
+layout_mode = 2
 
 [node name="ControllerTextureRect" type="TextureRect" parent="Controls/HBoxContainer/VBoxContainer2/R-Stick"]
-margin_right = 40.0
-margin_bottom = 40.0
-rect_min_size = Vector2( 40, 40 )
-texture = ExtResource( 12 )
-expand = true
-script = ExtResource( 1 )
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("21_wowfx")
+expand_mode = 1
+script = ExtResource("1")
 path = "joypad/r_stick"
 
 [node name="Label" type="Label" parent="Controls/HBoxContainer/VBoxContainer2/R-Stick"]
-margin_left = 40.0
-margin_top = 13.0
-margin_right = 110.0
-margin_bottom = 27.0
+layout_mode = 2
 text = " Right Stick"
 
 [node name="Buttons" type="VBoxContainer" parent="."]
-margin_left = 414.0
-margin_right = 866.0
-margin_bottom = 467.0
+layout_mode = 1
+anchors_preset = -1
+offset_left = 414.0
+offset_right = 866.0
+offset_bottom = 467.0
 
 [node name="Auto" type="Button" parent="Buttons"]
-margin_right = 452.0
-margin_bottom = 29.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "[ Set to automatic ]"
 
 [node name="Luna" type="Button" parent="Buttons"]
-margin_top = 33.0
-margin_right = 452.0
-margin_bottom = 63.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Amazon Luna"
 
 [node name="PS3" type="Button" parent="Buttons"]
-margin_top = 67.0
-margin_right = 452.0
-margin_bottom = 96.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "PlayStation 3"
 
 [node name="PS4" type="Button" parent="Buttons"]
-margin_top = 100.0
-margin_right = 452.0
-margin_bottom = 130.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "PlayStation 4"
 
 [node name="PS5" type="Button" parent="Buttons"]
-margin_top = 134.0
-margin_right = 452.0
-margin_bottom = 164.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "PlayStation 5"
 
 [node name="Stadia" type="Button" parent="Buttons"]
-margin_top = 168.0
-margin_right = 452.0
-margin_bottom = 197.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Google Stadia"
 
 [node name="Steam" type="Button" parent="Buttons"]
-margin_top = 201.0
-margin_right = 452.0
-margin_bottom = 231.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Steam Controller"
 
 [node name="SteamDeck" type="Button" parent="Buttons"]
-margin_top = 235.0
-margin_right = 452.0
-margin_bottom = 265.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Steam Deck"
 
 [node name="Switch" type="Button" parent="Buttons"]
-margin_top = 269.0
-margin_right = 452.0
-margin_bottom = 298.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Nintendo Switch Controller"
 
 [node name="Joycon" type="Button" parent="Buttons"]
-margin_top = 302.0
-margin_right = 452.0
-margin_bottom = 332.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Nintendo Switch JoyCon"
 
 [node name="OUYA" type="Button" parent="Buttons"]
-margin_top = 336.0
-margin_right = 452.0
-margin_bottom = 366.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "OUYA"
 
 [node name="Xbox360" type="Button" parent="Buttons"]
-margin_top = 370.0
-margin_right = 452.0
-margin_bottom = 399.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Xbox 360"
 
 [node name="XboxOne" type="Button" parent="Buttons"]
-margin_top = 403.0
-margin_right = 452.0
-margin_bottom = 433.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Xbox One"
 
 [node name="XboxSeries" type="Button" parent="Buttons"]
-margin_top = 437.0
-margin_right = 452.0
-margin_bottom = 467.0
+layout_mode = 2
 size_flags_vertical = 3
 text = "Xbox Series"
 

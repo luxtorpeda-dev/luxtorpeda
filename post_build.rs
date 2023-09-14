@@ -36,16 +36,16 @@ fn main() {
     if profile == "release" {
         release_godot_workaround(&out_dir);
     }
-    copy_root_files(&out_dir);
 
     match env::var("GODOT") {
-        Ok(godot_path) => build_godot_project(&out_dir, &godot_path),
+        Ok(godot_path) => build_godot_project(&out_dir, &godot_path, &profile),
         Err(_) => {
             eprintln!("godot not provided so skipping");
         }
     };
 
     create_compatibilitytool_vdf(&out_dir, &profile);
+    copy_root_files(&out_dir);
 
     match env::var("TARGET") {
         Ok(target) => {
@@ -88,11 +88,11 @@ fn copy_root_files(out_dir: &str) {
     copy_items(&ROOT_FILES, out_dir, &options).expect("copy_root_files copy failed");
 }
 
-fn build_godot_project(out_dir: &str, godot_path: &str) {
+fn build_godot_project(out_dir: &str, godot_path: &str, profile: &str) {
     println!("build_godot_project");
     let out_path = Path::new(out_dir).join("luxtorpeda.x86_64").into_os_string().into_string().unwrap();
     let build_cmd = Command::new(godot_path)
-        .args(["--path", ".", "--export", "Linux/X11", &out_path, "--no-window"])
+        .args(["--path", ".", &std::format!("--export-{}", profile).to_string(), "Linux/X11", &out_path, "--display-driver", "headless"])
         .status()
         .expect("failed to execute godot");
 

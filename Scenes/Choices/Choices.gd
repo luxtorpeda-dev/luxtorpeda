@@ -9,21 +9,21 @@ signal default_choice_clicked
 
 var last_choices = null
 var last_index = -1
-onready var choice_list = get_node("ScrollContainer/ChoiceList")
-onready var default_icon_texture = load("res://Resources/accept-icon.png")
+@onready var choice_list = get_node("ScrollContainer/ChoiceList")
+@onready var default_icon_texture = load("res://Resources/accept-icon.png")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# warning-ignore:return_value_discarded
-	connect("choices_found", self, "choices_found_handler")
+	connect("choices_found", Callable(self, "choices_found_handler"))
 	# warning-ignore:return_value_discarded
-	connect("choice_picked", self, "choice_picked_handler")
+	connect("choice_picked", Callable(self, "choice_picked_handler"))
 	# warning-ignore:return_value_discarded
-	connect("default_choice_clicked", self, "default_choice_clicked_handler")
+	connect("default_choice_clicked", Callable(self, "default_choice_clicked_handler"))
 	choice_list.grab_focus()
 	
 func _input(event):
-	if self.visible and event is InputEventJoypadMotion and event.axis == JOY_AXIS_1:
+	if self.visible and event is InputEventJoypadMotion and event.axis == JOY_AXIS_LEFT_Y:
 		var new_index = last_index
 		if event.get_action_strength("ui_down") >= 1:
 			new_index += 1
@@ -38,7 +38,9 @@ func _input(event):
 		choice_list.accept_event()
 
 func choices_found_handler(choices_str):
-	last_choices = parse_json(choices_str)
+	var test_json_conv = JSON.new()
+	test_json_conv.parse(choices_str)
+	last_choices = test_json_conv.get_data()
 	get_node("../TitleBar").emit_signal("mode_changed", "choice")
 	get_node("../Controls").emit_signal("mode_changed", "choice", "choice")
 	self.visible = true

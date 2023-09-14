@@ -1,4 +1,4 @@
-tool
+@tool
 extends Node
 
 signal input_type_changed(input_type)
@@ -13,7 +13,6 @@ var _custom_input_actions := {}
 
 var _last_input_type
 var _settings
-var _file := File.new()
 
 var Mapper = preload("res://addons/controller_icons/Mapper.gd").new()
 
@@ -22,31 +21,57 @@ func _set_last_input_type(__last_input_type):
 	emit_signal("input_type_changed", _last_input_type)
 
 func _enter_tree():
-	if Engine.editor_hint:
+	if Engine.is_editor_hint():
 		_parse_input_actions()
+		
+func _exit_tree():
+	Mapper.queue_free()
 
 func _parse_input_actions():
 	# Default actions will be the builtin editor actions when
 	# the script is at editor ("tool") level. To pickup more
 	# actions available, these have to be queried manually
 	var keys := [
-		"input/ui_accept",
-		"input/ui_cancel",
-		"input/ui_down",
-		"input/ui_end",
-		"input/ui_focus_next",
-		"input/ui_focus_prev",
-		"input/ui_home",
-		"input/ui_left",
-		"input/ui_page_down",
-		"input/ui_page_up",
-		"input/ui_right",
-		"input/ui_select",
-		"input/ui_up"
+		"input/ui_accept", "input/ui_cancel", "input/ui_copy",
+		"input/ui_cut", "input/ui_down", "input/ui_end",
+		"input/ui_filedialog_refresh", "input/ui_filedialog_show_hidden",
+		"input/ui_filedialog_up_one_level", "input/ui_focus_next",
+		"input/ui_focus_prev", "input/ui_graph_delete",
+		"input/ui_graph_duplicate", "input/ui_home",
+		"input/ui_left", "input/ui_menu", "input/ui_page_down",
+		"input/ui_page_up", "input/ui_paste", "input/ui_redo",
+		"input/ui_right", "input/ui_select", "input/ui_swap_input_direction",
+		"input/ui_text_add_selection_for_next_occurrence",
+		"input/ui_text_backspace", "input/ui_text_backspace_all_to_left",
+		"input/ui_text_backspace_all_to_left.macos",
+		"input/ui_text_backspace_word", "input/ui_text_backspace_word.macos",
+		"input/ui_text_caret_add_above", "input/ui_text_caret_add_above.macos",
+		"input/ui_text_caret_add_below", "input/ui_text_caret_add_below.macos",
+		"input/ui_text_caret_document_end", "input/ui_text_caret_document_end.macos",
+		"input/ui_text_caret_document_start", "input/ui_text_caret_document_start.macos",
+		"input/ui_text_caret_down", "input/ui_text_caret_left",
+		"input/ui_text_caret_line_end", "input/ui_text_caret_line_end.macos",
+		"input/ui_text_caret_line_start", "input/ui_text_caret_line_start.macos",
+		"input/ui_text_caret_page_down", "input/ui_text_caret_page_up",
+		"input/ui_text_caret_right", "input/ui_text_caret_up",
+		"input/ui_text_caret_word_left", "input/ui_text_caret_word_left.macos",
+		"input/ui_text_caret_word_right", "input/ui_text_caret_word_right.macos",
+		"input/ui_text_clear_carets_and_selection", "input/ui_text_completion_accept",
+		"input/ui_text_completion_query", "input/ui_text_completion_replace",
+		"input/ui_text_dedent", "input/ui_text_delete",
+		"input/ui_text_delete_all_to_right", "input/ui_text_delete_all_to_right.macos",
+		"input/ui_text_delete_word", "input/ui_text_delete_word.macos",
+		"input/ui_text_indent", "input/ui_text_newline", "input/ui_text_newline_above",
+		"input/ui_text_newline_blank", "input/ui_text_scroll_down",
+		"input/ui_text_scroll_down.macos", "input/ui_text_scroll_up",
+		"input/ui_text_scroll_up.macos", "input/ui_text_select_all",
+		"input/ui_text_select_word_under_caret", "input/ui_text_select_word_under_caret.macos",
+		"input/ui_text_submit", "input/ui_text_toggle_insert_mode", "input/ui_undo",
+		"input/ui_up",
 	]
 	for key in keys:
 		var data : Dictionary = ProjectSettings.get_setting(key)
-		if not data.empty() and data.has("events") and data["events"] is Array:
+		if not data.is_empty() and data.has("events") and data["events"] is Array:
 			_add_custom_input_action((key as String).trim_prefix("input/"), data)
 
 	# A script running at editor ("tool") level only has
@@ -63,17 +88,16 @@ func _parse_input_actions():
 			_add_custom_input_action(input_action, data)
 
 func _ready():
-	Input.connect("joy_connection_changed", self, "_on_joy_connection_changed")
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_settings = load("res://addons/controller_icons/settings.tres")
 	if not _settings:
 		_settings = ControllerSettings.new()
 	if _settings.custom_mapper:
 		Mapper = _settings.custom_mapper.new()
-
 	# Wait a frame to give a chance for the app to initialize
-	yield(get_tree(), "idle_frame")
+	await get_tree().process_frame
 	# Set input type to what's likely being used currently
-	if Input.get_connected_joypads().empty():
+	if Input.get_connected_joypads().is_empty():
 		_set_last_input_type(InputType.KEYBOARD_MOUSE)
 	else:
 		_set_last_input_type(InputType.CONTROLLER)
@@ -81,12 +105,12 @@ func _ready():
 func _on_joy_connection_changed(device, connected):
 	if device == 0:
 		if connected:
-			# A yield is required, otherwise a deadlock happens
-			yield(get_tree(), "idle_frame")
+			# An await is required, otherwise a deadlock happens
+			await get_tree().process_frame
 			_set_last_input_type(InputType.CONTROLLER)
 		else:
-			# A yield is required, otherwise a deadlock happens
-			yield(get_tree(), "idle_frame")
+			# An await is required, otherwise a deadlock happens
+			await get_tree().process_frame
 			_set_last_input_type(InputType.KEYBOARD_MOUSE)
 
 func _input(event: InputEvent):
@@ -95,7 +119,7 @@ func _input(event: InputEvent):
 		"InputEventKey", "InputEventMouseButton":
 			input_type = InputType.KEYBOARD_MOUSE
 		"InputEventMouseMotion":
-			if _settings and _settings.allow_mouse_remap and event.speed.length() > _settings.mouse_min_movement:
+			if _settings.allow_mouse_remap and event.velocity.length() > _settings.mouse_min_movement:
 				input_type = InputType.KEYBOARD_MOUSE
 		"InputEventJoypadButton":
 			input_type = InputType.CONTROLLER
@@ -112,8 +136,8 @@ func refresh():
 	# All it takes is to signal icons to refresh paths
 	emit_signal("input_type_changed", _last_input_type)
 
-func parse_path(path: String, input_type: int = _last_input_type) -> Texture:
-	if input_type == null:
+func parse_path(path: String, input_type = _last_input_type) -> Texture:
+	if typeof(input_type) == TYPE_NIL:
 		return null
 	var root_paths := _expand_path(path, input_type)
 	for root_path in root_paths:
@@ -131,7 +155,7 @@ func parse_path_to_tts(path: String, input_type: int = _last_input_type) -> Stri
 
 func parse_event(event: InputEvent) -> Texture:
 	var path = _convert_event_to_path(event)
-	if path.empty():
+	if path.is_empty():
 		return null
 
 	var base_paths := [
@@ -139,7 +163,7 @@ func parse_event(event: InputEvent) -> Texture:
 		"res://addons/controller_icons/assets/"
 	]
 	for base_path in base_paths:
-		if base_path.empty():
+		if base_path.is_empty():
 			continue
 		base_path += path + ".png"
 		if not _cached_icons.has(base_path):
@@ -155,7 +179,7 @@ func _expand_path(path: String, input_type: int) -> Array:
 		"res://addons/controller_icons/assets/"
 	]
 	for base_path in base_paths:
-		if base_path.empty():
+		if base_path.is_empty():
 			continue
 		base_path += _convert_path_to_asset_file(path, input_type)
 
@@ -236,9 +260,9 @@ func _convert_asset_file_to_tts(path: String) -> String:
 func _convert_event_to_path(event: InputEvent):
 	if event is InputEventKey:
 		# If this is a physical key, convert to localized scancode
-		if event.scancode == 0:
-			return _convert_key_to_path(OS.keyboard_get_scancode_from_physical(event.physical_scancode))
-		return _convert_key_to_path(event.scancode)
+		if event.keycode == 0:
+			return _convert_key_to_path(DisplayServer.keyboard_get_keycode_from_physical(event.physical_keycode))
+		return _convert_key_to_path(event.keycode)
 	elif event is InputEventMouseButton:
 		return _convert_mouse_button_to_path(event.button_index)
 	elif event is InputEventJoypadButton:
@@ -282,9 +306,9 @@ func _convert_key_to_path(scancode: int):
 			return "key/page_down"
 		KEY_SHIFT:
 			return "key/shift_alt"
-		KEY_CONTROL:
+		KEY_CTRL:
 			return "key/ctrl"
-		KEY_META, KEY_SUPER_L, KEY_SUPER_R:
+		KEY_META:
 			match OS.get_name():
 				"OSX":
 					return "key/command"
@@ -447,11 +471,11 @@ func _convert_key_to_path(scancode: int):
 
 func _convert_mouse_button_to_path(button_index: int):
 	match button_index:
-		BUTTON_LEFT:
+		MOUSE_BUTTON_LEFT:
 			return "mouse/left"
-		BUTTON_RIGHT:
+		MOUSE_BUTTON_RIGHT:
 			return "mouse/right"
-		BUTTON_MIDDLE:
+		MOUSE_BUTTON_MIDDLE:
 			return "mouse/middle"
 		_:
 			return "mouse/sample"
@@ -459,41 +483,37 @@ func _convert_mouse_button_to_path(button_index: int):
 func _convert_joypad_button_to_path(button_index: int):
 	var path
 	match button_index:
-		JOY_XBOX_A:
+		JOY_BUTTON_A:
 			path = "joypad/a"
-		JOY_XBOX_B:
+		JOY_BUTTON_B:
 			path = "joypad/b"
-		JOY_XBOX_X:
+		JOY_BUTTON_X:
 			path = "joypad/x"
-		JOY_XBOX_Y:
+		JOY_BUTTON_Y:
 			path = "joypad/y"
-		JOY_L:
+		JOY_BUTTON_LEFT_SHOULDER:
 			path = "joypad/lb"
-		JOY_R:
+		JOY_BUTTON_RIGHT_SHOULDER:
 			path = "joypad/rb"
-		JOY_L2:
-			path = "joypad/lt"
-		JOY_R2:
-			path = "joypad/rt"
-		JOY_L3:
+		JOY_BUTTON_LEFT_STICK:
 			path = "joypad/l_stick_click"
-		JOY_R3:
+		JOY_BUTTON_RIGHT_STICK:
 			path = "joypad/r_stick_click"
-		JOY_SELECT:
+		JOY_BUTTON_BACK:
 			path = "joypad/select"
-		JOY_START:
+		JOY_BUTTON_START:
 			path = "joypad/start"
-		JOY_DPAD_UP:
+		JOY_BUTTON_DPAD_UP:
 			path = "joypad/dpad_up"
-		JOY_DPAD_DOWN:
+		JOY_BUTTON_DPAD_DOWN:
 			path = "joypad/dpad_down"
-		JOY_DPAD_LEFT:
+		JOY_BUTTON_DPAD_LEFT:
 			path = "joypad/dpad_left"
-		JOY_DPAD_RIGHT:
+		JOY_BUTTON_DPAD_RIGHT:
 			path = "joypad/dpad_right"
-		JOY_GUIDE:
+		JOY_BUTTON_GUIDE:
 			path = "joypad/home"
-		JOY_MISC1:
+		JOY_BUTTON_MISC1:
 			path = "joypad/share"
 		_:
 			return ""
@@ -502,13 +522,13 @@ func _convert_joypad_button_to_path(button_index: int):
 func _convert_joypad_motion_to_path(axis: int):
 	var path : String
 	match axis:
-		JOY_ANALOG_LX, JOY_ANALOG_LY:
+		JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y:
 			path = "joypad/l_stick"
-		JOY_ANALOG_RX, JOY_ANALOG_RY:
+		JOY_AXIS_RIGHT_X, JOY_AXIS_RIGHT_Y:
 			path = "joypad/r_stick"
-		JOY_L2:
+		JOY_AXIS_TRIGGER_LEFT:
 			path = "joypad/lt"
-		JOY_R2:
+		JOY_AXIS_TRIGGER_RIGHT:
 			path = "joypad/rt"
 		_:
 			return ""
@@ -519,7 +539,7 @@ func _get_matching_event(path: String, input_type: int):
 	if _custom_input_actions.has(path):
 		events = _custom_input_actions[path]
 	else:
-		events = InputMap.get_action_list(path)
+		events = InputMap.action_get_events(path)
 
 	for event in events:
 		match event.get_class():
@@ -541,7 +561,7 @@ func _load_icon(path: String) -> int:
 		else:
 			return ERR_FILE_NOT_FOUND
 	else:
-		if not _file.file_exists(path):
+		if not FileAccess.file_exists(path):
 			return ERR_FILE_NOT_FOUND
 		var img := Image.new()
 		var err = img.load(path)

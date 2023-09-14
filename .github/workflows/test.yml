@@ -18,29 +18,11 @@ jobs:
     - name: Install Deps
       run: sudo apt-get update && sudo apt-get -y install clang libsdl2-dev
       shell: bash
-    - name: Download Godot Export Template
-      uses: robinraju/release-downloader@v1.8
-      with:
-        repository: luxtorpeda-dev/godot_release_template
-        latest: true
-        fileName: "*"
-        tarBall: false
-        zipBall: false
-    - name: Read godot version
-      id: godot_version
-      uses: juliangruber/read-file-action@v1
-      with:
-        path: ./godot_version.txt
-        trim: true
     - name: Install Godot
-      uses: paulloz/godot-action@v1.2.2
+      uses: chickensoft-games/setup-godot@v1
       with:
-        version: ${{ steps.godot_version.outputs.content }}
-        export-templates: false
-    - name: Move Godot Export Template
-      run: |
-        mkdir -p ~/.local/share/godot/templates/"${{ steps.godot_version.outputs.content }}.stable"
-        mv ./linux_x11_64_release ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable/linux_x11_64_release
+        version: 4.1.1
+        use-dotnet: false
     - name: Build
       run: make release GODOT=godot
     - name: Package

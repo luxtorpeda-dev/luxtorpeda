@@ -1,6 +1,6 @@
 extends Control
 
-onready var nodes := [
+@onready var nodes := [
 	$Controls/HBoxContainer/VBoxContainer/A,
 	$Controls/HBoxContainer/VBoxContainer/B,
 	$Controls/HBoxContainer/VBoxContainer/X,

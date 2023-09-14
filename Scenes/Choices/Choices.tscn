@@ -1,21 +1,22 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=2 format=3 uid="uid://csmcqsj428pin"]
 
-[ext_resource path="res://Scenes/Choices/Choices.gd" type="Script" id=2]
+[ext_resource type="Script" path="res://Scenes/Choices/Choices.gd" id="2"]
 
 [node name="Choices" type="HBoxContainer"]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-script = ExtResource( 2 )
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2")
 
 [node name="ScrollContainer" type="VBoxContainer" parent="."]
-margin_right = 1024.0
-margin_bottom = 600.0
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="ChoiceList" type="ItemList" parent="ScrollContainer"]
-margin_right = 1024.0
-margin_bottom = 600.0
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 same_column_width = true
@@ -23,23 +24,18 @@ icon_scale = 0.3
 
 [node name="Separator" type="VSeparator" parent="."]
 visible = false
-margin_left = 1016.0
-margin_right = 1024.0
-margin_bottom = 600.0
+layout_mode = 2
 
 [node name="LabelScrollContainer" type="ScrollContainer" parent="."]
 visible = false
-margin_left = 516.0
-margin_right = 1024.0
-margin_bottom = 600.0
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Label" type="Label" parent="LabelScrollContainer"]
-margin_right = 508.0
-margin_bottom = 600.0
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-autowrap = true
+autowrap_mode = 3
 
 [connection signal="item_selected" from="ScrollContainer/ChoiceList" to="." method="_on_ChoiceList_item_selected"]
