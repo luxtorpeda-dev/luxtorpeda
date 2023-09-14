@@ -39,6 +39,10 @@ window/size/borderless=true
 
 enabled=PackedStringArray("res://addons/controller_icons/plugin.cfg")
 
+[filesystem]
+
+import/blender/enabled=false
+
 [global]
 
 theme=false
