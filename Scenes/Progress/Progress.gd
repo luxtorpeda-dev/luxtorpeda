@@ -21,8 +21,6 @@ func _ready():
 	# warning-ignore:return_value_discarded
 	connect("hide_progress", Callable(self, "hide_progress_handler"))
 	
-	rust_panic_hook.progress_node = self
-	
 func show_progress_handler(_data):
 	self.visible = true
 	progress_bar.visible = true
