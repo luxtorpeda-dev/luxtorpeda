@@ -521,46 +521,37 @@ pub fn run_wrapper(
     }
 }
 
-fn setup_logging(file: Option<File>) {
+fn setup_logging(file: Option<File>, running_in_editor: bool) {
+    let mut loggers: Vec<Box<dyn SharedLogger>> = Vec::new();
+    loggers.push(TermLogger::new(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    ));
+
     if let Some(file) = file {
-        match CombinedLogger::init(vec![
-            TermLogger::new(
-                LevelFilter::Info,
-                Config::default(),
-                TerminalMode::Mixed,
-                ColorChoice::Auto,
-            ),
-            WriteLogger::new(LevelFilter::Info, Config::default(), file),
-            godot_logger::GodotLogger::new(LevelFilter::Info, Config::default()),
-        ]) {
-            Ok(()) => {
-                info!("setup_logging with write success");
-            }
-            Err(err) => {
-                println!("setup_logging with write error: {:?}", err);
-            }
+        loggers.push(WriteLogger::new(LevelFilter::Info, Config::default(), file));
+    }
+
+    if running_in_editor {
+        loggers.push(godot_logger::GodotLogger::new(
+            LevelFilter::Info,
+            Config::default(),
+        ));
+    }
+
+    match CombinedLogger::init(loggers) {
+        Ok(()) => {
+            info!("setup_logging success");
         }
-    } else {
-        match CombinedLogger::init(vec![
-            TermLogger::new(
-                LevelFilter::Info,
-                Config::default(),
-                TerminalMode::Mixed,
-                ColorChoice::Auto,
-            ),
-            godot_logger::GodotLogger::new(LevelFilter::Info, Config::default()),
-        ]) {
-            Ok(()) => {
-                info!("setup_logging success");
-            }
-            Err(err) => {
-                println!("setup_logging error: {:?}", err);
-            }
+        Err(err) => {
+            println!("setup_logging error: {:?}", err);
         }
     }
 }
 
-pub fn main() -> io::Result<()> {
+pub fn main(running_in_editor: bool) -> io::Result<()> {
     let env_args: Vec<String> = env::args().collect();
     let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
@@ -579,24 +570,24 @@ pub fn main() -> io::Result<()> {
                         println!("writing log to {:?}", path);
                         match File::create(path) {
                             Ok(file) => {
-                                setup_logging(Some(file));
+                                setup_logging(Some(file), running_in_editor);
                             }
                             Err(err) => {
                                 println!("log writeLogger create failure: {:?}", err);
-                                setup_logging(None);
+                                setup_logging(None, running_in_editor);
                             }
                         };
                     }
                     Err(_err) => {
-                        setup_logging(None);
+                        setup_logging(None, running_in_editor);
                     }
                 };
             } else if val == "0" {
-                setup_logging(None);
+                setup_logging(None, running_in_editor);
             }
         }
         Err(_err) => {
-            setup_logging(None);
+            setup_logging(None, running_in_editor);
         }
     }
 

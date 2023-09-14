@@ -88,35 +88,35 @@ func _on_input_type_changed(value):
 		value = ""
 	else:
 		value = Input.get_joy_name(0)
-	get_node("../../SignalEmitter").emit_signal("controller_detection_change", value)
+	get_node("../../LuxClient").controller_detection_change(value)
 
 func _on_OkButton_pressed():
 	if last_mode == "choice":
 		var choice_picked_obj = {"engine_choice": last_choice, "default_engine_choice": last_default_choice}
-		get_node("../../SignalEmitter").emit_signal("choice_picked", JSON.stringify(choice_picked_obj))
+		get_node("../../LuxClient").choice_picked(JSON.stringify(choice_picked_obj))
 		get_node("../Choices").emit_signal("choice_picked", last_choice)
 	elif last_mode == "question":
-		get_node("../../SignalEmitter").emit_signal("question_confirmed", last_mode_id)
+		get_node("../../LuxClient").question_confirmed(last_mode_id)
 		get_node("../Prompt").emit_signal("hide_prompt")
 	elif last_mode == "input":
 		var input_value = last_mode_id + get_node("../Prompt/TextEdit").text
-		get_node("../../SignalEmitter").emit_signal("question_confirmed", input_value)
+		get_node("../../LuxClient").question_confirmed(input_value)
 		get_node("../Prompt").emit_signal("hide_prompt")
 	elif last_mode == "error":
 		_on_CancelButton_pressed()
 	elif last_mode == "default_choice":
 		get_node("../Prompt").emit_signal("hide_prompt")
 		var choice_picked_obj = {"engine_choice": last_choice, "default_engine_choice": last_default_choice}
-		get_node("../../SignalEmitter").emit_signal("choice_picked", JSON.stringify(choice_picked_obj))
+		get_node("../../LuxClient").choice_picked(JSON.stringify(choice_picked_obj))
 
 func _on_CancelButton_pressed():
 	if last_mode == "default_choice":
-		get_node("../../SignalEmitter").emit_signal("clear_default_choice", "")
+		get_node("../../LuxClient").clear_default_choice()
 		get_node("../Prompt").emit_signal("hide_prompt")
 	elif last_mode == "question":
-		get_node("../../SignalEmitter").emit_signal("question_confirmed", "cancel%%" + last_mode_id)
+		get_node("../../LuxClient").question_confirmed("cancel%%" + last_mode_id)
 	elif last_mode == "progress":
-		get_node("../../SignalEmitter").emit_signal("question_confirmed", "cancel%%" + last_mode_id)
+		get_node("../../LuxClient").question_confirmed("cancel%%" + last_mode_id)
 	else:
 		get_tree().quit()
 

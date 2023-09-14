@@ -10,8 +10,8 @@
 use log::{LevelFilter, Log, Metadata, Record};
 use simplelog::{Config, SharedLogger};
 
-use godot::prelude::*;
 use chrono::prelude::*;
+use godot::prelude::*;
 
 /// The GodotLogger struct. Provides a very basic Logger implementation
 pub struct GodotLogger {
@@ -51,7 +51,7 @@ impl Log for GodotLogger {
 
     fn log(&self, record: &Record<'_>) {
         if self.enabled(record.metadata()) {
-            let _ = log(&self.config, record);
+            log(&self.config, record);
         }
     }
 
@@ -63,7 +63,12 @@ pub fn log(_config: &Config, record: &Record<'_>) {
     let local: DateTime<Local> = Local::now();
     let formatted_time = local.format("%Y-%m-%d %I:%M:%S %P").to_string();
 
-    godot_print!("[{}] {} - {}", formatted_time, record.level(), record.args());
+    godot_print!(
+        "[{}] {} - {}",
+        formatted_time,
+        record.level(),
+        record.args()
+    );
 }
 
 impl SharedLogger for GodotLogger {

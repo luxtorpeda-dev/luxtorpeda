@@ -125,7 +125,7 @@ impl LuxClient {
                 error!("emit_signal get_node not found for {}", path);
             }
         } else {
-             error!("emit_signal parent not found for {}", path);
+            error!("emit_signal parent not found for {}", path);
         }
     }
 
@@ -134,7 +134,9 @@ impl LuxClient {
         let env_args: Vec<String> = env::args().collect();
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
-        match command::main() {
+        let running_in_editor = !godot::engine::Os::singleton().has_feature("template".into());
+
+        match command::main(running_in_editor) {
             Ok(()) => {}
             Err(err) => {
                 return Err(err);
@@ -255,6 +257,7 @@ impl LuxClient {
         user_env::set_controller_var(&data_str);
     }
 
+    #[func]
     fn choice_picked(&mut self, data: Variant) {
         let app_id = user_env::steam_app_id();
         let mut game_info = match package::get_game_info(app_id.as_str()) {
@@ -403,7 +406,7 @@ impl LuxClient {
     }
 
     #[func]
-    fn clear_default_choice(&mut self, _data: Variant) {
+    fn clear_default_choice(&mut self) {
         let app_id = user_env::steam_app_id();
         let config_path = package::path_to_config();
         let folder_path = config_path.join(&app_id);

@@ -1,6 +1,6 @@
-[gd_scene load_steps=13 format=3 uid="uid://ctpn3amr67k6c"]
+[gd_scene load_steps=16 format=3 uid="uid://ctpn3amr67k6c"]
 
-[ext_resource type="PackedScene" path="res://Scenes/TitleBar/TitleBar.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://dbac8bagk4vn6" path="res://Scenes/TitleBar/TitleBar.tscn" id="2"]
 [ext_resource type="Script" path="res://addons/controller_icons/objects/Button.gd" id="3"]
 [ext_resource type="Texture2D" uid="uid://bp58drjdgvxsi" path="res://addons/controller_icons/assets/key/enter_alt.png" id="4"]
 [ext_resource type="Texture2D" uid="uid://coqj2fcsaxvcn" path="res://addons/controller_icons/assets/key/space.png" id="5"]
@@ -10,11 +10,23 @@
 [ext_resource type="PackedScene" uid="uid://kl1iyl6xknhw" path="res://Scenes/Progress/Progress.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://Scenes/Prompt/Prompt.tscn" id="11"]
 
+[sub_resource type="InputEventAction" id="InputEventAction_5q6pw"]
+action = &"ui_select"
+
 [sub_resource type="Shortcut" id="2"]
+events = [SubResource("InputEventAction_5q6pw")]
+
+[sub_resource type="InputEventAction" id="InputEventAction_y5hm2"]
+action = &"ui_accept"
 
 [sub_resource type="Shortcut" id="4"]
+events = [SubResource("InputEventAction_y5hm2")]
+
+[sub_resource type="InputEventAction" id="InputEventAction_6i0xr"]
+action = &"ui_cancel"
 
 [sub_resource type="Shortcut" id="6"]
+events = [SubResource("InputEventAction_6i0xr")]
 
 [node name="UI" type="PanelContainer"]
 anchors_preset = 15
@@ -22,8 +34,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="SignalEmitter" type="Node" parent="."]
 
 [node name="Container" type="VBoxContainer" parent="."]
 layout_mode = 2

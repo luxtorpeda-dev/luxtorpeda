@@ -93,7 +93,7 @@ func hide_prompt_handler():
 			return
 		else:
 			last_prompts = null
-			get_node("../../SignalEmitter").emit_signal("question_confirmed", last_prompts_id)
+			get_node("../../LuxClient").question_confirmed(last_prompts_id)
 	
 	self.visible = false
 	timer.stop()

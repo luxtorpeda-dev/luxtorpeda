@@ -34,5 +34,6 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+autowrap_mode = 3
 
 [connection signal="item_selected" from="ScrollContainer/ChoiceList" to="." method="_on_ChoiceList_item_selected"]
