@@ -33,14 +33,17 @@ jobs:
         path: ./godot_version.txt
         trim: true
     - name: Install Godot
-      uses: paulloz/godot-action@v1.2.2
-      with:
-        version: ${{ steps.godot_version.outputs.content }}
-        export-templates: false
+      run: |
+        export GODOT_VERSION=$(echo "${{ steps.godot_version.outputs.content }}"|tr -d '\n')
+        wget https://downloads.tuxfamily.org/godotengine/"$GODOT_VERSION"/Godot_v"$GODOT_VERSION"-stable_linux.x86_64.zip
+        unzip Godot_v"$GODOT_VERSION"-stable_linux.x86_64.zip
+        chmod +x Godot_v"$GODOT_VERSION"-stable_linux.x86_64
+        rm Godot_v"$GODOT_VERSION"-stable_linux.x86_64.zip
+        mv Godot_v"$GODOT_VERSION"-stable_linux.x86_64 /usr/local/bin/godot
     - name: Move Godot Export Template
       run: |
-        mkdir -p ~/.local/share/godot/templates/"${{ steps.godot_version.outputs.content }}.stable"
-        mv ./godot.linuxbsd.template_release.x86_64 ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable/godot.linuxbsd.template_release.x86_64
+        mkdir -p ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable
+        mv ./linux_release.x86_64 ~/.local/share/godot/templates/${{ steps.godot_version.outputs.content }}.stable/linux_release.x86_64
     - name: Build
       run: make release GODOT=godot
     - name: Package
