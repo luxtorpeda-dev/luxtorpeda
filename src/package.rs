@@ -777,16 +777,24 @@ pub fn request_steam_app_id_install(app_id: &u32) -> io::Result<()> {
                             app_id, tries
                         );
                         if let Some(mut steamdir) = SteamDir::locate() {
-                            if let Some(app_location) = steamdir.app(app_id) {
-                                if app_location.path.exists()
-                                    && app_location.path.read_dir()?.next().is_some()
-                                {
-                                    info!(
-                                        "request_steam_app_id_install found app location of {}",
-                                        app_id
-                                    );
-                                    found_app = true;
-                                    break;
+                            if let Some(app_metadata) = steamdir.app(app_id) {
+                                if let Some(state_flags) = &app_metadata.state_flags {
+                                    for state_flag in state_flags.iter() {
+                                        if let steamlocate::steamapp::StateFlag::FullyInstalled =
+                                            state_flag
+                                        {
+                                            info!(
+                                                "request_steam_app_id_install found app location of {}",
+                                                app_id
+                                                );
+                                            found_app = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if found_app {
+                                        break;
+                                    }
                                 }
                             }
                         }
