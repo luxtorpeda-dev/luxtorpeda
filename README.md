@@ -71,10 +71,10 @@ You will need Rust, Cargo, OpenSSL, Godot4 and export templates.
     $ sudo dnf install openssl-devel rust cargo godot
     ```
 
-- **Arch Linux**: You can download Godot4 from the webpage or use the godot AUR package.
+- **Arch Linux**: You know what to do:
 
     ```bash
-    $ sudo pacman -S openssl rust
+    $ sudo pacman -S openssl rust godot
     ```
 
 #### 2. Get export templates for Godot
