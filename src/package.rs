@@ -650,11 +650,25 @@ pub fn get_app_id_deps_paths(
 
                 match steamdir.app(app_id) {
                     Some(app_location) => {
+                        let mut found_app = false;
                         let app_location_path = app_location.path.clone();
 
                         if app_location_path.exists()
                             && app_location_path.read_dir()?.next().is_some()
                         {
+                            if let Some(state_flags) = &app_location.state_flags {
+                                for state_flag in state_flags.iter() {
+                                    if let steamlocate::steamapp::StateFlag::FullyInstalled =
+                                        state_flag
+                                    {
+                                        found_app = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if found_app {
                             let app_location_str =
                                 &app_location_path.into_os_string().into_string().unwrap();
                             let info_message = std::format!(
