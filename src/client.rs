@@ -303,17 +303,6 @@ impl LuxClient {
             }
         }
 
-        if let Some(app_ids_deps) = &game_info.app_ids_deps {
-            match package::get_app_id_deps_paths(app_ids_deps) {
-                Some(()) => {
-                    info!("download_all. get_app_id_deps_paths completed");
-                }
-                None => {
-                    info!("download_all. warning: get_app_id_deps_paths not completed");
-                }
-            }
-        }
-
         let downloads = package::json_to_downloads(app_id.as_str(), &game_info).unwrap();
 
         if downloads.is_empty() {
@@ -611,6 +600,40 @@ impl LuxClient {
                         return;
                     }
                 };
+
+            if let Some(app_ids_deps) = &game_info.app_ids_deps {
+                let status_obj = StatusObj {
+                    log_line: Some("Checking for steam app dependency paths".to_string()),
+                    ..Default::default()
+                };
+                let status_str = serde_json::to_string(&status_obj).unwrap();
+                sender_err.send(status_str).unwrap();
+
+                let sender_paths = sender_err.clone();
+
+                match package::get_app_id_deps_paths(app_ids_deps, false, &sender_paths) {
+                    Ok(()) => {
+                        info!("run_game. get_app_id_deps_paths completed");
+                    }
+                    Err(err) => {
+                        let error_message = std::format!(
+                            "run_game. error: get_app_id_deps_paths not completed, error: {:?}",
+                            err
+                        );
+
+                        error!("{}", error_message);
+
+                        let status_obj = StatusObj {
+                            error: Some(error_message),
+                            ..Default::default()
+                        };
+                        let status_str = serde_json::to_string(&status_obj).unwrap();
+                        sender_err.send(status_str).unwrap();
+
+                        return;
+                    }
+                }
+            }
 
             if let Some(setup_info) = &game_info.setup {
                 if !after_setup_question_mode && !package::is_setup_complete(setup_info) {
