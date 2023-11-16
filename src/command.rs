@@ -215,7 +215,8 @@ fn iso_extract_tree<T: ISO9660Reader>(
 
                         if should_extract {
                             if let Some(extract_to_prefix) = &iso_extract_info.extract_to_prefix {
-                                file_path = file_path.replacen(extract_prefix, extract_to_prefix, 1);
+                                file_path =
+                                    file_path.replacen(extract_prefix, extract_to_prefix, 1);
                             }
                         }
                     } else if let Some(extract_to_prefix) = &iso_extract_info.extract_to_prefix {
