@@ -224,6 +224,11 @@ fn unpack_tarball(
         .and_then(OsStr::to_str)
         .unwrap_or("");
 
+    let file_name = Path::new(&tarball)
+        .file_name()
+        .and_then(OsStr::to_str)
+        .unwrap_or("");
+
     if let Some(file_download_config) = game_info.find_download_config_by_name(name) {
         if let Some(tmp_extract_location) = file_download_config.extract_location {
             extract_location = tmp_extract_location;
@@ -347,7 +352,9 @@ fn unpack_tarball(
 
         if file_extension == "bz2" {
             decoder = Box::new(BzDecoder::new(file));
-        } else if file_extension == "gz" || file_extension == "tgz" {
+        } else if (file_extension == "gz" && file_name.contains(".tar.gz"))
+            || file_extension == "tgz"
+        {
             decoder = Box::new(GzDecoder::new(file));
         } else if file_extension == "xz" {
             decoder = Box::new(XzDecoder::new(file));
