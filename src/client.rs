@@ -14,7 +14,7 @@ use std::io::{Error, ErrorKind};
 use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
-use godot::engine::NodeVirtual;
+use godot::engine::INode;
 use godot::prelude::*;
 
 use crate::command;
@@ -65,7 +65,7 @@ struct ChoiceData {
 }
 
 #[godot_api]
-impl NodeVirtual for LuxClient {
+impl INode for LuxClient {
     fn init(base: Base<Node>) -> Self {
         Self {
             receiver: None,
