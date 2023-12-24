@@ -11,7 +11,7 @@ endif
 
 PREFIX := /usr/local
 
-GODOT := ~/.local/share/Steam/steamapps/common/Godot\ Engine/godot.x11.opt.tools.64
+GODOT := ~/.distrobox/steam/.local/share/Steam/steamapps/common/Godot\ Engine/godot.x11.opt.tools.64
 
 install_dir = $(DESTDIR)/$(PREFIX)/share/steam/compatibilitytools.d/$(tool_dir)
 

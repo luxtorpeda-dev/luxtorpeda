@@ -21,7 +21,7 @@ jobs:
     - name: Install Godot
       uses: chickensoft-games/setup-godot@v1
       with:
-        version: 4.1.1
+        version: 4.2.1
         use-dotnet: false
     - name: Build
       run: make release GODOT=godot
