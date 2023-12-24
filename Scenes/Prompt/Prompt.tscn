@@ -12,6 +12,7 @@ script = ExtResource("1")
 layout_mode = 2
 size_flags_vertical = 6
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="PromptRichText" type="RichTextLabel" parent="."]
 visible = false
