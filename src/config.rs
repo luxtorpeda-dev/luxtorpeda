@@ -15,6 +15,7 @@ pub struct Config {
     pub hash_check_install: bool,
     pub close_client_on_launch: bool,
     pub steam_app_id_install_wait_in_seconds: u32,
+    pub additional_remote_packages: Option<Vec<String>>,
 }
 
 impl Default for Config {
@@ -27,6 +28,7 @@ impl Default for Config {
             hash_check_install: true,
             close_client_on_launch: false,
             steam_app_id_install_wait_in_seconds: 600,
+            additional_remote_packages: None,
         }
     }
 }

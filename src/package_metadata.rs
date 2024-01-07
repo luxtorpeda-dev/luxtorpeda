@@ -2,7 +2,9 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
+use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
+use url::Url;
 
 use crate::config;
 use crate::package;
@@ -181,7 +183,14 @@ impl PackageMetadata {
             info!("packages_json_file exists, reading");
             match fs::read_to_string(packages_json_file) {
                 Ok(s) => match serde_json::from_str::<PackageMetadata>(&s) {
-                    Ok(config) => config,
+                    Ok(metadata) => {
+                        let config = config::Config::from_config_file();
+                        if let Some(remote_packages) = &config.additional_remote_packages {
+                            PackageMetadata::from_remote_packages_cache(metadata, remote_packages)
+                        } else {
+                            metadata
+                        }
+                    }
                     Err(err) => {
                         error!("error parsing packages_json_file: {:?}", err);
                         Default::default()
@@ -196,6 +205,63 @@ impl PackageMetadata {
             info!("packages_json_file does not exist");
             Default::default()
         }
+    }
+
+    pub fn from_remote_packages_cache(
+        mut metadata: PackageMetadata,
+        remote_packages: &[String],
+    ) -> PackageMetadata {
+        for url_str in remote_packages {
+            info!(
+                "from_remote_packages_cache. loading from cache for {}",
+                url_str
+            );
+
+            let parsed_url = match Url::parse(url_str) {
+                Ok(u) => u,
+                Err(err) => {
+                    error!("from_remote_packages_cache. url parse err: {:?}", err);
+                    return metadata;
+                }
+            };
+
+            let filename = match parsed_url.path_segments() {
+                Some(segments) => match segments.last() {
+                    Some(segment) => segment,
+                    None => {
+                        error!("from_remote_packages_cache. url last not found");
+                        return metadata;
+                    }
+                },
+                None => {
+                    error!("from_remote_packages_cache. url path_segments not found");
+                    return metadata;
+                }
+            };
+
+            let local_packages_path =
+                PackageMetadata::path_to_packages_file().with_file_name(filename);
+
+            match fs::read_to_string(local_packages_path) {
+                Ok(s) => match serde_json::from_str::<PackageMetadata>(&s) {
+                    Ok(mut cached_metadata) => {
+                        info!("merging cached remote package of {}", filename);
+                        metadata.games.append(&mut cached_metadata.games);
+                        metadata.engines.append(&mut cached_metadata.engines);
+                    }
+                    Err(err) => {
+                        error!("error parsing from_remote_packages_cache: {:?}", err);
+                        return metadata;
+                    }
+                },
+                Err(err) => {
+                    error!("error reading from_remote_packages_cache: {:?}", err);
+                    return metadata;
+                }
+            }
+        }
+
+        metadata
     }
 
     pub fn find_game_by_app_id(&self, app_id: &str) -> Option<Game> {
@@ -238,7 +304,7 @@ impl PackageMetadata {
     pub fn update_packages_json() -> io::Result<()> {
         let config = config::Config::from_config_file();
         if !config.should_do_update {
-            return Ok(());
+            return PackageMetadata::download_additional_remote_packages(&config);
         }
 
         let packages_json_file = PackageMetadata::path_to_packages_file();
@@ -312,6 +378,73 @@ impl PackageMetadata {
                     fs::remove_file(local_packages_temp_path)?;
                 }
             }
+        }
+
+        PackageMetadata::download_additional_remote_packages(&config)
+    }
+
+    pub fn download_additional_remote_packages(config: &config::Config) -> io::Result<()> {
+        if let Some(additional_remote_packages) = &config.additional_remote_packages {
+            for url_str in additional_remote_packages {
+                info!(
+                    "download_additional_remote_packages. downloading from {}",
+                    url_str
+                );
+
+                let parsed_url = match Url::parse(url_str) {
+                    Ok(u) => u,
+                    Err(err) => {
+                        let error_str = format!(
+                            "download_additional_remote_packages. url parse err: {:?}",
+                            err
+                        );
+                        error!("{}", error_str);
+                        return Err(Error::new(ErrorKind::Other, error_str));
+                    }
+                };
+
+                let filename = match parsed_url.path_segments() {
+                    Some(segments) => match segments.last() {
+                        Some(segment) => segment,
+                        None => {
+                            let error_str =
+                                "download_additional_remote_packages. url last not found";
+                            error!("{}", error_str);
+                            return Err(Error::new(ErrorKind::Other, error_str));
+                        }
+                    },
+                    None => {
+                        let error_str =
+                            "download_additional_remote_packages. url path_segments not found";
+                        error!("{}", error_str);
+                        return Err(Error::new(ErrorKind::Other, error_str));
+                    }
+                };
+
+                let local_packages_path =
+                    PackageMetadata::path_to_packages_file().with_file_name(filename);
+
+                match reqwest::blocking::get(url_str) {
+                    Ok(mut response) => {
+                        let mut dest = fs::File::create(&local_packages_path)?;
+                        io::copy(&mut response, &mut dest)?;
+                        info!(
+                            "download_additional_remote_packages {} is saved to {:?}",
+                            url_str, local_packages_path
+                        );
+                    }
+                    Err(err) => {
+                        let error_str = format!(
+                            "download_additional_remote_packages. download err: {:?}",
+                            err
+                        );
+                        error!("{}", error_str);
+                        return Err(Error::new(ErrorKind::Other, error_str));
+                    }
+                }
+            }
+        } else {
+            info!("download_additional_remote_packages, no remote packages list given");
         }
 
         Ok(())
