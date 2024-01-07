@@ -9,6 +9,7 @@ use xz2::write::XzEncoder;
 
 // These variables are used to generate compatibilitytool.vdf
 const TOOL_NAME: &str = "luxtorpeda";
+const TOOL_NAME_DEV: &str = "luxtorpeda_dev";
 const TOOL_NAME_DISPLAY: &str = "Luxtorpeda";
 const TOOL_NAME_DISPLAY_DEV: &str = "Luxtorpeda (dev)";
 
@@ -110,7 +111,14 @@ fn create_compatibilitytool_vdf(out_dir: &str, profile: &str) {
         "debug" => TOOL_NAME_DISPLAY_DEV,
         _ => TOOL_NAME_DISPLAY
     };
-    let file_str = template_str.replace("%display_name%", display_name);
+
+    let tool_name = match profile {
+        "debug" => TOOL_NAME_DEV,
+        _ => TOOL_NAME
+    };
+
+    let mut file_str = template_str.replace("%display_name%", display_name);
+    file_str = file_str.replace("%name%", tool_name);
     fs::write(output_path, file_str).expect("create_compatibilitytool_vdf write error");
 }
 
