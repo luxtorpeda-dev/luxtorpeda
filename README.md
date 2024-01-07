@@ -17,21 +17,22 @@ Luxtorpeda Dev acts as a dynamic Steam Play compatibility tool, much like Proton
 
 ## 📖 About
 
-### 🎨 Features
+### 🌟 Features
 
-- 😊 Easy to use with automatic installation and configuration
-- 📥 Automatic download of updates
+- 😊 Easy to use 
+- 🤖 Automatic installation and configuration of engines
+- 📥 Automatic download of engine updates
 - 📖 Free and Open Source
 - 👨‍👨‍👧‍👦 Community built and supported
 - 🐧 Native Linux engines
 
-**Common features for engines**
+**Common features for engines** 
 - :godmode: Better performance and less bugs
 - 🌐 Modern features
 - 💻 Enhanced UI
 - 🎨 Improved graphics
 
-<sub><sup>*All features are dependent on the engine, not all engine have all features.</sub></sub>
+<sub><sup>(all features are dependent on the engine, not all engine have all features)</sub></sub>
 
 ### 😎 Seamless Setup
 
