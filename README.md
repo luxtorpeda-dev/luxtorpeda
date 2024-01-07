@@ -1,4 +1,4 @@
-# 🚋 Luxtorpeda: Enhancing your gaming experience on Linux and Steam Deck
+# 🚋 Luxtorpeda Dev: Enhancing your gaming experience on Linux and Steam Deck
 
 [![Luxtorpeda project Discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
 [![Downloads](https://img.shields.io/github/downloads/luxtorpeda-dev/luxtorpeda/total.svg)](https://github.com/luxtorpeda-dev/luxtorpeda/releases)
@@ -10,7 +10,10 @@ Luxtorpeda transforms Windows games into native Linux titles, offering improved 
 
 ## 🚀 Elevate Your Gaming: Luxtorpeda Unleashes Linux Compatibility for Your Favorite Steam Titles
 
-Are you a Linux or Steam Deck user feeling left out when it comes to enjoying your favorite Steam games? Look no further than Luxtorpeda, your ticket to an enhanced gaming experience on Linux and the Steam Deck. Many Steam games lack native Linux support, or even if they do, there's often a better way to run them. Luxtorpeda steps in as a game-changer, allowing you to run a growing list of titles within a native Linux game engine, be it open source or otherwise.
+Are you a Linux or Steam Deck enthusiast eager to enhance your gaming journey with Steam titles? Step into the world of Luxtorpeda Dev – your gateway to an elevated gaming experience on Linux and the Steam Deck. 
+
+Luxtorpeda Dev acts as a dynamic Steam Play compatibility tool, much like Proton and Proton GE. Its user-friendly approach ensures seamless downloads and configurations of replacement game engines for supported Steam games. These engines, frequently open source and community-driven, are designed for Linux, featuring modern enhancements that elevate your gaming. These Linux-native game enginenot only reimplement but also extend the original game engine. Take, for instance, the community-crafted [OpenMW](https://openmw.org/) for The Elder Scrolls III: Morrowind, which adds features such as: improved physics and AI, imroved view distance with distant terrain, quality of life UI improvement, improved save functionallity, support for a lot more mods, no engine bugs from orginal Morrowind, native Linux support, and much more.
+
 
 ## 📖 About
 
