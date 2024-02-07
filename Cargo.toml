@@ -23,7 +23,7 @@ sha2 = "0.10"
 hex = "0.4.3"
 bzip2 = "0.4.4"
 zip = "0.6.6"
-flate2 = "1.0.26"
+flate2 = "1.0.28"
 futures-util = "0.3.28"
 tokio = { version = "1.31.0", default-features = false, features = ["full"] }
 which = "4.3.0"
