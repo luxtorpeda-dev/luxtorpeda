@@ -29,7 +29,6 @@ pub struct LuxClient {
     receiver: std::option::Option<std::sync::mpsc::Receiver<String>>,
     last_downloads: std::option::Option<Vec<package_metadata::DownloadItem>>,
     last_choice: std::option::Option<String>,
-    #[base]
     base: Base<Node>,
 }
 
@@ -118,7 +117,7 @@ impl LuxClient {
     }
 
     fn emit_signal(&mut self, path: &str, name: &str, value: &str) {
-        if let Some(parent) = &mut self.base.get_parent() {
+        if let Some(parent) = &mut self.base().get_parent() {
             if let Some(mut emitter) = parent.get_node(path.into()) {
                 emitter.emit_signal(name.into(), &[Variant::from(value)]);
             } else {
