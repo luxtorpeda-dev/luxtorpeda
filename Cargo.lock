@@ -354,6 +354,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
+name = "errno"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a258e46cdc063eb8519c00b9fc845fc47bcfca4130e2f08e88665ceda8474245"
+dependencies = [
+ "libc",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "filetime"
 version = "0.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -362,7 +372,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "redox_syscall 0.3.5",
- "windows-sys",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -373,7 +383,7 @@ checksum = "3aea213d5ab4e6cd49f50c0688a4e20e5b75ff3bc07ff63f814778bd9b1dd42d"
 dependencies = [
  "cfg-if",
  "filetime",
- "windows-sys",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -643,6 +653,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "home"
+version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3d1354bf6b7235cb4a0576c2619fd4ed18183f689b12b006a0ee7329eeff9a5"
+dependencies = [
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "http"
 version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -850,6 +869,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
 
 [[package]]
+name = "linux-raw-sys"
+version = "0.4.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
+
+[[package]]
 name = "lock_api"
 version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -956,7 +981,7 @@ checksum = "8f3d0b296e374a4e6f3c7b0a1f5a51d748a0d34c85e7dc48fc3fa9a87657fe09"
 dependencies = [
  "libc",
  "wasi",
- "windows-sys",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1397,6 +1422,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d626bb9dae77e28219937af045c257c28bfd3f69333c512553507f5f9798cb76"
 
 [[package]]
+name = "rustix"
+version = "0.38.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ea3e1a662af26cd7a3ba09c0297a31af215563ecf42817c98df621387f4e949"
+dependencies = [
+ "bitflags 2.4.0",
+ "errno",
+ "libc",
+ "linux-raw-sys",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "rustls"
 version = "0.21.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1612,7 +1650,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b5fac59a5cb5dd637972e5fca70daf0523c9067fcdc4842f053dae04a18f8e9"
 dependencies = [
  "libc",
- "windows-sys",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1771,7 +1809,7 @@ dependencies = [
  "signal-hook-registry",
  "socket2 0.5.5",
  "tokio-macros",
- "windows-sys",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -2038,13 +2076,15 @@ checksum = "14247bb57be4f377dfb94c72830b8ce8fc6beac03cf4bf7b9732eadd414123fc"
 
 [[package]]
 name = "which"
-version = "4.4.0"
+version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2441c784c52b289a054b7201fc93253e288f094e2f4be9058343127c4226a269"
+checksum = "7fa5e0c10bf77f44aac573e498d1a82d5fbd5e91f6fc0a99e7be4b38e85e101c"
 dependencies = [
  "either",
- "libc",
+ "home",
  "once_cell",
+ "rustix",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2094,6 +2134,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "677d2418bec65e3338edb076e806bc1ec15693c5d0104683f2efe857f61056a9"
 dependencies = [
  "windows-targets 0.48.5",
+]
+
+[[package]]
+name = "windows-sys"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "282be5f36a8ce781fad8c8ae18fa3f9beff57ec1b52cb3de0789201425d9a33d"
+dependencies = [
+ "windows-targets 0.52.0",
 ]
 
 [[package]]
@@ -2226,7 +2275,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
- "windows-sys",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
