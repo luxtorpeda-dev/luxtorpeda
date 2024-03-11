@@ -30,7 +30,7 @@ which = "6.0.0"
 steamlocate = { version = "2.0.0-alpha.0", features = ["steamid_ng"] }
 signal-hook = "0.3.17"
 log = "0.4.21"
-simplelog = "0.12.1"
+simplelog = "0.12.2"
 sevenz-rust = "0.5"
 ar = "0.9.0"
 iso9660 = { git = "https://github.com/luxtorpeda-dev/iso9660-rs.git", "rev" = "43a76ed" }
