@@ -23,7 +23,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get -y install clang libsdl2-dev
       shell: bash
     - name: Install Godot
-      uses: chickensoft-games/setup-godot@v1
+      uses: chickensoft-games/setup-godot@v2
       with:
         version: 4.2.1
         use-dotnet: false
