@@ -14,8 +14,8 @@ jobs:
       uses: actions/checkout@v4
     - name: Install Rust
       run: |
-        rustup toolchain install 1.73 --profile minimal --no-self-update
-        rustup default 1.73
+        rustup toolchain install 1.77.1 --profile minimal --no-self-update
+        rustup default 1.77.1
       shell: bash
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
