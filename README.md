@@ -1,5 +1,6 @@
 # Luxtorpeda Dev
 
+[![Matrix Chat](https://img.shields.io/badge/chat-blue](https://matrix.to/#/!KqlgsCWGAULTadjjeH:matrix.org?via=matrix.org)
 [![Luxtorpeda project Discord](https://img.shields.io/discord/514567252864008206.svg?label=discord)](https://discord.gg/8mFhUPX)
 [![Downloads](https://img.shields.io/github/downloads/luxtorpeda-dev/luxtorpeda/total.svg)](https://github.com/luxtorpeda-dev/luxtorpeda/releases)
 [![Build Action](https://github.com/luxtorpeda-dev/luxtorpeda/actions/workflows/build.yml/badge.svg)](https://github.com/luxtorpeda-dev/luxtorpeda/actions/workflows/build.yml)
