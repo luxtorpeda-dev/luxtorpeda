@@ -1291,9 +1291,9 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
 name = "rbchunk"
-version = "2.0.3"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fb4cb6a6640b0b005ceac7292652cc2ff8d76fa884cff56759820ba6019fe4e"
+checksum = "82cb2cf451784a00b4566c03c328f34db35711e35f26eaf7bfca8259d4c33869"
 
 [[package]]
 name = "redox_syscall"
