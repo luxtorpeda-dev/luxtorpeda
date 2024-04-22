@@ -38,7 +38,7 @@ rbchunk = "2.0.3"
 walkdir = "2"
 steamid-ng = "1.0.0"
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master" }
-chrono = "0.4.37"
+chrono = "0.4.38"
 url = "2.5.0"
 
 [patch."https://github.com/godot-rust/godot4-prebuilt".godot4-prebuilt]
