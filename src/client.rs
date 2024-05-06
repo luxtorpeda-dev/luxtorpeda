@@ -118,11 +118,8 @@ impl LuxClient {
 
     fn emit_signal(&mut self, path: &str, name: &str, value: &str) {
         if let Some(parent) = &mut self.base().get_parent() {
-            if let Some(mut emitter) = parent.get_node(path.into()) {
-                emitter.emit_signal(name.into(), &[Variant::from(value)]);
-            } else {
-                error!("emit_signal get_node not found for {}", path);
-            }
+            let mut emitter = parent.get_node_as::<Node>(NodePath::from(path));
+            emitter.emit_signal(name.into(), &[Variant::from(value)]);
         } else {
             error!("emit_signal parent not found for {}", path);
         }
