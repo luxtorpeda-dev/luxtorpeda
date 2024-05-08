@@ -83,9 +83,9 @@ You will need Rust, Cargo, OpenSSL, Godot4 and export templates.
 - If you prefer to use the terminal these commands should work:
 
     ```bash
-    $ mkdir -p ~/.local/share/godot/templates/4.2.1.stable/
-    $ wget https://github.com/godotengine/godot/releases/download/4.2.1-stable/Godot_v4.2.1-stable_export_templates.tpz
-    $ unzip -j Godot_v4.1-stable_export_templates.tpz -d ~/.local/share/godot/templates/4.2.1.stable/
+    $ mkdir -p ~/.local/share/godot/templates/4.2.2.stable/
+    $ wget https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_export_templates.tpz
+    $ unzip -j Godot_v4.2.2-stable_export_templates.tpz -d ~/.local/share/godot/templates/4.2.2.stable/
     ```
 
 #### 3. Install and lauch the debug build
