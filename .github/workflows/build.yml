@@ -50,7 +50,7 @@ jobs:
       run: mv luxtorpeda.tar.xz luxtorpeda-${{ github.ref_name }}.tar.xz
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@v2.0.4
+      uses: softprops/action-gh-release@v2.0.5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
