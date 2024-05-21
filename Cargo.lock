@@ -905,7 +905,7 @@ checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
 
 [[package]]
 name = "luxtorpeda"
-version = "69.0.0"
+version = "70.0.0"
 dependencies = [
  "ar",
  "bzip2",
