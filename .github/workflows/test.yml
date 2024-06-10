@@ -31,11 +31,18 @@ jobs:
         SHA_VALUE: ${{ github.sha }}
         HEAD_REF: ${{ github.head_ref }}
       run: make version="$HEAD_REF"."$SHA_VALUE" luxtorpeda.tar.xz GODOT=godot
-    - name: Upload Artifacts
+    - name: Calculate a checksum of release
+      run: sha512sum luxtorpeda.tar.xz > luxtorpeda.tar.xz.sha512
+    - name: Upload Release Artifact
       uses: actions/upload-artifact@v4
       with:
         name: luxtorpeda.tar.xz
         path: ./luxtorpeda.tar.xz
+    - name: Upload Checksum Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: luxtorpeda.tar.xz.sha512
+        path: ./luxtorpeda.tar.xz.sha512
   clippy:
     runs-on: ubuntu-latest
     steps:
