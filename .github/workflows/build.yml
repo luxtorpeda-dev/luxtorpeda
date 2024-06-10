@@ -32,11 +32,18 @@ jobs:
       run: make release GODOT=godot
     - name: Package
       run: make version=${{ github.ref_name }} luxtorpeda.tar.xz GODOT=godot
-    - name: Upload Artifacts
+    - name: Calculate a checksum of release
+      run: sha512sum luxtorpeda.tar.xz > luxtorpeda.tar.xz.sha512
+    - name: Upload Release Artifact
       uses: actions/upload-artifact@v4
       with:
         name: luxtorpeda.tar.xz
         path: ./luxtorpeda.tar.xz
+    - name: Upload Checksum Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: luxtorpeda.tar.xz.sha512
+        path: ./luxtorpeda.tar.xz.sha512
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
@@ -46,8 +53,10 @@ jobs:
       with:
         name: luxtorpeda.tar.xz
         path: ./
-    - name: Rename Artifact for Release Prep
-      run: mv luxtorpeda.tar.xz luxtorpeda-${{ github.ref_name }}.tar.xz
+    - name: Rename Artifacts for Release Prep
+      run: |
+        mv luxtorpeda.tar.xz luxtorpeda-${{ github.ref_name }}.tar.xz
+        mv luxtorpeda.tar.xz.sha512 luxtorpeda-${{ github.ref_name }}.tar.xz.sha512
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v2.0.5
@@ -59,4 +68,6 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          files: luxtorpeda-${{ github.ref_name }}.tar.xz
+          files: |
+            luxtorpeda-${{ github.ref_name }}.tar.xz
+            luxtorpeda-${{ github.ref_name }}.tar.xz.sha512
