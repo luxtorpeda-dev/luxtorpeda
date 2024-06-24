@@ -59,7 +59,7 @@ jobs:
         mv luxtorpeda.tar.xz.sha512 luxtorpeda-${{ github.ref_name }}.tar.xz.sha512
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@v2.0.5
+      uses: softprops/action-gh-release@v2.0.6
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
