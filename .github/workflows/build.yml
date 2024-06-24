@@ -48,10 +48,15 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-    - name: Download Artifacts
+    - name: Download Artifact
       uses: actions/download-artifact@v4
       with:
         name: luxtorpeda.tar.xz
+        path: ./
+    - name: Download SHA Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name:  luxtorpeda.tar.xz.sha512
         path: ./
     - name: Rename Artifacts for Release Prep
       run: |
