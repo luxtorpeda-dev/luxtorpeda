@@ -109,18 +109,18 @@ checksum = "9475866fec1451be56a3c2400fd081ff546538961565ccb5b7142cbd22bc7a51"
 
 [[package]]
 name = "bit-set"
-version = "0.5.3"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0700ddab506f33b20a03b13996eccd309a48e5ff77d0d95926aa0210fb4e95f1"
+checksum = "f0481a0e032742109b1133a095184ee93d88f3dc9e0d28a5d033dc77a073f44f"
 dependencies = [
  "bit-vec",
 ]
 
 [[package]]
 name = "bit-vec"
-version = "0.6.3"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
 
 [[package]]
 name = "bitflags"
@@ -943,9 +943,9 @@ dependencies = [
 
 [[package]]
 name = "lzma-rust"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5edcf5d1f4d78221ea7861fb69899afd15c42601751f92f09a06f7b051fb289"
+checksum = "5baab2bbbd7d75a144d671e9ff79270e903957d92fb7386fd39034c709bd2661"
 dependencies = [
  "byteorder",
 ]
@@ -1026,9 +1026,9 @@ dependencies = [
 
 [[package]]
 name = "nt-time"
-version = "0.6.7"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f44d3e957730fcdc4dff6f97c1185f175ee27e6dd92000c0487d70049a1b81a"
+checksum = "7c83e0566ee840d3023f938f60aa3b445969f37adc499258ce129bd1b6b26ec1"
 dependencies = [
  "chrono",
  "time",
@@ -1669,9 +1669,9 @@ dependencies = [
 
 [[package]]
 name = "sevenz-rust"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a24854621db6137e3f7ed7d82282485874d212c755c3427a7436fc0c62c3d23"
+checksum = "26482cf1ecce4540dc782fc70019eba89ffc4d87b3717eb5ec524b5db6fdefef"
 dependencies = [
  "bit-set",
  "byteorder",
