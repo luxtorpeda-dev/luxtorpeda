@@ -14,7 +14,7 @@ use std::io::{Error, ErrorKind};
 use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
-use godot::engine::INode;
+use godot::classes::{Node, Os};
 use godot::prelude::*;
 
 use crate::command;
@@ -130,7 +130,7 @@ impl LuxClient {
         let env_args: Vec<String> = env::args().collect();
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
-        let running_in_editor = !godot::engine::Os::singleton().has_feature("template".into());
+        let running_in_editor = !Os::singleton().has_feature("template".into());
 
         match command::main(running_in_editor) {
             Ok(()) => {}
