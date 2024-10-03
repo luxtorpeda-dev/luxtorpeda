@@ -13,4 +13,9 @@ if [[ $2 == *"iscriptevaluator.exe"* ]]; then
   exit 0
 fi
 
+if [ -z "$SteamAppId" ]; then
+  echo "lux - Exiting because no steam app id"
+  exit 0
+fi
+
 "$DIR/luxtorpeda.x86_64" "$@"
