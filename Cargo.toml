@@ -39,7 +39,7 @@ walkdir = "2"
 steamid-ng = "1.0.0"
 godot = { git = "https://github.com/godot-rust/gdext", rev = "4c8ea83fc3452485f7b33f2411c136a248457334" }
 chrono = "0.4.38"
-url = "2.5.2"
+url = "2.5.3"
 
 [patch."https://github.com/godot-rust/godot4-prebuilt".godot4-prebuilt]
 git = "https://github.com//godot-rust/godot4-prebuilt"
