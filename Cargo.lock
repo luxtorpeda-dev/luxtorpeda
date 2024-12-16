@@ -178,6 +178,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bzip2"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bafdbf26611df8c14810e268ddceda071c297570a5fb360ceddf617fe417ef58"
+dependencies = [
+ "bzip2-sys",
+ "libc",
+]
+
+[[package]]
 name = "bzip2-sys"
 version = "0.1.11+1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1052,7 +1062,7 @@ name = "luxtorpeda"
 version = "71.0.0"
 dependencies = [
  "ar",
- "bzip2",
+ "bzip2 0.5.0",
  "chrono",
  "flate2",
  "futures-util",
@@ -2779,7 +2789,7 @@ dependencies = [
  "aes",
  "arbitrary",
  "byteorder",
- "bzip2",
+ "bzip2 0.4.4",
  "constant_time_eq",
  "crc32fast",
  "crossbeam-utils",
