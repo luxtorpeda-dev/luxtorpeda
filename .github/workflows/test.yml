@@ -76,7 +76,7 @@ jobs:
       run: |
         rustup toolchain install 1.80.0 --profile default
         rustup default 1.80.0
-        cargo install cargo-audit --locked
+        cargo install cargo-audit@0.21.0 --locked
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
     - name: Audit Run
