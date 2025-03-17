@@ -7,8 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      CARGO_HOME: ./cargo
     steps:
     - name: Checkout
       uses: actions/checkout@v4
