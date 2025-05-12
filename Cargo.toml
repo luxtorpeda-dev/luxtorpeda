@@ -28,7 +28,7 @@ futures-util = "0.3.31"
 tokio = { version = "1.44.2", default-features = false, features = ["full"] }
 which = "7.0.3"
 steamlocate = { version = "2.0.0-alpha.0", features = ["steamid_ng"] }
-signal-hook = "0.3.17"
+signal-hook = "0.3.18"
 log = "0.4.27"
 simplelog = "0.12.2"
 sevenz-rust = "0.6"
