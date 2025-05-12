@@ -16,7 +16,7 @@ serde_regex = "1.1"
 json = "0.12.4"
 regex = "1.11.1"
 reqwest = { version = "0.12.15", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
-xdg = "2.5.2"
+xdg = "3.0.0"
 tar = "0.4.44"
 xz2 = "0.1.7"
 sha2 = "0.10"
