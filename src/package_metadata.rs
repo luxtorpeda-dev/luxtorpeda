@@ -471,9 +471,8 @@ impl PackageMetadata {
     }
 
     fn path_to_packages_file() -> PathBuf {
-        let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-        let config_home = xdg_dirs.get_cache_home();
-        let folder_path = config_home.join("luxtorpeda");
+        let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+        let folder_path = xdg_dirs.get_cache_home().unwrap();
         package::create_dir_or_show_error(&folder_path);
         folder_path.join(format!("{}.json", PACKAGE_METADATA_FILENAME))
     }

@@ -32,14 +32,14 @@ use steamlocate::SteamDir;
 pub static LUX_DISABLE_DEFAULT_CONFIRM: &str = "LUX_DISABLE_DEFAULT_CONFIRM";
 
 pub fn place_cached_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let path_str = format!("luxtorpeda/{}/{}", app_id, file);
+    let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+    let path_str = format!("{}/{}", app_id, file);
     xdg_dirs.place_cache_file(path_str)
 }
 
 fn find_cached_file(app_id: &str, file: &str) -> Option<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let path_str = format!("luxtorpeda/{}/{}", app_id, file);
+    let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+    let path_str = format!("{}/{}", app_id, file);
     xdg_dirs.find_cache_file(path_str)
 }
 
@@ -74,28 +74,27 @@ STEAM_COMPAT_MOUNTS=/path/to/other/filesystem %command%";
 }
 
 pub fn place_config_file(app_id: &str, file: &str) -> io::Result<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let path_str = format!("luxtorpeda/{}/{}", app_id, file);
+    let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+    let path_str = format!("{}/{}", app_id, file);
     xdg_dirs.place_config_file(path_str)
 }
 
 pub fn path_to_config() -> PathBuf {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let config_home = xdg_dirs.get_config_home();
-    let folder_path = config_home.join("luxtorpeda");
+    let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+    let folder_path = xdg_dirs.get_config_home().unwrap();
     create_dir_or_show_error(&folder_path);
     folder_path
 }
 
 pub fn find_user_packages_file() -> Option<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let path_str = "luxtorpeda/user-packages.json";
+    let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+    let path_str = "user-packages.json";
     xdg_dirs.find_config_file(path_str)
 }
 
 pub fn place_state_file(file: &str) -> io::Result<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::new().unwrap();
-    let path_str = format!("luxtorpeda/{}", file);
+    let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+    let path_str = format!("{}", file);
     xdg_dirs.place_state_file(path_str)
 }
 
