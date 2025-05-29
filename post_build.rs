@@ -25,13 +25,16 @@ const ROOT_FILES: &[&str] = &[
 const FILES: &[&str] = &[
     "compatibilitytool.vdf",
     "libluxtorpeda.so",
-    "output/luxtorpeda.pck",
-    "output/luxtorpeda.x86_64",
+    "godot_export/luxtorpeda.pck",
+    "godot_export/luxtorpeda.x86_64",
 ];
 
 fn main() {
     let out_dir = env::var("CRATE_OUT_DIR").unwrap();
     let profile = env::var("CRATE_PROFILE").unwrap();
+
+    let godot_export_path = Path::new(&out_dir).join("godot_export");
+    fs::create_dir_all(&godot_export_path).expect("Failed to create godot_export dir");
 
     create_target_gdignore(&out_dir);
     if profile == "release" {
@@ -39,7 +42,7 @@ fn main() {
     }
 
     match env::var("GODOT") {
-        Ok(godot_path) => build_godot_project(&out_dir, &godot_path, &profile),
+        Ok(godot_path) => build_godot_project(&godot_export_path, &godot_path, &profile),
         Err(_) => {
             eprintln!("godot not provided so skipping");
         }
@@ -93,7 +96,7 @@ fn build_godot_project(out_dir: &str, godot_path: &str, profile: &str) {
     println!("build_godot_project");
     let out_path = Path::new(out_dir).join("luxtorpeda.x86_64").into_os_string().into_string().unwrap();
     let build_cmd = Command::new(godot_path)
-        .args(["--path", "output", &std::format!("--export-{}", profile).to_string(), "Linux/X11", &out_path, "--display-driver", "headless"])
+        .args(["--path", ".", &std::format!("--export-{}", profile).to_string(), "Linux/X11", &out_path, "--display-driver", "headless"])
         .status()
         .expect("failed to execute godot");
 
