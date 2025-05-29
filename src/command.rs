@@ -13,7 +13,7 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Read;
 use std::io::Write;
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -122,8 +122,7 @@ fn run_bchunk(bchunk_info: &package_metadata::SetupBChunk) -> io::Result<()> {
             Ok(f) => f,
             Err(err) => {
                 error!("run_bchunk cue file open original failed {}", err);
-                return Err(Error::new(
-                    ErrorKind::Other,
+                return Err(Error::other(
                     format!("run_bchunk cue file failed - {}", err),
                 ));
             }
@@ -143,8 +142,7 @@ fn run_bchunk(bchunk_info: &package_metadata::SetupBChunk) -> io::Result<()> {
                 }
                 Err(err) => {
                     error!("run_bchunk cue file read original failed {}", err);
-                    return Err(Error::new(
-                        ErrorKind::Other,
+                    return Err(Error::other(
                         format!("run_bchunk cue read failed - {}", err),
                     ));
                 }
@@ -172,8 +170,7 @@ fn run_bchunk(bchunk_info: &package_metadata::SetupBChunk) -> io::Result<()> {
         }
         Err(err) => {
             error!("run_bchunk failed {}", err);
-            Err(Error::new(
-                ErrorKind::Other,
+            Err(Error::other(
                 format!("run_bchunk failed - {}", err),
             ))
         }
@@ -200,7 +197,7 @@ fn iso_extract_tree<T: ISO9660Reader>(
                         Ok(()) => {}
                         Err(err) => {
                             error!("iso_extract_tree err: {:?}", err);
-                            return Err(Error::new(ErrorKind::Other, "iso_extract_tree failed"));
+                            return Err(Error::other("iso_extract_tree failed"));
                         }
                     }
                 }
@@ -243,7 +240,7 @@ fn iso_extract_tree<T: ISO9660Reader>(
             },
             Err(err) => {
                 error!("iso_extract_tree err: {:?}", err);
-                return Err(Error::new(ErrorKind::Other, "iso_extract_tree failed"));
+                return Err(Error::other("iso_extract_tree failed"));
             }
         }
     }
@@ -285,16 +282,14 @@ fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::
                 Ok(iso) => iso_extract_tree(&iso.root, "".to_string(), iso_extract_info),
                 Err(err) => {
                     error!("run_iso_extract iso read err: {}", err);
-                    Err(Error::new(
-                        ErrorKind::Other,
+                    Err(Error::other(
                         "run_iso_extract failed, iso read error",
                     ))
                 }
             },
             Err(err) => {
                 error!("run_iso_extract file open err: {:?}", err);
-                Err(Error::new(
-                    ErrorKind::Other,
+                Err(Error::other(
                     "run_iso_extract failed, file open error",
                 ))
             }
@@ -361,7 +356,7 @@ pub fn run_setup(
         .expect("failed to execute process");
 
     if !setup_cmd.success() {
-        return Err(Error::new(ErrorKind::Other, "setup failed"));
+        return Err(Error::other("setup failed"));
     }
 
     File::create(setup_info.complete_path.clone())?;
@@ -454,7 +449,7 @@ pub fn run_wrapper(
     let mut ret: Result<(), Error> = Ok(());
 
     match find_game_command(game_info, args) {
-        None => ret = Err(Error::new(ErrorKind::Other, "No command line defined")),
+        None => ret = Err(Error::other("No command line defined")),
         Some((cmd, cmd_args)) => {
             info!("run: \"{}\" with args: {:?} {:?}", cmd, cmd_args, exe_args);
 
@@ -489,8 +484,7 @@ pub fn run_wrapper(
                                     info!("run returned with lux exit code");
                                     match fs::read_to_string("last_error.txt") {
                                         Ok(s) => {
-                                            ret = Err(Error::new(
-                                                ErrorKind::Other,
+                                            ret = Err(Error::other(
                                                 std::format!("Error on run: {}", s),
                                             ));
                                         }

@@ -94,7 +94,7 @@ pub fn find_user_packages_file() -> Option<PathBuf> {
 
 pub fn place_state_file(file: &str) -> io::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
-    let path_str = format!("{}", file);
+    let path_str = file.to_string();
     xdg_dirs.place_state_file(path_str)
 }
 
@@ -127,12 +127,11 @@ pub fn convert_game_info_with_choice(
             choice_data.insert(entry.name.clone(), entry.clone());
         }
     } else {
-        return Err(Error::new(ErrorKind::Other, "choices array null"));
+        return Err(Error::other("choices array null"));
     }
 
     if !choice_data.contains_key(&choice_name) {
-        return Err(Error::new(
-            ErrorKind::Other,
+        return Err(Error::other(
             "choices array does not contain engine choice",
         ));
     }
@@ -166,7 +165,7 @@ pub fn json_to_downloads(
     let mut downloads: Vec<package_metadata::DownloadItem> = Vec::new();
     for entry in &game_info.download {
         if entry.name.is_empty() || entry.url.is_empty() || entry.file.is_empty() {
-            return Err(Error::new(ErrorKind::Other, "missing download info"));
+            return Err(Error::other("missing download info"));
         }
 
         let mut cache_dir = app_id;
@@ -194,7 +193,7 @@ fn unpack_tarball(
         .file_name()
         .and_then(|x| x.to_str())
         .and_then(|x| x.split('.').next())
-        .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
+        .ok_or_else(|| Error::other("package has no name?"))?;
 
     let status_obj = client::StatusObj {
         log_line: Some(format!("Unpacking {}", package_name)),
@@ -368,7 +367,7 @@ fn unpack_tarball(
             let mut file = entry?;
             let old_path = PathBuf::from(file.header().path()?);
             let mut new_path = transform(&old_path);
-            if new_path.to_str().map_or(false, |x| x.is_empty()) {
+            if new_path.to_str().is_some_and(|x| x.is_empty()) {
                 continue;
             }
 
@@ -403,7 +402,7 @@ fn copy_only(path: &Path, sender: &std::sync::mpsc::Sender<String>) -> io::Resul
     let package_name = path
         .file_name()
         .and_then(|x| x.to_str())
-        .ok_or_else(|| Error::new(ErrorKind::Other, "package has no name?"))?;
+        .ok_or_else(|| Error::other("package has no name?"))?;
 
     let status_obj = client::StatusObj {
         progress: Some(0),
@@ -562,7 +561,7 @@ pub fn install(
                 };
             }
             None => {
-                return Err(Error::new(ErrorKind::Other, "package file not found"));
+                return Err(Error::other("package file not found"));
             }
         }
     }
@@ -582,7 +581,7 @@ pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json read err: {:?}", err);
                     error!("{:?}", error_message);
-                    return Err(Error::new(ErrorKind::Other, error_message));
+                    return Err(Error::other(error_message));
                 }
             };
 
@@ -591,7 +590,7 @@ pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
                 Err(err) => {
                     let error_message = std::format!("user-packages.json parsing err: {:?}", err);
                     error!("{:?}", error_message);
-                    return Err(Error::new(ErrorKind::Other, error_message));
+                    return Err(Error::other(error_message));
                 }
             };
 
@@ -611,7 +610,7 @@ pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
                             let error_message =
                                 std::format!("error parsing user parsed default: {:?}", err);
                             error!("{:?}", error_message);
-                            return Err(Error::new(ErrorKind::Other, error_message));
+                            return Err(Error::other(error_message));
                         }
                     }
                 }
@@ -625,7 +624,7 @@ pub fn get_game_info(app_id: &str) -> io::Result<package_metadata::Game> {
                         let error_message =
                             std::format!("error parsing user parsed default: {:?}", err);
                         error!("{:?}", error_message);
-                        return Err(Error::new(ErrorKind::Other, error_message));
+                        return Err(Error::other(error_message));
                     }
                 }
             }
@@ -721,7 +720,7 @@ pub fn get_app_id_deps_paths(
         None => {
             let error_message = "get_app_id_deps_paths. steamdir not found.";
             error!("{}", error_message);
-            Err(Error::new(ErrorKind::Other, error_message))
+            Err(Error::other(error_message))
         }
     }
 }
@@ -739,7 +738,7 @@ pub fn get_app_id_dep_path_retry(
     info!("{}", error_message);
 
     if retry {
-        Err(Error::new(ErrorKind::Other, error_message))
+        Err(Error::other(error_message))
     } else {
         let status_obj = client::StatusObj {
             log_line: Some(std::format!(
@@ -769,7 +768,7 @@ pub fn get_app_id_dep_path_retry(
                     err
                 );
                 error!("{}", error_message);
-                Err(Error::new(ErrorKind::Other, error_message))
+                Err(Error::other(error_message))
             }
         }
     }
@@ -830,7 +829,7 @@ pub fn request_steam_app_id_install(app_id: &u32) -> io::Result<()> {
                             app_id
                         );
                         error!("{}", error_message);
-                        Err(Error::new(ErrorKind::Other, error_message))
+                        Err(Error::other(error_message))
                     }
                 }
                 Err(err) => Err(err),

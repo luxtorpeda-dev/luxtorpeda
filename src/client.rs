@@ -10,7 +10,7 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
@@ -510,15 +510,13 @@ impl LuxClient {
         info!("download target: {:?}", target);
 
         let res = client.get(&target).send().await.map_err(|_| {
-            Error::new(
-                ErrorKind::Other,
+            Error::other(
                 format!("Failed to GET from '{}'", &target),
             )
         })?;
 
         let total_size = res.content_length().ok_or_else(|| {
-            Error::new(
-                ErrorKind::Other,
+            Error::other(
                 format!("Failed to get content length from '{}'", &target),
             )
         })?;
@@ -531,9 +529,9 @@ impl LuxClient {
 
         while let Some(item) = stream.next().await {
             let chunk =
-                item.map_err(|_| Error::new(ErrorKind::Other, "Error while downloading file"))?;
+                item.map_err(|_| Error::other("Error while downloading file"))?;
             dest.write_all(&chunk)
-                .map_err(|_| Error::new(ErrorKind::Other, "Error while writing to file"))?;
+                .map_err(|_| Error::other("Error while writing to file"))?;
 
             let new = min(downloaded + (chunk.len() as u64), total_size);
             downloaded = new;
