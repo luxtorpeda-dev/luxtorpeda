@@ -1,7 +1,7 @@
 [gd_scene load_steps=22 format=3 uid="uid://cmopiwmgjwjb8"]
 
-[ext_resource type="Script" path="res://addons/controller_icons/objects/TextureRect.gd" id="1"]
-[ext_resource type="Script" path="res://addons/controller_icons/example/IconRemapper.gd" id="2"]
+[ext_resource type="Script" uid="uid://bhik7oyxj5k3k" path="res://addons/controller_icons/objects/TextureRect.gd" id="1"]
+[ext_resource type="Script" uid="uid://tem7wwfphj15" path="res://addons/controller_icons/example/IconRemapper.gd" id="2"]
 [ext_resource type="Texture2D" uid="uid://d284wkmo0vqfk" path="res://addons/controller_icons/assets/xbox360/a.png" id="2_518mb"]
 [ext_resource type="Texture2D" uid="uid://bufx8lu1tny4o" path="res://addons/controller_icons/assets/xbox360/b.png" id="4_4ab0g"]
 [ext_resource type="Texture2D" uid="uid://jcc3t88rfxh0" path="res://addons/controller_icons/assets/xbox360/x.png" id="5_nfuy6"]

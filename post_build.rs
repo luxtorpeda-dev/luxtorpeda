@@ -25,13 +25,20 @@ const ROOT_FILES: &[&str] = &[
 const FILES: &[&str] = &[
     "compatibilitytool.vdf",
     "libluxtorpeda.so",
-    "luxtorpeda.pck",
-    "luxtorpeda.x86_64",
+    "godot_export/luxtorpeda.pck",
+    "godot_export/luxtorpeda.x86_64",
 ];
 
 fn main() {
     let out_dir = env::var("CRATE_OUT_DIR").unwrap();
     let profile = env::var("CRATE_PROFILE").unwrap();
+
+    let godot_export_path = Path::new(&out_dir).join("godot_export");
+    fs::create_dir_all(&godot_export_path).expect("Failed to create godot_export dir");
+    let godot_export_str = godot_export_path
+        .to_str()
+        .expect("Invalid Unicode in path")
+        .to_owned();
 
     create_target_gdignore(&out_dir);
     if profile == "release" {
@@ -39,7 +46,7 @@ fn main() {
     }
 
     match env::var("GODOT") {
-        Ok(godot_path) => build_godot_project(&out_dir, &godot_path, &profile),
+        Ok(godot_path) => build_godot_project(&godot_export_str, &godot_path, &profile),
         Err(_) => {
             eprintln!("godot not provided so skipping");
         }

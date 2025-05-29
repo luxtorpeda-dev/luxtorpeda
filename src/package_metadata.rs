@@ -2,7 +2,7 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 use std::path::{Path, PathBuf};
 use url::Url;
 
@@ -226,7 +226,7 @@ impl PackageMetadata {
             };
 
             let filename = match parsed_url.path_segments() {
-                Some(segments) => match segments.last() {
+                Some(mut segments) => match segments.next_back() {
                     Some(segment) => segment,
                     None => {
                         error!("from_remote_packages_cache. url last not found");
@@ -399,25 +399,25 @@ impl PackageMetadata {
                             err
                         );
                         error!("{}", error_str);
-                        return Err(Error::new(ErrorKind::Other, error_str));
+                        return Err(Error::other(error_str));
                     }
                 };
 
                 let filename = match parsed_url.path_segments() {
-                    Some(segments) => match segments.last() {
+                    Some(mut segments) => match segments.next_back() {
                         Some(segment) => segment,
                         None => {
                             let error_str =
                                 "download_additional_remote_packages. url last not found";
                             error!("{}", error_str);
-                            return Err(Error::new(ErrorKind::Other, error_str));
+                            return Err(Error::other(error_str));
                         }
                     },
                     None => {
                         let error_str =
                             "download_additional_remote_packages. url path_segments not found";
                         error!("{}", error_str);
-                        return Err(Error::new(ErrorKind::Other, error_str));
+                        return Err(Error::other(error_str));
                     }
                 };
 
@@ -439,7 +439,7 @@ impl PackageMetadata {
                             err
                         );
                         error!("{}", error_str);
-                        return Err(Error::new(ErrorKind::Other, error_str));
+                        return Err(Error::other(error_str));
                     }
                 }
             }

@@ -9,8 +9,8 @@ use std::env;
 use std::fs;
 use std::fs::File;
 use std::io;
+use std::io::Error;
 use std::io::Write;
-use std::io::{Error, ErrorKind};
 use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
@@ -118,8 +118,8 @@ impl LuxClient {
 
     fn emit_signal(&mut self, path: &str, name: &str, value: &str) {
         if let Some(parent) = &mut self.base().get_parent() {
-            let mut emitter = parent.get_node_as::<Node>(NodePath::from(path));
-            emitter.emit_signal(name.into(), &[Variant::from(value)]);
+            let mut emitter = parent.get_node_as::<Node>(&NodePath::from(path));
+            emitter.emit_signal(name, &[Variant::from(value)]);
         } else {
             error!("emit_signal parent not found for {}", path);
         }
@@ -130,7 +130,7 @@ impl LuxClient {
         let env_args: Vec<String> = env::args().collect();
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
-        let running_in_editor = !Os::singleton().has_feature("template".into());
+        let running_in_editor = !Os::singleton().has_feature("template");
 
         match command::main(running_in_editor) {
             Ok(()) => {}
@@ -509,18 +509,14 @@ impl LuxClient {
 
         info!("download target: {:?}", target);
 
-        let res = client.get(&target).send().await.map_err(|_| {
-            Error::new(
-                ErrorKind::Other,
-                format!("Failed to GET from '{}'", &target),
-            )
-        })?;
+        let res = client
+            .get(&target)
+            .send()
+            .await
+            .map_err(|_| Error::other(format!("Failed to GET from '{}'", &target)))?;
 
         let total_size = res.content_length().ok_or_else(|| {
-            Error::new(
-                ErrorKind::Other,
-                format!("Failed to get content length from '{}'", &target),
-            )
+            Error::other(format!("Failed to get content length from '{}'", &target))
         })?;
 
         let dest_file = package::place_cached_file(cache_dir, &info.file)?;
@@ -530,10 +526,9 @@ impl LuxClient {
         let mut total_percentage: i64 = 0;
 
         while let Some(item) = stream.next().await {
-            let chunk =
-                item.map_err(|_| Error::new(ErrorKind::Other, "Error while downloading file"))?;
+            let chunk = item.map_err(|_| Error::other("Error while downloading file"))?;
             dest.write_all(&chunk)
-                .map_err(|_| Error::new(ErrorKind::Other, "Error while writing to file"))?;
+                .map_err(|_| Error::other("Error while writing to file"))?;
 
             let new = min(downloaded + (chunk.len() as u64), total_size);
             downloaded = new;
