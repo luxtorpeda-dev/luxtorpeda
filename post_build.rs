@@ -25,8 +25,8 @@ const ROOT_FILES: &[&str] = &[
 const FILES: &[&str] = &[
     "compatibilitytool.vdf",
     "libluxtorpeda.so",
-    "luxtorpeda.pck",
-    "luxtorpeda.x86_64",
+    "output/luxtorpeda.pck",
+    "output/luxtorpeda.x86_64",
 ];
 
 fn main() {
@@ -93,7 +93,7 @@ fn build_godot_project(out_dir: &str, godot_path: &str, profile: &str) {
     println!("build_godot_project");
     let out_path = Path::new(out_dir).join("luxtorpeda.x86_64").into_os_string().into_string().unwrap();
     let build_cmd = Command::new(godot_path)
-        .args(["--path", ".", &std::format!("--export-{}", profile).to_string(), "Linux/X11", &out_path, "--display-driver", "headless"])
+        .args(["--path", "output", &std::format!("--export-{}", profile).to_string(), "Linux/X11", &out_path, "--display-driver", "headless"])
         .status()
         .expect("failed to execute godot");
 
