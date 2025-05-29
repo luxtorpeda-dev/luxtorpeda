@@ -35,6 +35,10 @@ fn main() {
 
     let godot_export_path = Path::new(&out_dir).join("godot_export");
     fs::create_dir_all(&godot_export_path).expect("Failed to create godot_export dir");
+    let godot_export_str = godot_export_path
+        .to_str()
+        .expect("Invalid Unicode in path")
+        .to_owned();
 
     create_target_gdignore(&out_dir);
     if profile == "release" {
@@ -42,7 +46,7 @@ fn main() {
     }
 
     match env::var("GODOT") {
-        Ok(godot_path) => build_godot_project(&godot_export_path, &godot_path, &profile),
+        Ok(godot_path) => build_godot_project(&godot_export_str, &godot_path, &profile),
         Err(_) => {
             eprintln!("godot not provided so skipping");
         }
