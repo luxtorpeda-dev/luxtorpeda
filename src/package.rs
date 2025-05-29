@@ -131,9 +131,7 @@ pub fn convert_game_info_with_choice(
     }
 
     if !choice_data.contains_key(&choice_name) {
-        return Err(Error::other(
-            "choices array does not contain engine choice",
-        ));
+        return Err(Error::other("choices array does not contain engine choice"));
     }
 
     let engine_choice_data = &choice_data[&choice_name];

@@ -9,8 +9,8 @@ use std::env;
 use std::fs;
 use std::fs::File;
 use std::io;
-use std::io::Write;
 use std::io::Error;
+use std::io::Write;
 use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
@@ -509,16 +509,14 @@ impl LuxClient {
 
         info!("download target: {:?}", target);
 
-        let res = client.get(&target).send().await.map_err(|_| {
-            Error::other(
-                format!("Failed to GET from '{}'", &target),
-            )
-        })?;
+        let res = client
+            .get(&target)
+            .send()
+            .await
+            .map_err(|_| Error::other(format!("Failed to GET from '{}'", &target)))?;
 
         let total_size = res.content_length().ok_or_else(|| {
-            Error::other(
-                format!("Failed to get content length from '{}'", &target),
-            )
+            Error::other(format!("Failed to get content length from '{}'", &target))
         })?;
 
         let dest_file = package::place_cached_file(cache_dir, &info.file)?;
@@ -528,8 +526,7 @@ impl LuxClient {
         let mut total_percentage: i64 = 0;
 
         while let Some(item) = stream.next().await {
-            let chunk =
-                item.map_err(|_| Error::other("Error while downloading file"))?;
+            let chunk = item.map_err(|_| Error::other("Error while downloading file"))?;
             dest.write_all(&chunk)
                 .map_err(|_| Error::other("Error while writing to file"))?;
 

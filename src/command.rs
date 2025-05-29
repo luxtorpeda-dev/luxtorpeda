@@ -11,9 +11,9 @@ use std::fs::File;
 use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::io::Error;
 use std::io::Read;
 use std::io::Write;
-use std::io::Error;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -122,9 +122,10 @@ fn run_bchunk(bchunk_info: &package_metadata::SetupBChunk) -> io::Result<()> {
             Ok(f) => f,
             Err(err) => {
                 error!("run_bchunk cue file open original failed {}", err);
-                return Err(Error::other(
-                    format!("run_bchunk cue file failed - {}", err),
-                ));
+                return Err(Error::other(format!(
+                    "run_bchunk cue file failed - {}",
+                    err
+                )));
             }
         };
         let reader = BufReader::new(file);
@@ -142,9 +143,10 @@ fn run_bchunk(bchunk_info: &package_metadata::SetupBChunk) -> io::Result<()> {
                 }
                 Err(err) => {
                     error!("run_bchunk cue file read original failed {}", err);
-                    return Err(Error::other(
-                        format!("run_bchunk cue read failed - {}", err),
-                    ));
+                    return Err(Error::other(format!(
+                        "run_bchunk cue read failed - {}",
+                        err
+                    )));
                 }
             }
         }
@@ -170,9 +172,7 @@ fn run_bchunk(bchunk_info: &package_metadata::SetupBChunk) -> io::Result<()> {
         }
         Err(err) => {
             error!("run_bchunk failed {}", err);
-            Err(Error::other(
-                format!("run_bchunk failed - {}", err),
-            ))
+            Err(Error::other(format!("run_bchunk failed - {}", err)))
         }
     }
 }
@@ -282,16 +282,12 @@ fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::
                 Ok(iso) => iso_extract_tree(&iso.root, "".to_string(), iso_extract_info),
                 Err(err) => {
                     error!("run_iso_extract iso read err: {}", err);
-                    Err(Error::other(
-                        "run_iso_extract failed, iso read error",
-                    ))
+                    Err(Error::other("run_iso_extract failed, iso read error"))
                 }
             },
             Err(err) => {
                 error!("run_iso_extract file open err: {:?}", err);
-                Err(Error::other(
-                    "run_iso_extract failed, file open error",
-                ))
+                Err(Error::other("run_iso_extract failed, file open error"))
             }
         }
     } else {
@@ -484,9 +480,10 @@ pub fn run_wrapper(
                                     info!("run returned with lux exit code");
                                     match fs::read_to_string("last_error.txt") {
                                         Ok(s) => {
-                                            ret = Err(Error::other(
-                                                std::format!("Error on run: {}", s),
-                                            ));
+                                            ret = Err(Error::other(std::format!(
+                                                "Error on run: {}",
+                                                s
+                                            )));
                                         }
                                         Err(err) => {
                                             error!("read err: {:?}", err);
