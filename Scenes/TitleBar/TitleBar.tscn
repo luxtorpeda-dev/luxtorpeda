@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dbac8bagk4vn6"]
 
-[ext_resource type="Script" path="res://Scenes/TitleBar/TitleBar.gd" id="1"]
+[ext_resource type="Script" uid="uid://epm270f7jj8y" path="res://Scenes/TitleBar/TitleBar.gd" id="1"]
 
 [node name="TitleBar" type="VBoxContainer"]
 anchors_preset = 15

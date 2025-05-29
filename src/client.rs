@@ -118,8 +118,8 @@ impl LuxClient {
 
     fn emit_signal(&mut self, path: &str, name: &str, value: &str) {
         if let Some(parent) = &mut self.base().get_parent() {
-            let mut emitter = parent.get_node_as::<Node>(NodePath::from(path));
-            emitter.emit_signal(name.into(), &[Variant::from(value)]);
+            let mut emitter = parent.get_node_as::<Node>(&NodePath::from(path));
+            emitter.emit_signal(name, &[Variant::from(value)]);
         } else {
             error!("emit_signal parent not found for {}", path);
         }
@@ -130,7 +130,7 @@ impl LuxClient {
         let env_args: Vec<String> = env::args().collect();
         let args: Vec<&str> = env_args.iter().map(|a| a.as_str()).collect();
 
-        let running_in_editor = !Os::singleton().has_feature("template".into());
+        let running_in_editor = !Os::singleton().has_feature("template");
 
         match command::main(running_in_editor) {
             Ok(()) => {}

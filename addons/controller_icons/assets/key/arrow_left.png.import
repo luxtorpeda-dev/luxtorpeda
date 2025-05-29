@@ -16,9 +16,9 @@ dest_files=["res://.godot/imported/arrow_left.png-47644a17d01cec89c19b183ed0ee3e
 [params]
 
 compress/mode=0
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/bptc_ldr=0
 compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=false

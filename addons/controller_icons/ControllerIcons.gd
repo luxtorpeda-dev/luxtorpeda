@@ -571,4 +571,3 @@ func _load_icon(path: String) -> int:
 		tex.create_from_image(img)
 	_cached_icons[path] = tex
 	return OK
-

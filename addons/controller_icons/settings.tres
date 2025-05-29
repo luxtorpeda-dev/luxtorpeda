@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ControllerSettings" load_steps=2 format=3 uid="uid://dolsrvh5w47et"]
 
-[ext_resource type="Script" path="res://addons/controller_icons/Settings.gd" id="1"]
+[ext_resource type="Script" uid="uid://d36tqt0do70mo" path="res://addons/controller_icons/Settings.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
