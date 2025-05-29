@@ -2,11 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://dbac8bagk4vn6" path="res://Scenes/TitleBar/TitleBar.tscn" id="2"]
 [ext_resource type="Script" uid="uid://bipq3r7cvwx40" path="res://addons/controller_icons/objects/Button.gd" id="3"]
-[ext_resource type="Texture2D" uid="uid://coqj2fcsaxvcn" path="res://addons/controller_icons/assets/key/space.png" id="6_pp8t3"]
+[ext_resource type="Texture2D" uid="uid://bva4iswwvta5d" path="res://addons/controller_icons/assets/xbox360/y.png" id="6_pp8t3"]
 [ext_resource type="PackedScene" uid="uid://csmcqsj428pin" path="res://Scenes/Choices/Choices.tscn" id="8"]
-[ext_resource type="Texture2D" uid="uid://bp58drjdgvxsi" path="res://addons/controller_icons/assets/key/enter_alt.png" id="8_4jmv2"]
+[ext_resource type="Texture2D" uid="uid://d284wkmo0vqfk" path="res://addons/controller_icons/assets/xbox360/a.png" id="8_4jmv2"]
 [ext_resource type="Script" uid="uid://c1qx3r8mdk8m8" path="res://Scenes/MainScene/Controls.gd" id="9"]
-[ext_resource type="Texture2D" uid="uid://cnghdqiitl0fu" path="res://addons/controller_icons/assets/key/esc.png" id="9_0y6a4"]
+[ext_resource type="Texture2D" uid="uid://bufx8lu1tny4o" path="res://addons/controller_icons/assets/xbox360/b.png" id="9_0y6a4"]
 [ext_resource type="PackedScene" uid="uid://kl1iyl6xknhw" path="res://Scenes/Progress/Progress.tscn" id="10"]
 [ext_resource type="PackedScene" uid="uid://b1k4ekp8y8p7c" path="res://Scenes/Prompt/Prompt.tscn" id="11"]
 
