@@ -1106,7 +1106,7 @@ dependencies = [
  "sha2",
  "signal-hook",
  "simplelog",
- "steamid-ng",
+ "steamid-ng 2.0.0",
  "steamlocate",
  "tar",
  "tokio",
@@ -1980,6 +1980,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "steamid-ng"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b23da1d8a59091a1e8805d1355f74181f8e13fb7b446c2de17b9fd1bacce6058"
+
+[[package]]
 name = "steamlocate"
 version = "2.0.0-alpha.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1989,7 +1995,7 @@ dependencies = [
  "keyvalues-parser",
  "keyvalues-serde",
  "serde",
- "steamid-ng",
+ "steamid-ng 1.0.0",
  "winreg",
 ]
 
