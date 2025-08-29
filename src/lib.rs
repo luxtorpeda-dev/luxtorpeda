@@ -7,7 +7,8 @@ mod godot_logger;
 mod package;
 mod package_metadata;
 mod user_env;
-
+mod parsers;
+mod proton_handler;
 struct Luxtorpeda;
 
 #[gdextension]
