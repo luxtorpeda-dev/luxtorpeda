@@ -1,7 +1,7 @@
-use std::path::{Path, PathBuf};
 use crate::parsers::appinfo_vdf_parser::open_appinfo_vdf;
 use serde_json::{Map, Value};
 use std::fs;
+use std::path::{Path, PathBuf};
 use vdf_serde_format::from_str;
 trait JsonExt {
     fn str_at(&self, key: &str) -> Option<&str>;
@@ -68,11 +68,19 @@ pub fn list_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::err
     let mut tools = Vec::new();
 
     for (internal, tool) in compat_tools(manifests) {
-        let Some(appid) = tool.u64_at("appid") else { continue };
-        let Some(app)   = get_app_info(&appinfo_json, appid) else { continue };
-        let Some(path)  = app["config"].str_at("installdir") else { continue };
+        let Some(appid) = tool.u64_at("appid") else {
+            continue;
+        };
+        let Some(app) = get_app_info(&appinfo_json, appid) else {
+            continue;
+        };
+        let Some(path) = app["config"].str_at("installdir") else {
+            continue;
+        };
 
-        let proton_path = PathBuf::from(steam_path).join("steamapps/common").join(path);
+        let proton_path = PathBuf::from(steam_path)
+            .join("steamapps/common")
+            .join(path);
 
         if !proton_path.exists() {
             continue;

@@ -26,8 +26,8 @@ use crate::godot_logger;
 use crate::package;
 use crate::package::place_state_file;
 use crate::package_metadata;
-use crate::user_env;
 use crate::proton_handler;
+use crate::user_env;
 
 extern crate log;
 extern crate simplelog;
@@ -462,15 +462,24 @@ pub fn run_wrapper(
             sender.send(status_str).unwrap();
 
             let mut proton_args: Vec<String> = Vec::new();
-            let mut commandline : String = cmd.clone();
+            let mut commandline: String = cmd.clone();
             if cmd.ends_with(".exe") {
                 if let Some(steam_path) = user_env::steam_install_path() {
                     if let Ok(tools) = proton_handler::list_proton_tools(&steam_path) {
-                        if let Some(tool) = proton_handler::find_tool(&tools, "proton_experimental") {
+                        if let Some(tool) = proton_handler::find_tool(&tools, "proton_experimental")
+                        {
                             commandline = tool.commandline.clone();
                             proton_args.push("waitforexitandrun".to_string());
 
-                            let tmp_path = format!("{}/{}", PathBuf::from(args[0]).parent().unwrap().display().to_string(), cmd);
+                            let tmp_path = format!(
+                                "{}/{}",
+                                PathBuf::from(args[0])
+                                    .parent()
+                                    .unwrap()
+                                    .display()
+                                    .to_string(),
+                                cmd
+                            );
                             proton_args.push(tmp_path); // the original exe
                         }
                     }
