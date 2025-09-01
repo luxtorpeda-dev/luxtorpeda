@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "73.0.1"
+version = "73.1.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2021"
 
@@ -11,10 +11,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.142"
+serde_json = "1.0.143"
 serde_regex = "1.1"
 json = "0.12.4"
-regex = "1.11.1"
+regex = "1.11.2"
 reqwest = { version = "0.12.23", features = ["rustls-tls", "blocking", "gzip", "stream"], default-features = false }
 xdg = "3.0.0"
 tar = "0.4.44"
@@ -39,7 +39,7 @@ walkdir = "2"
 steamid-ng = "2.0.0"
 godot = {version = "0.2.4" }
 chrono = "0.4.41"
-url = "2.5.4"
+url = "2.5.7"
 rayon = "1.11.0"
 vdf-serde-format = "1.0.9"
 
