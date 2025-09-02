@@ -1,10 +1,20 @@
 use crate::parsers::appinfo_vdf_parser::open_appinfo_vdf;
+use keyvalues_serde::from_str_with_key;
 use serde_json::{Map, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
-use vdf_serde_format::from_str;
 extern crate steamlocate;
 use steamlocate::SteamDir;
+
+const EXCLUDED_TOOLS: [&'static str; 7] = [
+    "legacyruntime",
+    "boxtron",
+    "roberta",
+    "luxtorpeda",
+    "luxtorpeda-dev",
+    "steam-play-none",
+    "boson",
+];
 
 trait JsonExt {
     fn str_at(&self, key: &str) -> Option<&str>;
@@ -47,11 +57,14 @@ pub struct Tool {
 fn get_commandline(path: &impl AsRef<Path>) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let toolpath = path.as_ref().join("toolmanifest.vdf");
     let vdf = fs::read_to_string(&toolpath)?;
-    let root: serde_json::Value = from_str(&vdf)?;
+    let (root, _key) = from_str_with_key::<serde_json::Map<String, serde_json::Value>>(&vdf)?;
 
-    if let Some(cmd) = root["manifest"]["commandline_waitforexitandrun"].as_str() {
+    if let Some(cmd) = root
+        .get("commandline_waitforexitandrun")
+        .and_then(|v| v.as_str())
+    {
         Ok(Some(cmd.replace(" waitforexitandrun", "")))
-    } else if let Some(cmd) = root["manifest"]["commandline"].as_str() {
+    } else if let Some(cmd) = root.get("commandline").and_then(|v| v.as_str()) {
         Ok(Some(cmd.replace(" %verb%", "")))
     } else {
         Ok(None)
@@ -62,7 +75,80 @@ pub fn find_tool<'a>(tools: &'a [Tool], alias: &str) -> Option<&'a Tool> {
     tools.iter().find(|t| t.alias == alias)
 }
 
-pub fn list_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
+// List tools from .steam/steam/compatibilitytools.d
+fn list_compatibilitytoolsd(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
+    let mut tools = Vec::new();
+
+    let compattoolsd = PathBuf::from(steam_path).join("compatibilitytools.d");
+    let paths = fs::read_dir(&compattoolsd)?;
+
+    for path in paths {
+        let tool_dir = path?.path();
+
+        // Exclude tools such as "Luxtorpeda" or "Roberta" as we're only going to want Proton or similar.
+        if let Some(name) = tool_dir.file_name().and_then(|n| n.to_str()) {
+            if EXCLUDED_TOOLS.contains(&name.to_lowercase().as_str()) {
+                continue;
+            }
+        }
+
+        let compatvdfpath = tool_dir.join("compatibilitytool.vdf");
+        if !compatvdfpath.exists() {
+            continue;
+        }
+
+        let vdf = fs::read_to_string(&compatvdfpath)?;
+        let (root, _key) = from_str_with_key::<serde_json::Map<String, serde_json::Value>>(&vdf)?;
+
+        // Look inside compat_tools
+        if let Some(compat_tools) = root.get("compat_tools").and_then(|v| v.as_object()) {
+            for (alias, entry) in compat_tools {
+                if let Some(entry) = entry.as_object() {
+                    // Filter out non-Windows tools
+                    if entry
+                        .get("from_oslist")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s != "windows")
+                        .unwrap_or(true)
+                    {
+                        continue;
+                    }
+
+                    // Get display name (what is shown in Steam GUI)
+                    let display_name = entry
+                        .get("display_name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(alias);
+
+                    // Get path to the Proton tool
+                    let install_path = entry
+                        .get("install_path")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(".");
+
+                    let resolved_path = tool_dir.join(install_path);
+
+                    let Some(commandline) = get_commandline(&resolved_path)? else {
+                        continue;
+                    };
+
+                    let finish_cmdline =
+                        format!("{}{}", resolved_path.display().to_string(), commandline);
+
+                    tools.push(Tool {
+                        alias: alias.clone(),
+                        display_name: display_name.to_string(),
+                        commandline: finish_cmdline,
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(tools)
+}
+
+fn list_valve_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
     let path = PathBuf::from(steam_path).join("appcache/appinfo.vdf");
     let appinfo_json = open_appinfo_vdf(&path);
 
@@ -96,6 +182,18 @@ pub fn list_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::err
             }
         }
     }
+
+    Ok(tools)
+}
+
+pub fn list_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
+    let mut tools = Vec::new();
+
+    let official_tools = list_valve_proton_tools(steam_path)?;
+    let unofficial_tools = list_compatibilitytoolsd(steam_path)?;
+
+    tools.extend(official_tools);
+    tools.extend(unofficial_tools);
 
     Ok(tools)
 }
