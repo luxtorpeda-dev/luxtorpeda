@@ -3,6 +3,9 @@ use serde_json::{Map, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
 use vdf_serde_format::from_str;
+extern crate steamlocate;
+use steamlocate::SteamDir;
+
 trait JsonExt {
     fn str_at(&self, key: &str) -> Option<&str>;
     fn u64_at(&self, key: &str) -> Option<u64>;
@@ -36,9 +39,9 @@ fn compat_tools<'a>(manifest: &'a Value) -> impl Iterator<Item = (&'a str, &'a V
 }
 
 pub struct Tool {
-    pub alias: String,
-    pub display_name: String,
-    pub commandline: String,
+    pub alias: String,        // example: "proton_9"
+    pub display_name: String, // example: "Proton 9.0-4"
+    pub commandline: String, // example: "/home/mv/.steam/debian-installation/steamapps/common/Proton 9.0 (Beta)/proton"
 }
 
 fn get_commandline(path: &impl AsRef<Path>) -> Result<Option<String>, Box<dyn std::error::Error>> {
@@ -71,20 +74,16 @@ pub fn list_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::err
         let Some(appid) = tool.u64_at("appid") else {
             continue;
         };
-        let Some(app) = get_app_info(&appinfo_json, appid) else {
-            continue;
-        };
-        let Some(path) = app["config"].str_at("installdir") else {
+
+        let Some(mut steam_dir) = SteamDir::locate() else {
             continue;
         };
 
-        let proton_path = PathBuf::from(steam_path)
-            .join("steamapps/common")
-            .join(path);
-
-        if !proton_path.exists() {
+        let Some(app) = steam_dir.app(&appid.try_into().unwrap()) else {
             continue;
-        }
+        };
+
+        let proton_path = app.path.clone();
 
         if let Some(display) = tool.str_at("display_name") {
             if let Some(cmd) = get_commandline(&proton_path)? {

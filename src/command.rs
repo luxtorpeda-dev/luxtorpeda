@@ -20,7 +20,6 @@ use std::process::Command;
 use walkdir::WalkDir;
 
 use crate::client;
-use crate::command;
 use crate::config;
 use crate::godot_logger;
 use crate::package;
