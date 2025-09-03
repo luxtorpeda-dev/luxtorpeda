@@ -21,8 +21,8 @@ use crate::command;
 use crate::config;
 use crate::package;
 use crate::package_metadata;
-use crate::user_env;
 use crate::proton_handler::list_proton_tools;
+use crate::user_env;
 
 #[derive(GodotClass)]
 #[class(base=Node)]
@@ -169,10 +169,13 @@ impl LuxClient {
         let tools = list_proton_tools("/home/mv/.steam/steam").expect("Cannot find Proton tools");
 
         for tool in tools {
-            choices.insert(0, package_metadata::SimpleEngineChoice {
-                name: tool.display_name,
-                notices: Vec::new(),
-            });
+            choices.insert(
+                0,
+                package_metadata::SimpleEngineChoice {
+                    name: tool.display_name,
+                    notices: Vec::new(),
+                },
+            );
         }
 
         let choices_str = serde_json::to_string(&choices).unwrap();
