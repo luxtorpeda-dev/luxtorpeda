@@ -22,6 +22,7 @@ use crate::config;
 use crate::package;
 use crate::package_metadata;
 use crate::user_env;
+use crate::proton_handler::list_proton_tools;
 
 #[derive(GodotClass)]
 #[class(base=Node)]
@@ -162,6 +163,31 @@ impl LuxClient {
         Ok(())
     }
 
+    fn show_proton(&mut self) -> io::Result<()> {
+        let mut choices: Vec<package_metadata::SimpleEngineChoice> = vec![];
+
+        let tools = list_proton_tools("/home/mv/.steam/steam").expect("Cannot find Proton tools");
+
+        for tool in tools {
+            choices.insert(0, package_metadata::SimpleEngineChoice {
+                name: tool.display_name,
+                notices: Vec::new(),
+            });
+        }
+
+        let choices_str = serde_json::to_string(&choices).unwrap();
+
+        println!("aeiou: {}", &choices_str.to_string());
+
+        self.emit_signal(
+            "Container/Choices",
+            "choices_found",
+            &choices_str.to_string(),
+        );
+
+        Ok(())
+    }
+
     fn ask_for_engine_choice(&mut self, app_id: &str) -> io::Result<()> {
         let mut game_info = match package::get_game_info(app_id) {
             Ok(game_info) => game_info,
@@ -264,8 +290,6 @@ impl LuxClient {
             }
         };
 
-        self.emit_signal("Container/Progress", "show_progress", "");
-
         let data_str = data.try_to::<String>().unwrap();
 
         if !data_str.is_empty() {
@@ -285,6 +309,13 @@ impl LuxClient {
                 }
 
                 self.last_choice = Some(engine_choice.clone());
+
+                if engine_choice == "Choose Proton" {
+                    let _ = self.show_proton();
+                    return;
+                }
+
+                self.emit_signal("Container/Progress", "show_progress", "");
 
                 match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
                     Ok(()) => {

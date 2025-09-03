@@ -38,6 +38,7 @@ func _input(event):
 		choice_list.accept_event()
 
 func choices_found_handler(choices_str):
+	choice_list.clear()
 	var test_json_conv = JSON.new()
 	test_json_conv.parse(choices_str)
 	last_choices = test_json_conv.get_data()
@@ -49,7 +50,8 @@ func choices_found_handler(choices_str):
 		choice_list.add_item(choice.name)
 		
 func choice_picked_handler(_choice_str):
-	self.visible = false
+	if _choice_str != "Choose Proton":
+		self.visible = false
 	
 func default_choice_clicked_handler(current_choice, default_choice):
 	if default_choice != current_choice:
