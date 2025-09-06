@@ -93,8 +93,8 @@ func _on_input_type_changed(value):
 func _on_OkButton_pressed():
 	if last_mode == "choice":
 		var choice_picked_obj = {"engine_choice": last_choice, "default_engine_choice": last_default_choice}
-		get_node("../../LuxClient").choice_picked(JSON.stringify(choice_picked_obj))
 		get_node("../Choices").emit_signal("choice_picked", last_choice)
+		get_node("../../LuxClient").choice_picked(JSON.stringify(choice_picked_obj))
 	elif last_mode == "question":
 		get_node("../../LuxClient").question_confirmed(last_mode_id)
 		get_node("../Prompt").emit_signal("hide_prompt")
