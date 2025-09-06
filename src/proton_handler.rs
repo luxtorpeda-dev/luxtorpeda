@@ -81,7 +81,7 @@ pub fn find_tool_by_name<'a>(tools: &'a [Tool], display_name: &str) -> Option<&'
 }
 
 // List tools from .steam/steam/compatibilitytools.d
-fn list_compatibilitytoolsd(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
+pub fn list_compatibilitytoolsd(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
     let mut tools = Vec::new();
 
     let compattoolsd = PathBuf::from(steam_path).join("compatibilitytools.d");
@@ -153,7 +153,7 @@ fn list_compatibilitytoolsd(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::
     Ok(tools)
 }
 
-fn list_valve_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
+pub fn list_valve_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
     let path = PathBuf::from(steam_path).join("appcache/appinfo.vdf");
     let appinfo_json = open_appinfo_vdf(&path);
 

@@ -331,6 +331,7 @@ impl LuxClient {
                         }
                         let _ = self.ask_for_engine_choice(app_id.as_str());
                         self.last_choice = Some("".to_string());
+
                         return;                 
                     }
                 }

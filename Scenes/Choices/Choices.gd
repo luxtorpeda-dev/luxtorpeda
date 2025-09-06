@@ -38,6 +38,7 @@ func _input(event):
 		choice_list.accept_event()
 
 func choices_found_handler(choices_str):
+	get_node("../Controls").emit_signal("default_choice_selected", null)
 	choice_list.clear()
 	var test_json_conv = JSON.new()
 	test_json_conv.parse(choices_str)
