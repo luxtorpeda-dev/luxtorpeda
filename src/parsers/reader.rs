@@ -192,7 +192,7 @@ impl Reader<'_> {
     }
 
     /// Creates a new Reader from the provided buffer.
-    pub fn new(buf: &[u8]) -> Reader {
+    pub fn new(buf: &[u8]) -> Reader<'_> {
         return Reader {
             data: buf,
             offset: 0,
@@ -201,7 +201,7 @@ impl Reader<'_> {
     }
 
     /// Slices the Reader's buffer and returns a new Reader for the slice.
-    pub fn slice(&self, offset: usize, length: usize) -> Reader {
+    pub fn slice(&self, offset: usize, length: usize) -> Reader<'_> {
         let sliced = &self.data[offset..(offset + length)];
         return Reader {
             data: sliced,
