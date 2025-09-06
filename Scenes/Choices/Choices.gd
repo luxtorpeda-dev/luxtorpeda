@@ -50,8 +50,7 @@ func choices_found_handler(choices_str):
 		choice_list.add_item(choice.name)
 		
 func choice_picked_handler(_choice_str):
-	if _choice_str != "Choose Proton":
-		self.visible = false
+	self.visible = false
 	
 func default_choice_clicked_handler(current_choice, default_choice):
 	if default_choice != current_choice:

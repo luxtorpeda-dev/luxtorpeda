@@ -75,6 +75,10 @@ pub fn find_tool<'a>(tools: &'a [Tool], alias: &str) -> Option<&'a Tool> {
     tools.iter().find(|t| t.alias == alias)
 }
 
+pub fn find_tool_by_name<'a>(tools: &'a [Tool], display_name: &str) -> Option<&'a Tool> {
+    tools.iter().find(|t| t.display_name == display_name)
+}
+
 // List tools from .steam/steam/compatibilitytools.d
 fn list_compatibilitytoolsd(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
     let mut tools = Vec::new();

@@ -21,7 +21,7 @@ use crate::command;
 use crate::config;
 use crate::package;
 use crate::package_metadata;
-use crate::proton_handler::list_proton_tools;
+use crate::proton_handler::{list_proton_tools,find_tool_by_name};
 use crate::user_env;
 
 #[derive(GodotClass)]
@@ -166,27 +166,27 @@ impl LuxClient {
     fn show_proton(&mut self) -> io::Result<()> {
         let mut choices: Vec<package_metadata::SimpleEngineChoice> = vec![];
 
-        let tools = list_proton_tools("/home/mv/.steam/steam").expect("Cannot find Proton tools");
+        if let Some(steam_path) = user_env::steam_install_path() {
+            let tools = list_proton_tools(&steam_path).expect("Cannot find Proton tools");
 
-        for tool in tools {
-            choices.insert(
-                0,
-                package_metadata::SimpleEngineChoice {
-                    name: tool.display_name,
-                    notices: Vec::new(),
-                },
+            for tool in tools {
+                choices.insert(
+                    0,
+                    package_metadata::SimpleEngineChoice {
+                        name: tool.display_name,
+                        notices: Vec::new(),
+                    },
+                );
+            }
+
+            let choices_str = serde_json::to_string(&choices).unwrap();
+
+            self.emit_signal(
+                "Container/Choices",
+                "choices_found",
+                &choices_str.to_string(),
             );
         }
-
-        let choices_str = serde_json::to_string(&choices).unwrap();
-
-        println!("aeiou: {}", &choices_str.to_string());
-
-        self.emit_signal(
-            "Container/Choices",
-            "choices_found",
-            &choices_str.to_string(),
-        );
 
         Ok(())
     }
@@ -309,6 +309,26 @@ impl LuxClient {
                     default_choice_file
                         .write_all(default_choice.as_bytes())
                         .unwrap();
+                }
+
+                if self.last_choice == Some("Choose Proton".to_string()) {
+                    info!("user picked proton version {} for {}", engine_choice, app_id);
+                    let proton_choice_file_path =
+                        package::place_config_file(&app_id, "proton_choice.txt").unwrap();
+                    let mut proton_choice_file = File::create(proton_choice_file_path).unwrap();
+
+                    if let Some(steam_path) = user_env::steam_install_path() {
+                        let proton_tools = list_proton_tools(&steam_path).expect("Cannot find Proton tools");
+                        let Some(proton) = find_tool_by_name(&proton_tools, &engine_choice) else {return};
+
+                        proton_choice_file
+                            .write_all(proton.alias.as_bytes())
+                            .unwrap(); 
+                    }
+
+                    let _ = self.ask_for_engine_choice(app_id.as_str());
+                    self.last_choice = Some("".to_string());
+                    return;          
                 }
 
                 self.last_choice = Some(engine_choice.clone());
