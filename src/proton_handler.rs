@@ -48,6 +48,7 @@ fn compat_tools<'a>(manifest: &'a Value) -> impl Iterator<Item = (&'a str, &'a V
         .map(|(name, tool)| (name.as_str(), tool))
 }
 
+#[derive(Clone)]
 pub struct Tool {
     pub alias: String,        // example: "proton_9"
     pub display_name: String, // example: "Proton 9.0-4"

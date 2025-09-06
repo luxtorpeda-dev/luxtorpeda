@@ -53,6 +53,9 @@ func choice_picked_handler(_choice_str):
 	self.visible = false
 	
 func default_choice_clicked_handler(current_choice, default_choice):
+	if current_choice == "Choose Proton":
+		return
+
 	if default_choice != current_choice:
 		default_choice = current_choice
 	else:
