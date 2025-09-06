@@ -1,5 +1,6 @@
 use log::{error, info};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::io::Error;
@@ -27,6 +28,7 @@ pub struct Game {
     pub engine_name: String,
     pub command: Option<String>,
     pub command_args: Vec<String>,
+    pub command_vars: Option<HashMap<String, String>>,
     pub download_config: Option<Vec<DownloadConfig>>,
     #[serde(alias = "cloudNotAvailable")]
     pub cloud_not_available: bool,
@@ -73,6 +75,7 @@ pub struct EngineChoice {
     pub engine_name: Option<String>,
     pub command: Option<String>,
     pub command_args: Vec<String>,
+    pub command_vars: Option<HashMap<String, String>>,
     pub download: Option<Vec<String>>,
     pub download_config: Option<Vec<DownloadConfig>>,
     notices: Option<Vec<Notice>>,
@@ -625,6 +628,10 @@ impl Game {
 
         if !engine_choice.command_args.is_empty() {
             self.command_args = engine_choice.command_args.clone();
+        }
+
+        if engine_choice.command_vars.is_some() {
+            self.command_vars = engine_choice.command_vars.clone();
         }
 
         if engine_choice.download_config.is_some() {

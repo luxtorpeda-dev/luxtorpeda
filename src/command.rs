@@ -499,6 +499,14 @@ pub fn run_wrapper(
 
             let mut proton_args: Vec<String> = Vec::new();
             let mut commandline: String = cmd.clone();
+
+            if let Some(vars) = &game_info.command_vars {
+                for (key, value) in vars {
+                    info!("Set environmental variable {} to {}", key, value);
+                    user_env::set_env_var(key, value);
+                }
+            }
+
             if cmd.ends_with(".exe") {
                 if let Some(steam_path) = user_env::steam_install_path() {
                     if let Ok(tools) = proton_handler::list_proton_tools(&steam_path) {
