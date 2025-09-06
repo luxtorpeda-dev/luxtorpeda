@@ -21,7 +21,7 @@ use crate::command;
 use crate::config;
 use crate::package;
 use crate::package_metadata;
-use crate::proton_handler::{list_proton_tools,find_tool_by_name,Tool};
+use crate::proton_handler::{find_tool_by_name, list_proton_tools, Tool};
 use crate::user_env;
 
 #[derive(GodotClass)]
@@ -172,7 +172,6 @@ impl LuxClient {
             let tools = list_proton_tools(&steam_path).expect("Cannot find Proton tools");
             self.proton_tools = Some(tools.clone());
 
-
             for tool in tools {
                 choices.insert(
                     0,
@@ -307,52 +306,64 @@ impl LuxClient {
                 info!("picked for engine_choice: {}", engine_choice);
 
                 if let Some(default_choice) = choice_obj.default_engine_choice {
-                    println!("is in proton: {}", is_in_proton_selection);
                     if !is_in_proton_selection {
                         info!("default engine choice requested for {}", default_choice);
                         let default_choice_file_path =
-                            package::place_config_file(&app_id, "default_engine_choice.txt").unwrap();
-                        let mut default_choice_file = File::create(default_choice_file_path).unwrap();
+                            package::place_config_file(&app_id, "default_engine_choice.txt")
+                                .unwrap();
+                        let mut default_choice_file =
+                            File::create(default_choice_file_path).unwrap();
                         default_choice_file
                             .write_all(default_choice.as_bytes())
                             .unwrap();
                     } else {
                         info!("default proton version requested for {}", default_choice);
                         let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
-                        let default_proton_file_path = xdg_dirs.place_config_file("default_proton_choice.txt").unwrap();
-                        let mut default_proton_file = File::create(default_proton_file_path).unwrap();
+                        let default_proton_file_path = xdg_dirs
+                            .place_config_file("default_proton_choice.txt")
+                            .unwrap();
+                        let mut default_proton_file =
+                            File::create(default_proton_file_path).unwrap();
 
                         if let Some(proton_tools) = &self.proton_tools {
-                            let Some(proton) = find_tool_by_name(&proton_tools, &default_choice) else { return };
+                            let Some(proton) = find_tool_by_name(&proton_tools, &default_choice)
+                            else {
+                                return;
+                            };
 
                             default_proton_file
                                 .write_all(proton.alias.as_bytes())
-                                .unwrap(); 
+                                .unwrap();
                         }
                         let _ = self.ask_for_engine_choice(app_id.as_str());
                         self.last_choice = Some("".to_string());
 
-                        return;                 
+                        return;
                     }
                 }
 
                 if is_in_proton_selection {
-                    info!("user picked proton version {} for {}", engine_choice, app_id);
+                    info!(
+                        "user picked proton version {} for {}",
+                        engine_choice, app_id
+                    );
                     let proton_choice_file_path =
                         package::place_config_file(&app_id, "proton_choice.txt").unwrap();
                     let mut proton_choice_file = File::create(proton_choice_file_path).unwrap();
 
                     if let Some(proton_tools) = &self.proton_tools {
-                        let Some(proton) = find_tool_by_name(&proton_tools, &engine_choice) else { return };
+                        let Some(proton) = find_tool_by_name(&proton_tools, &engine_choice) else {
+                            return;
+                        };
 
                         proton_choice_file
                             .write_all(proton.alias.as_bytes())
-                            .unwrap(); 
+                            .unwrap();
                     }
 
                     let _ = self.ask_for_engine_choice(app_id.as_str());
                     self.last_choice = Some("".to_string());
-                    return;          
+                    return;
                 }
 
                 self.last_choice = Some(engine_choice.clone());

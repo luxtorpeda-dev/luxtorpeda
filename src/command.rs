@@ -425,20 +425,21 @@ pub fn run(
 
 fn get_proton_alias() -> io::Result<String> {
     let app_id = user_env::steam_app_id();
-    let check_proton_choice_file_path =
-    package::place_config_file(&app_id, "proton_choice.txt")?;
+    let check_proton_choice_file_path = package::place_config_file(&app_id, "proton_choice.txt")?;
     if check_proton_choice_file_path.exists() {
-        let proton_choice_str = fs::read_to_string(check_proton_choice_file_path)?.trim().to_string();
-            info!(
-                "Using game specified Proton version {}",
-                proton_choice_str
-            );
+        let proton_choice_str = fs::read_to_string(check_proton_choice_file_path)?
+            .trim()
+            .to_string();
+        info!("Using game specified Proton version {}", proton_choice_str);
         return Ok(proton_choice_str);
     } else {
         let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
-        let check_default_proton_file_path = xdg_dirs.place_config_file("default_proton_choice.txt")?;
+        let check_default_proton_file_path =
+            xdg_dirs.place_config_file("default_proton_choice.txt")?;
         if check_default_proton_file_path.exists() {
-            let proton_choice_str = fs::read_to_string(check_default_proton_file_path)?.trim().to_string();
+            let proton_choice_str = fs::read_to_string(check_default_proton_file_path)?
+                .trim()
+                .to_string();
             info!(
                 "Using default Proton version selected by user {}",
                 proton_choice_str
@@ -502,8 +503,7 @@ pub fn run_wrapper(
                 if let Some(steam_path) = user_env::steam_install_path() {
                     if let Ok(tools) = proton_handler::list_proton_tools(&steam_path) {
                         if let Ok(proton_version) = get_proton_alias() {
-                            if let Some(tool) = proton_handler::find_tool(&tools, &proton_version)
-                            {
+                            if let Some(tool) = proton_handler::find_tool(&tools, &proton_version) {
                                 commandline = tool.commandline.clone();
                                 proton_args.push("waitforexitandrun".to_string());
 
