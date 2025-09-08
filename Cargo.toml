@@ -38,7 +38,7 @@ rbchunk = "2.1.0"
 walkdir = "2"
 steamid-ng = "2.0.0"
 godot = {version = "0.2.4" }
-chrono = "0.4.41"
+chrono = "0.4.42"
 url = "2.5.7"
 
 [package.metadata.cargo-post.dependencies]
