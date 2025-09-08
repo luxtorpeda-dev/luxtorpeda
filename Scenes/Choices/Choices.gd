@@ -45,6 +45,7 @@ func choices_found_handler(choices_str):
 	last_choices = test_json_conv.get_data()
 	get_node("../TitleBar").emit_signal("mode_changed", "choice")
 	get_node("../Controls").emit_signal("mode_changed", "choice", "choice")
+	get_node("../Progress").emit_signal("hide_progress")
 	self.visible = true
 	
 	for choice in last_choices:

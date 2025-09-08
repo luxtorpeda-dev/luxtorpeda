@@ -296,6 +296,8 @@ impl LuxClient {
             }
         };
 
+        self.emit_signal("Container/Progress", "show_progress", "");
+
         let data_str = data.try_to::<String>().unwrap();
 
         if !data_str.is_empty() {
@@ -372,8 +374,6 @@ impl LuxClient {
                     let _ = self.show_proton();
                     return;
                 }
-
-                self.emit_signal("Container/Progress", "show_progress", "");
 
                 match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
                     Ok(()) => {
