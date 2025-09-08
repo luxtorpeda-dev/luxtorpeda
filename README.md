@@ -200,3 +200,4 @@ For the UI, the Godot editor is required. It can be downloaded from https://godo
 * Godot game engine is from https://github.com/godotengine/godot
 * Accept icon is from https://uxwing.com/accept-icon/
 * Controller Icons Library for Godot is from https://github.com/rsubtil/controller_icons
+* appinfo.vdf parser in `src/parsers/` is from https://github.com/Tormak9970/Steam-Art-Manager/tree/dev, the parsers are licensed under the GNU Lesser General Public License version 2.1.

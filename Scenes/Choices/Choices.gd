@@ -38,11 +38,14 @@ func _input(event):
 		choice_list.accept_event()
 
 func choices_found_handler(choices_str):
+	get_node("../Controls").emit_signal("default_choice_selected", null)
+	choice_list.clear()
 	var test_json_conv = JSON.new()
 	test_json_conv.parse(choices_str)
 	last_choices = test_json_conv.get_data()
 	get_node("../TitleBar").emit_signal("mode_changed", "choice")
 	get_node("../Controls").emit_signal("mode_changed", "choice", "choice")
+	get_node("../Progress").emit_signal("hide_progress")
 	self.visible = true
 	
 	for choice in last_choices:
@@ -52,6 +55,9 @@ func choice_picked_handler(_choice_str):
 	self.visible = false
 	
 func default_choice_clicked_handler(current_choice, default_choice):
+	if current_choice == "Choose Proton":
+		return
+
 	if default_choice != current_choice:
 		default_choice = current_choice
 	else:

@@ -21,6 +21,7 @@ use crate::command;
 use crate::config;
 use crate::package;
 use crate::package_metadata;
+use crate::proton_handler::{find_tool_by_name, list_proton_tools, Tool};
 use crate::user_env;
 
 #[derive(GodotClass)]
@@ -29,6 +30,7 @@ pub struct LuxClient {
     receiver: std::option::Option<std::sync::mpsc::Receiver<String>>,
     last_downloads: std::option::Option<Vec<package_metadata::DownloadItem>>,
     last_choice: std::option::Option<String>,
+    proton_tools: std::option::Option<Vec<Tool>>,
     base: Base<Node>,
 }
 
@@ -70,6 +72,7 @@ impl INode for LuxClient {
             receiver: None,
             last_downloads: None,
             last_choice: None,
+            proton_tools: None,
             base,
         }
     }
@@ -158,6 +161,35 @@ impl LuxClient {
                 return Err(err);
             }
         };
+
+        Ok(())
+    }
+
+    fn show_proton(&mut self) -> io::Result<()> {
+        let mut choices: Vec<package_metadata::SimpleEngineChoice> = vec![];
+
+        if let Some(steam_path) = user_env::steam_install_path() {
+            let tools = list_proton_tools(&steam_path).expect("Cannot find Proton tools");
+            self.proton_tools = Some(tools.clone());
+
+            for tool in tools {
+                choices.insert(
+                    0,
+                    package_metadata::SimpleEngineChoice {
+                        name: tool.display_name,
+                        notices: Vec::new(),
+                    },
+                );
+            }
+
+            let choices_str = serde_json::to_string(&choices).unwrap();
+
+            self.emit_signal(
+                "Container/Choices",
+                "choices_found",
+                &choices_str.to_string(),
+            );
+        }
 
         Ok(())
     }
@@ -270,21 +302,78 @@ impl LuxClient {
 
         if !data_str.is_empty() {
             let choice_obj: ChoiceData = serde_json::from_str(&data_str).unwrap();
+            let is_in_proton_selection = self.last_choice == Some("Choose Proton".to_string());
 
             if let Some(engine_choice) = choice_obj.engine_choice {
                 info!("picked for engine_choice: {}", engine_choice);
 
                 if let Some(default_choice) = choice_obj.default_engine_choice {
-                    info!("default engine choice requested for {}", default_choice);
-                    let default_choice_file_path =
-                        package::place_config_file(&app_id, "default_engine_choice.txt").unwrap();
-                    let mut default_choice_file = File::create(default_choice_file_path).unwrap();
-                    default_choice_file
-                        .write_all(default_choice.as_bytes())
-                        .unwrap();
+                    if !is_in_proton_selection {
+                        info!("default engine choice requested for {}", default_choice);
+                        let default_choice_file_path =
+                            package::place_config_file(&app_id, "default_engine_choice.txt")
+                                .unwrap();
+                        let mut default_choice_file =
+                            File::create(default_choice_file_path).unwrap();
+                        default_choice_file
+                            .write_all(default_choice.as_bytes())
+                            .unwrap();
+                    } else {
+                        info!("default proton version requested for {}", default_choice);
+                        let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+                        let default_proton_file_path = xdg_dirs
+                            .place_config_file("default_proton_choice.txt")
+                            .unwrap();
+                        let mut default_proton_file =
+                            File::create(default_proton_file_path).unwrap();
+
+                        if let Some(proton_tools) = &self.proton_tools {
+                            let Some(proton) = find_tool_by_name(&proton_tools, &default_choice)
+                            else {
+                                return;
+                            };
+
+                            default_proton_file
+                                .write_all(proton.alias.as_bytes())
+                                .unwrap();
+                        }
+                        let _ = self.ask_for_engine_choice(app_id.as_str());
+                        self.last_choice = Some("".to_string());
+
+                        return;
+                    }
+                }
+
+                if is_in_proton_selection {
+                    info!(
+                        "user picked proton version {} for {}",
+                        engine_choice, app_id
+                    );
+                    let proton_choice_file_path =
+                        package::place_config_file(&app_id, "proton_choice.txt").unwrap();
+                    let mut proton_choice_file = File::create(proton_choice_file_path).unwrap();
+
+                    if let Some(proton_tools) = &self.proton_tools {
+                        let Some(proton) = find_tool_by_name(&proton_tools, &engine_choice) else {
+                            return;
+                        };
+
+                        proton_choice_file
+                            .write_all(proton.alias.as_bytes())
+                            .unwrap();
+                    }
+
+                    let _ = self.ask_for_engine_choice(app_id.as_str());
+                    self.last_choice = Some("".to_string());
+                    return;
                 }
 
                 self.last_choice = Some(engine_choice.clone());
+
+                if engine_choice == "Choose Proton" {
+                    let _ = self.show_proton();
+                    return;
+                }
 
                 match package::convert_game_info_with_choice(engine_choice, &mut game_info) {
                     Ok(()) => {

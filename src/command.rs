@@ -25,6 +25,7 @@ use crate::godot_logger;
 use crate::package;
 use crate::package::place_state_file;
 use crate::package_metadata;
+use crate::proton_handler;
 use crate::user_env;
 
 extern crate log;
@@ -422,6 +423,43 @@ pub fn run(
     Ok(game_info)
 }
 
+fn get_proton_alias() -> io::Result<String> {
+    let app_id = user_env::steam_app_id();
+    let check_proton_choice_file_path = package::place_config_file(&app_id, "proton_choice.txt")?;
+    if check_proton_choice_file_path.exists() {
+        let proton_choice_str = fs::read_to_string(check_proton_choice_file_path)?
+            .trim()
+            .to_string();
+        info!("Using game specified Proton version {}", proton_choice_str);
+        return Ok(proton_choice_str);
+    } else {
+        let xdg_dirs = xdg::BaseDirectories::with_prefix("luxtorpeda");
+        let check_default_proton_file_path =
+            xdg_dirs.place_config_file("default_proton_choice.txt")?;
+        if check_default_proton_file_path.exists() {
+            let proton_choice_str = fs::read_to_string(check_default_proton_file_path)?
+                .trim()
+                .to_string();
+            info!(
+                "Using default Proton version selected by user {}",
+                proton_choice_str
+            );
+            return Ok(proton_choice_str);
+        } else {
+            info!("Neither game or default specified Proton version has been found, selecting a Proton version that user has installed");
+            if let Some(steam_path) = user_env::steam_install_path() {
+                if let Ok(tools) = proton_handler::list_valve_proton_tools(&steam_path) {
+                    if let Some(first) = tools.first() {
+                        return Ok(first.alias.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    Ok("proton_experimental".to_string())
+}
+
 pub fn run_wrapper(
     args: &[&str],
     game_info: &package_metadata::Game,
@@ -459,7 +497,42 @@ pub fn run_wrapper(
             let status_str = serde_json::to_string(&status_obj).unwrap();
             sender.send(status_str).unwrap();
 
-            match Command::new(cmd)
+            let mut proton_args: Vec<String> = Vec::new();
+            let mut commandline: String = cmd.clone();
+
+            if let Some(vars) = &game_info.command_vars {
+                for (key, value) in vars {
+                    info!("Set environmental variable {} to {}", key, value);
+                    user_env::set_env_var(key, value);
+                }
+            }
+
+            if cmd.ends_with(".exe") {
+                if let Some(steam_path) = user_env::steam_install_path() {
+                    if let Ok(tools) = proton_handler::list_proton_tools(&steam_path) {
+                        if let Ok(proton_version) = get_proton_alias() {
+                            if let Some(tool) = proton_handler::find_tool(&tools, &proton_version) {
+                                commandline = tool.commandline.clone();
+                                proton_args.push("waitforexitandrun".to_string());
+
+                                let tmp_path = format!(
+                                    "{}/{}",
+                                    PathBuf::from(args[0])
+                                        .parent()
+                                        .unwrap()
+                                        .display()
+                                        .to_string(),
+                                    cmd
+                                );
+                                proton_args.push(tmp_path); // the original exe
+                            }
+                        }
+                    }
+                }
+            }
+
+            match Command::new(commandline)
+                .args(&proton_args)
                 .args(cmd_args)
                 .args(exe_args)
                 .env(LUX_ORIGINAL_EXE, args[0])

@@ -1,5 +1,6 @@
 use log::{error, info};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::io::Error;
@@ -27,6 +28,7 @@ pub struct Game {
     pub engine_name: String,
     pub command: Option<String>,
     pub command_args: Vec<String>,
+    pub command_vars: Option<HashMap<String, String>>,
     pub download_config: Option<Vec<DownloadConfig>>,
     #[serde(alias = "cloudNotAvailable")]
     pub cloud_not_available: bool,
@@ -73,6 +75,7 @@ pub struct EngineChoice {
     pub engine_name: Option<String>,
     pub command: Option<String>,
     pub command_args: Vec<String>,
+    pub command_vars: Option<HashMap<String, String>>,
     pub download: Option<Vec<String>>,
     pub download_config: Option<Vec<DownloadConfig>>,
     notices: Option<Vec<Notice>>,
@@ -84,7 +87,7 @@ pub struct EngineChoice {
 #[serde(default)]
 pub struct SimpleEngineChoice {
     pub name: String,
-    notices: Vec<String>,
+    pub notices: Vec<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
@@ -481,6 +484,7 @@ impl PackageMetadata {
 impl Game {
     pub fn choices_with_notices(&mut self) -> Vec<SimpleEngineChoice> {
         let mut simple_choices: Vec<SimpleEngineChoice> = vec![];
+        let mut add_choose_proton: bool = false;
 
         if let Some(choices) = &self.choices {
             let package_metadata = PackageMetadata::from_packages_file();
@@ -490,6 +494,12 @@ impl Game {
                     name: choice.name.clone(),
                     notices: Vec::new(),
                 };
+
+                if let Some(commandline) = &choice.command {
+                    if commandline.ends_with(".exe") {
+                        add_choose_proton = true;
+                    }
+                }
 
                 let mut engine_name = &choice.name;
                 if let Some(choice_engine_name) = &choice.engine_name {
@@ -569,6 +579,15 @@ impl Game {
             }
         }
 
+        if add_choose_proton {
+            simple_choices.insert(
+                0,
+                SimpleEngineChoice {
+                    name: "Choose Proton".to_string(),
+                    notices: Vec::new(),
+                },
+            );
+        }
         simple_choices
     }
 
@@ -617,6 +636,10 @@ impl Game {
 
         if !engine_choice.command_args.is_empty() {
             self.command_args = engine_choice.command_args.clone();
+        }
+
+        if engine_choice.command_vars.is_some() {
+            self.command_vars = engine_choice.command_vars.clone();
         }
 
         if engine_choice.download_config.is_some() {
