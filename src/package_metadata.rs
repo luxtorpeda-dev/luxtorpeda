@@ -484,14 +484,7 @@ impl PackageMetadata {
 impl Game {
     pub fn choices_with_notices(&mut self) -> Vec<SimpleEngineChoice> {
         let mut simple_choices: Vec<SimpleEngineChoice> = vec![];
-
-        simple_choices.insert(
-            0,
-            SimpleEngineChoice {
-                name: "Choose Proton".to_string(),
-                notices: Vec::new(),
-            },
-        );
+        let mut add_choose_proton: bool = false;
 
         if let Some(choices) = &self.choices {
             let package_metadata = PackageMetadata::from_packages_file();
@@ -501,6 +494,12 @@ impl Game {
                     name: choice.name.clone(),
                     notices: Vec::new(),
                 };
+
+                if let Some(commandline) = &choice.command {
+                    if commandline.ends_with(".exe") {
+                        add_choose_proton = true;
+                    }
+                }
 
                 let mut engine_name = &choice.name;
                 if let Some(choice_engine_name) = &choice.engine_name {
@@ -580,6 +579,15 @@ impl Game {
             }
         }
 
+        if add_choose_proton {
+            simple_choices.insert(
+                0,
+                SimpleEngineChoice {
+                    name: "Choose Proton".to_string(),
+                    notices: Vec::new(),
+                },
+            );
+        }
         simple_choices
     }
 
