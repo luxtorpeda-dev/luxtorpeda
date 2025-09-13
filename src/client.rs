@@ -2,6 +2,7 @@ extern crate reqwest;
 
 use futures_util::StreamExt;
 use log::{error, info};
+use reqwest::redirect::Policy;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
@@ -511,7 +512,10 @@ impl LuxClient {
             self.receiver = Some(receiver);
 
             std::thread::spawn(move || {
-                let client = reqwest::Client::new();
+                let client = Client::builder()
+                    .redirect(Policy::limited(10))
+                    .build()
+                    .unwrap();
 
                 let mut found_error = false;
 
@@ -589,7 +593,11 @@ impl LuxClient {
         sender: std::sync::mpsc::Sender<String>,
         client: &Client,
     ) -> io::Result<()> {
-        let target = info.url.clone() + &info.file;
+        let mut target = info.url.clone() + &info.file;
+
+        if let Some(suffix) = &info.url_suffix {
+            target.push_str(suffix);
+        }
 
         let mut cache_dir = app_id;
         if info.cache_by_name {

@@ -57,6 +57,7 @@ pub struct DownloadItem {
     pub url: String,
     pub file: String,
     pub cache_by_name: bool,
+    pub url_suffix: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
