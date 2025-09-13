@@ -604,9 +604,7 @@ impl LuxClient {
             .await
             .map_err(|_| Error::other(format!("Failed to GET from '{}'", &target)))?;
 
-        let total_size = res.content_length().ok_or_else(|| {
-            Error::other(format!("Failed to get content length from '{}'", &target))
-        })?;
+        let total_size = res.content_length().unwrap_or(0);
 
         let dest_file = package::place_cached_file(cache_dir, &info.file)?;
         let mut dest = fs::File::create(dest_file)?;
@@ -614,29 +612,44 @@ impl LuxClient {
         let mut stream = res.bytes_stream();
         let mut total_percentage: i64 = 0;
 
+        if total_size == 0 {
+            let total_size_message =
+                std::format!("Downloading {} without a known file size", &info.name);
+            let status_obj = StatusObj {
+                log_line: Some(total_size_message),
+                ..Default::default()
+            };
+            let status_str = serde_json::to_string(&status_obj).unwrap();
+            sender.send(status_str).unwrap();
+        }
+
         while let Some(item) = stream.next().await {
             let chunk = item.map_err(|_| Error::other("Error while downloading file"))?;
             dest.write_all(&chunk)
                 .map_err(|_| Error::other("Error while writing to file"))?;
 
-            let new = min(downloaded + (chunk.len() as u64), total_size);
-            downloaded = new;
-            let percentage = ((downloaded as f64 / total_size as f64) * 100_f64) as i64;
+            if total_size > 0 {
+                let new = min(downloaded + (chunk.len() as u64), total_size);
+                downloaded = new;
+                let percentage = ((downloaded as f64 / total_size as f64) * 100_f64) as i64;
 
-            if percentage != total_percentage {
-                info!(
-                    "download {}%: {} out of {}",
-                    percentage, downloaded, total_size
-                );
+                if percentage != total_percentage {
+                    info!(
+                        "download {}%: {} out of {}",
+                        percentage, downloaded, total_size
+                    );
 
-                let status_obj = StatusObj {
-                    progress: Some(percentage),
-                    ..Default::default()
-                };
-                let status_str = serde_json::to_string(&status_obj).unwrap();
-                sender.send(status_str).unwrap();
+                    let status_obj = StatusObj {
+                        progress: Some(percentage),
+                        ..Default::default()
+                    };
+                    let status_str = serde_json::to_string(&status_obj).unwrap();
+                    sender.send(status_str).unwrap();
 
-                total_percentage = percentage;
+                    total_percentage = percentage;
+                }
+            } else {
+                info!("downloaded without known total size: {}", downloaded);
             }
         }
 
