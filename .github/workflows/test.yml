@@ -13,7 +13,7 @@ jobs:
     - name: Install Rust
       run: |
         curl https://sh.rustup.rs -sSf | sh -s -- -y
-        source $HOME/.cargo/env
+        . "$HOME/.cargo/env"
         rustup toolchain install 1.87.0 --profile minimal --no-self-update
         rustup default 1.87.0
       shell: bash
@@ -57,7 +57,7 @@ jobs:
     - name: Install Rust
       run: |
         curl https://sh.rustup.rs -sSf | sh -s -- -y
-        source $HOME/.cargo/env
+        . "$HOME/.cargo/env"
         rustup toolchain install 1.87.0 --profile default
         rustup default 1.87.0
     - name: Use rust cache
@@ -74,7 +74,7 @@ jobs:
     - name: Install Rust
       run: |
         curl https://sh.rustup.rs -sSf | sh -s -- -y
-        source $HOME/.cargo/env
+        . "$HOME/.cargo/env"
         rustup toolchain install 1.87.0 --profile default
         rustup default 1.87.0
     - name: fmt Run
@@ -89,7 +89,7 @@ jobs:
     - name: Install Rust
       run: |
         curl https://sh.rustup.rs -sSf | sh -s -- -y
-        source $HOME/.cargo/env
+        . "$HOME/.cargo/env"
         rustup toolchain install 1.87.0 --profile default
         rustup default 1.87.0
         cargo install cargo-audit@0.21.0 --locked
