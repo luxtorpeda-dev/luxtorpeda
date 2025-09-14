@@ -7,19 +7,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+        image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:3.0.20250826.159138
     steps:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Install Rust
       run: |
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        . "$HOME/.cargo/env"
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
         rustup toolchain install 1.87.0 --profile minimal --no-self-update
         rustup default 1.87.0
       shell: bash
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get -y install clang libsdl2-dev
-      shell: bash
     - name: Install Godot
       uses: chickensoft-games/setup-godot@v2
       with:

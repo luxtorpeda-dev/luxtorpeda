@@ -5,11 +5,16 @@ on: pull_request
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+        image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:3.0.20250826.159138
     steps:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Install Rust
       run: |
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        . "$HOME/.cargo/env"
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
         rustup toolchain install 1.87.0 --profile minimal --no-self-update
         rustup default 1.87.0
       shell: bash
@@ -45,11 +50,16 @@ jobs:
         path: ./luxtorpeda.tar.xz.sha512
   clippy:
     runs-on: ubuntu-latest
+    container:
+        image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:3.0.20250826.159138
     steps:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Install Rust
       run: |
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        . "$HOME/.cargo/env"
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
         rustup toolchain install 1.87.0 --profile default
         rustup default 1.87.0
     - name: Use rust cache
@@ -58,22 +68,32 @@ jobs:
       run: cargo clippy
   fmt:
     runs-on: ubuntu-latest
+    container:
+        image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:3.0.20250826.159138
     steps:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Install Rust
       run: |
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        . "$HOME/.cargo/env"
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
         rustup toolchain install 1.87.0 --profile default
         rustup default 1.87.0
     - name: fmt Run
       run: cargo fmt --all -- --check
   audit:
     runs-on: ubuntu-latest
+    container:
+        image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:3.0.20250826.159138
     steps:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Install Rust
       run: |
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        . "$HOME/.cargo/env"
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
         rustup toolchain install 1.87.0 --profile default
         rustup default 1.87.0
         cargo install cargo-audit@0.21.0 --locked
