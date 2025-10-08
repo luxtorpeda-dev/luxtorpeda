@@ -515,9 +515,15 @@ pub fn run_wrapper(
                                 commandline = tool.commandline.clone();
                                 proton_args.push("waitforexitandrun".to_string());
 
-                                let tmp_path =
-                                    env::current_dir().unwrap().join(cmd).display().to_string();
-                                info!("launching proton with path to our exe: {}", tmp_path);
+                                let tmp_path = format!(
+                                    "{}/{}",
+                                    PathBuf::from(args[0])
+                                        .parent()
+                                        .unwrap()
+                                        .display()
+                                        .to_string(),
+                                    cmd
+                                );
                                 proton_args.push(tmp_path); // the original exe
                             }
                         }
