@@ -1,4 +1,4 @@
-use crate::parsers::appinfo_vdf_parser::open_appinfo_vdf;
+use new_vdf_parser::appinfo_vdf_parser::open_appinfo_vdf;
 use keyvalues_serde::from_str_with_key;
 use serde_json::{Map, Value};
 use std::fs;
@@ -155,7 +155,7 @@ pub fn list_compatibilitytoolsd(steam_path: &str) -> Result<Vec<Tool>, Box<dyn s
 
 pub fn list_valve_proton_tools(steam_path: &str) -> Result<Vec<Tool>, Box<dyn std::error::Error>> {
     let path = PathBuf::from(steam_path).join("appcache/appinfo.vdf");
-    let appinfo_json = open_appinfo_vdf(&path);
+    let appinfo_json = open_appinfo_vdf(&path, Some(false));
 
     let manifests = get_app_info(&appinfo_json, 891390).unwrap();
 

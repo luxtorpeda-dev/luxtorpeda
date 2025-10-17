@@ -1169,6 +1169,7 @@ dependencies = [
  "json",
  "keyvalues-serde 0.2.2",
  "log",
+ "new-vdf-parser",
  "rayon",
  "rbchunk",
  "regex",
@@ -1279,6 +1280,17 @@ name = "nanoserde-derive"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4dc96541767a4279572fdcf9f95af9cc1c9b2a2254e7a079203c81e206a9059"
+
+[[package]]
+name = "new-vdf-parser"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f496cfe7d3c04fb88bd80599e5ff7d57d955bc3aa9a4ff803f72310468d5ed6e"
+dependencies = [
+ "rayon",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "nom"

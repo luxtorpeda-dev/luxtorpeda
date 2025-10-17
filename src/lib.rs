@@ -6,7 +6,6 @@ mod config;
 mod godot_logger;
 mod package;
 mod package_metadata;
-mod parsers;
 mod proton_handler;
 mod user_env;
 struct Luxtorpeda;
