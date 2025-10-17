@@ -1,5 +1,5 @@
-use new_vdf_parser::appinfo_vdf_parser::open_appinfo_vdf;
 use keyvalues_serde::from_str_with_key;
+use new_vdf_parser::appinfo_vdf_parser::open_appinfo_vdf;
 use serde_json::{Map, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
