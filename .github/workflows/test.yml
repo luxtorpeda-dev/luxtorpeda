@@ -26,7 +26,7 @@ jobs:
     - name: Install Godot
       uses: chickensoft-games/setup-godot@v2
       with:
-        version: 4.5.0
+        version: 4.5.1
         use-dotnet: false
         include-templates: true
     - name: Build

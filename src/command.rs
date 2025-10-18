@@ -543,7 +543,7 @@ pub fn run_wrapper(
                     let config = config::Config::from_config_file();
                     if config.close_client_on_launch {
                         info!("closing client without waiting on engine close");
-                        std::process::exit(0);
+                        let _ = sender.send("quit_client".to_string());
                     }
                     match child.wait() {
                         Ok(status) => {
@@ -580,7 +580,8 @@ pub fn run_wrapper(
     };
 
     if ret.is_ok() {
-        std::process::exit(0);
+        let _ = sender.send("quit_client".to_string());
+        Ok(())
     } else {
         ret
     }

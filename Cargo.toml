@@ -37,7 +37,7 @@ iso9660 = { git = "https://github.com/luxtorpeda-dev/iso9660-rs.git", "rev" = "4
 rbchunk = "2.1.0"
 walkdir = "2"
 steamid-ng = "2.0.0"
-godot = {version = "0.2.4" }
+godot = {version = "0.4.0" }
 chrono = "0.4.42"
 url = "2.5.7"
 rayon = "1.11.0"
