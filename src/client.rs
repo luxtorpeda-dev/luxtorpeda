@@ -15,7 +15,8 @@ use std::io::Write;
 use std::sync::mpsc::channel;
 use tokio::runtime::Runtime;
 
-use godot::classes::{Node, Os};
+use godot::builtin::Variant;
+use godot::classes::{Engine, Node, Os};
 use godot::prelude::*;
 
 use crate::command;
@@ -91,6 +92,13 @@ impl INode for LuxClient {
     fn physics_process(&mut self, _delta: f64) {
         if let Some(receiver) = &self.receiver {
             if let Ok(new_data) = receiver.try_recv() {
+                if new_data == "quit_client" {
+                    let mut tree: Gd<SceneTree> =
+                        Engine::singleton().get_main_loop().unwrap().cast();
+                    let args: &[Variant] = &[];
+                    tree.call_deferred("quit", args);
+                    return;
+                }
                 self.emit_signal(
                     "Container/Progress",
                     "progress_change",
@@ -476,7 +484,7 @@ impl LuxClient {
                     }
                 }
             }
-            std::process::exit(0);
+            Self::exit_client();
         }
     }
 
@@ -664,9 +672,17 @@ impl LuxClient {
         Ok(())
     }
 
+    fn exit_client() {
+        if let Some(main_loop) = Engine::singleton().get_main_loop() {
+            let mut tree: Gd<SceneTree> = main_loop.cast();
+            let args: &[Variant] = &[];
+            tree.call_deferred("quit", args);
+        }
+    }
+
     fn run_game(&mut self, after_setup_question_mode: bool) {
         if !user_env::manual_download_app_id().is_empty() {
-            std::process::exit(0);
+            Self::exit_client();
         }
 
         let mut engine_choice = String::new();
