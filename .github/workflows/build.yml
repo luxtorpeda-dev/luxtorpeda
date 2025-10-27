@@ -35,12 +35,12 @@ jobs:
     - name: Calculate a checksum of release
       run: sha512sum luxtorpeda.tar.xz > luxtorpeda.tar.xz.sha512
     - name: Upload Release Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: luxtorpeda.tar.xz
         path: ./luxtorpeda.tar.xz
     - name: Upload Checksum Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: luxtorpeda.tar.xz.sha512
         path: ./luxtorpeda.tar.xz.sha512
