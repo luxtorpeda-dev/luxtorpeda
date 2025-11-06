@@ -17,8 +17,8 @@ jobs:
         curl https://sh.rustup.rs -sSf | sh -s -- -y
         . "$HOME/.cargo/env"
         echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-        rustup toolchain install 1.87.0 --profile minimal --no-self-update
-        rustup default 1.87.0
+        rustup toolchain install 1.88.0 --profile minimal --no-self-update
+        rustup default 1.88.0
       shell: bash
     - name: Use rust cache
       uses: Swatinem/rust-cache@v2
