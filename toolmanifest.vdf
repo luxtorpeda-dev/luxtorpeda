@@ -2,6 +2,6 @@
 {
   "version" "2"
   "commandline" "/luxtorpeda.sh %verb%"
-  "require_tool_appid" "1628350"
+  "require_tool_appid" "4183110"
   "use_sessions" "1"
 }
