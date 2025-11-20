@@ -14,7 +14,7 @@ Steam Play compatibility tool to run games using native Linux engines
 ## Pre-requisites
 
 Compatibility tool will work on any modern 64-bit Linux distribution.
-All packaged games are compiled for Steam Runtime Sniper environment and any additional dependencies are provided in the download.
+All packaged games are compiled for Steam Runtime RT4 environment and any additional dependencies are provided in the download.
 
 **Using Luxtorpeda with [Steam native runtime](https://wiki.archlinux.org/index.php/Steam/Troubleshooting#Steam_native_runtime) may or may not work, but is not supported.**
 

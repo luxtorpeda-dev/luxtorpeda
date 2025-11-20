@@ -10,7 +10,7 @@ use url::Url;
 use crate::config;
 use crate::package;
 
-const PACKAGE_METADATA_FILENAME: &str = "packagessniper_v2";
+const PACKAGE_METADATA_FILENAME: &str = "packagesrt4";
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
 #[serde(default)]
