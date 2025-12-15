@@ -41,7 +41,7 @@ godot = {version = "0.4.0" }
 chrono = "0.4.42"
 url = "2.5.7"
 rayon = "1.11.0"
-keyvalues-serde = "0.2.2"
+keyvalues-serde = "0.2.3"
 new-vdf-parser = "0.2.0"
 
 [package.metadata.cargo-post.dependencies]

@@ -999,13 +999,12 @@ dependencies = [
 
 [[package]]
 name = "keyvalues-parser"
-version = "0.2.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e4c8354918309196302015ac9cae43362f1a13d0d5c5539a33b4c2fd2cd6d25"
+checksum = "1c8e8b99861a87f1d04ade7898482bb9a9dcf2b784eaa48fc9907a429e45c2a3"
 dependencies = [
  "pest",
- "pest_derive",
- "thiserror",
+ "serde_core",
 ]
 
 [[package]]
@@ -1024,12 +1023,12 @@ dependencies = [
 
 [[package]]
 name = "keyvalues-serde"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2db0b750e9ae64e6c3d913832dc19ed580b9210bcd7c4dd6d0dd21af469fc14"
+checksum = "fe5bbd40795b21e78109367a739c00365345b9b8c487ef2fd89e6d0e6f9e31f1"
 dependencies = [
- "keyvalues-parser 0.2.0",
- "serde",
+ "keyvalues-parser 0.2.2",
+ "serde_core",
 ]
 
 [[package]]
@@ -1107,7 +1106,7 @@ dependencies = [
  "hex",
  "iso9660",
  "json",
- "keyvalues-serde 0.2.2",
+ "keyvalues-serde 0.2.3",
  "log",
  "new-vdf-parser",
  "rayon",
