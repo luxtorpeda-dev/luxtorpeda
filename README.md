@@ -25,6 +25,8 @@ All packaged games are compiled for Steam Runtime Sniper environment and any add
 Just click "Play" and Luxtorpeda will download and install the package for you.
 You need to select Luxtorpeda as a compatibility tool first, of course.
 
+The supported titles are mostly open source engines, like UZDoom, but also include closed-source executables, like for UT99, and recently Windows mod support via Proton.
+
 When you launch a game that supports multiple engines, a prompt will appear asking for the engine that should be downloaded and launched. Once the engine has been picked, a second prompt will ask if the engine should become the default. Launches after this if "Yes" is picked in this dialog will not ask for the engine again. A file can be deleted to restore the engine prompt for a particular game. The file will have the following format: `~/.config/luxtorpeda/<app_id>/default_engine_choice.txt`
 
 To go to the main website, go to https://luxtorpeda.org
