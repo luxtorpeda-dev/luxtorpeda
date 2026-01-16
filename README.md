@@ -20,6 +20,37 @@ All packaged games are compiled for Steam Runtime Sniper environment and any add
 
 **Using Luxtorpeda with [Steam native runtime](https://wiki.archlinux.org/index.php/Steam/Troubleshooting#Steam_native_runtime) may or may not work, but is not supported.**
 
+## Supported titles
+
+Just click "Play" and Luxtorpeda will download and install the package for you.
+You need to select Luxtorpeda as a compatibility tool first, of course.
+
+When you launch a game that supports multiple engines, a prompt will appear asking for the engine that should be downloaded and launched. Once the engine has been picked, a second prompt will ask if the engine should become the default. Launches after this if "Yes" is picked in this dialog will not ask for the engine again. A file can be deleted to restore the engine prompt for a particular game. The file will have the following format: `~/.config/luxtorpeda/<app_id>/default_engine_choice.txt`
+
+To go to the main website, go to https://luxtorpeda.org
+
+To see a list of supported titles, go to https://luxtorpeda.org/packages
+
+## Proton Mod Support
+
+Alongside the native engines that have been supported for a while, there are also Windows game mods available as well via Proton, with the same ease of use as the native engines, where Luxtorpeda will download and install the mod for you, and setup the launch options. The pieces like changing the WINEDLLOVERRIDES, putting the mod in the correct spots, etc, is all done for you, and then Luxtorpeda will launch the game with Proton for you.
+
+This also lets you pick and choose the Proton version to use in the luxtorpeda client.
+
+Because of the automatic downloads, the mods usually need to come from GitHub, or another public CDN that does not require a login or manual clicking, so stuff hosted on pcgamingwiki or nexus would not be doable.
+
+You can see all of the ones that use Proton by searching for "Engine runs via Proton on the packages list". Some examples include Alpine Faction for Red Faction, various widescreen patches for many games, and the Juiced Patch for Saints Row 2.
+
+## Getting Help
+
+Want a specific game? 
+
+Check [issues](https://github.com/luxtorpeda-dev/packages/issues) to see if we are working on it.
+
+You can also make a package request by creating a [new issue](https://github.com/luxtorpeda-dev/packages/issues/new/choose)
+
+You can also [create a package yourself](https://github.com/luxtorpeda-dev/packages/blob/master/docs/Creating_a_Package.md)
+
 ## Installation (using tarball)
 
 *The packages.json for the supported packages and getting the latest versions will get updated on each launch of luxtorpeda, without any input needed from the user. New releases of the luxtorpeda client will need to be downloaded manually, but a new release of the client is not required when a package is created or updated, unless that package depends on a new feature (which will be noted in the release notes).*
@@ -152,25 +183,6 @@ For using controllers in the engine itself, ensure that Steam Input is enabled, 
 * Thanks to help with testing from LiamD at GamingOnLinux, luxtorpeda works with the Steam Deck! See more information at https://www.gamingonlinux.com/2022/03/steam-deck-using-luxtorpeda-for-morrowind-warzone-2100-and-x-com/
 * Gamepad support relies on the steam input settings. If steam input for the game is set as a gamepad, then will show controller icons and work as a controller. Otherwise, can use the touchscreen as a mouse.
 * Setting a game to use luxtorpeda can be done in desktop or gaming mode, using the compatibility options.
-
-## Supported titles
-
-Just click "Play" and Luxtorpeda will download and install the package for you.
-You need to select Luxtorpeda as a compatibility tool first, of course.
-
-When you launch a game that supports multiple engines, a prompt will appear asking for the engine that should be downloaded and launched. Once the engine has been picked, a second prompt will ask if the engine should become the default. Launches after this if "Yes" is picked in this dialog will not ask for the engine again. A file can be deleted to restore the engine prompt for a particular game. The file will have the following format: `~/.config/luxtorpeda/<app_id>/default_engine_choice.txt`
-
-To go to the main website, go to https://luxtorpeda.org
-
-To see a list of supported titles, go to https://luxtorpeda.org/packages
-
-Want a specific game? 
-
-Check [issues](https://github.com/luxtorpeda-dev/packages/issues) to see if we are working on it.
-
-You can also make a package request by creating a [new issue](https://github.com/luxtorpeda-dev/packages/issues/new/choose)
-
-You can also [create a package yourself](https://github.com/luxtorpeda-dev/packages/blob/master/docs/Creating_a_Package.md)
 
 ## Development
 
