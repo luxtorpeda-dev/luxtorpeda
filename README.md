@@ -43,6 +43,11 @@ Because of the automatic downloads, the mods usually need to come from GitHub, o
 
 You can see all of the ones that use Proton by searching for "Engine runs via Proton on the packages list". Some examples include Alpine Faction for Red Faction, various widescreen patches for many games, and the Juiced Patch for Saints Row 2.
 
+<img width="1010" height="581" alt="image" src="https://github.com/user-attachments/assets/b661b3b7-27bf-4787-8b0b-9ce44c82b20f" />
+
+<img width="1010" height="581" alt="image" src="https://github.com/user-attachments/assets/1ed5e8d3-72fb-452c-9fbd-fe24f60080c6" />
+
+
 ## Getting Help
 
 Want a specific game? 
