@@ -1,12 +1,12 @@
-[gd_scene load_steps=16 format=3 uid="uid://ctpn3amr67k6c"]
+[gd_scene format=3 uid="uid://ctpn3amr67k6c"]
 
 [ext_resource type="PackedScene" uid="uid://dbac8bagk4vn6" path="res://Scenes/TitleBar/TitleBar.tscn" id="2"]
 [ext_resource type="Script" uid="uid://bipq3r7cvwx40" path="res://addons/controller_icons/objects/Button.gd" id="3"]
-[ext_resource type="Texture2D" uid="uid://bva4iswwvta5d" path="res://addons/controller_icons/assets/xbox360/y.png" id="6_pp8t3"]
+[ext_resource type="Texture2D" uid="uid://coqj2fcsaxvcn" path="res://addons/controller_icons/assets/key/space.png" id="6_pp8t3"]
 [ext_resource type="PackedScene" uid="uid://csmcqsj428pin" path="res://Scenes/Choices/Choices.tscn" id="8"]
-[ext_resource type="Texture2D" uid="uid://d284wkmo0vqfk" path="res://addons/controller_icons/assets/xbox360/a.png" id="8_4jmv2"]
+[ext_resource type="Texture2D" uid="uid://bp58drjdgvxsi" path="res://addons/controller_icons/assets/key/enter_alt.png" id="8_4jmv2"]
 [ext_resource type="Script" uid="uid://c1qx3r8mdk8m8" path="res://Scenes/MainScene/Controls.gd" id="9"]
-[ext_resource type="Texture2D" uid="uid://bufx8lu1tny4o" path="res://addons/controller_icons/assets/xbox360/b.png" id="9_0y6a4"]
+[ext_resource type="Texture2D" uid="uid://cnghdqiitl0fu" path="res://addons/controller_icons/assets/key/esc.png" id="9_0y6a4"]
 [ext_resource type="PackedScene" uid="uid://kl1iyl6xknhw" path="res://Scenes/Progress/Progress.tscn" id="10"]
 [ext_resource type="PackedScene" uid="uid://b1k4ekp8y8p7c" path="res://Scenes/Prompt/Prompt.tscn" id="11"]
 
@@ -28,41 +28,41 @@ action = &"ui_cancel"
 [sub_resource type="Shortcut" id="6"]
 events = [SubResource("InputEventAction_6i0xr")]
 
-[node name="UI" type="PanelContainer"]
+[node name="UI" type="PanelContainer" unique_id=975207975]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Container" type="VBoxContainer" parent="."]
+[node name="Container" type="VBoxContainer" parent="." unique_id=220085648]
 layout_mode = 2
 
-[node name="TitleBar" parent="Container" instance=ExtResource("2")]
+[node name="TitleBar" parent="Container" unique_id=172094576 instance=ExtResource("2")]
 layout_mode = 2
 alignment = 1
 
-[node name="Choices" parent="Container" instance=ExtResource("8")]
+[node name="Choices" parent="Container" unique_id=125241873 instance=ExtResource("8")]
 visible = false
 layout_mode = 2
 
-[node name="Progress" parent="Container" instance=ExtResource("10")]
+[node name="Progress" parent="Container" unique_id=688781774 instance=ExtResource("10")]
 visible = false
 layout_mode = 2
 
-[node name="Prompt" parent="Container" instance=ExtResource("11")]
+[node name="Prompt" parent="Container" unique_id=319006655 instance=ExtResource("11")]
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="HSeparator" type="HSeparator" parent="Container"]
+[node name="HSeparator" type="HSeparator" parent="Container" unique_id=447932646]
 layout_mode = 2
 
-[node name="Controls" type="HBoxContainer" parent="Container"]
+[node name="Controls" type="HBoxContainer" parent="Container" unique_id=1492491904]
 layout_mode = 2
 script = ExtResource("9")
 
-[node name="SecondaryButton" type="Button" parent="Container/Controls"]
+[node name="SecondaryButton" type="Button" parent="Container/Controls" unique_id=1258525067]
 layout_mode = 2
 size_flags_vertical = 12
 focus_mode = 0
@@ -73,7 +73,7 @@ icon = ExtResource("6_pp8t3")
 script = ExtResource("3")
 path = "ui_select"
 
-[node name="OkButton" type="Button" parent="Container/Controls"]
+[node name="OkButton" type="Button" parent="Container/Controls" unique_id=1930860834]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 12
@@ -85,7 +85,7 @@ icon = ExtResource("8_4jmv2")
 script = ExtResource("3")
 path = "ui_accept"
 
-[node name="CancelButton" type="Button" parent="Container/Controls"]
+[node name="CancelButton" type="Button" parent="Container/Controls" unique_id=1549916541]
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 12
@@ -96,7 +96,7 @@ icon = ExtResource("9_0y6a4")
 script = ExtResource("3")
 path = "ui_cancel"
 
-[node name="LuxClient" type="LuxClient" parent="."]
+[node name="LuxClient" type="LuxClient" parent="." unique_id=368701775]
 
 [connection signal="pressed" from="Container/Controls/SecondaryButton" to="Container/Controls" method="_on_SecondaryButton_pressed"]
 [connection signal="pressed" from="Container/Controls/OkButton" to="Container/Controls" method="_on_OkButton_pressed"]
