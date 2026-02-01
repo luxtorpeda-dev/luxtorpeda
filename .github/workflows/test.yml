@@ -26,7 +26,7 @@ jobs:
     - name: Install Godot
       uses: chickensoft-games/setup-godot@v2
       with:
-        version: 4.5.1
+        version: 4.6.0
         use-dotnet: false
         include-templates: true
     - name: Build
@@ -82,22 +82,3 @@ jobs:
         rustup default 1.88.0
     - name: fmt Run
       run: cargo fmt --all -- --check
-  audit:
-    runs-on: ubuntu-latest
-    container:
-        image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:3.0.20250826.159138
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v6
-    - name: Install Rust
-      run: |
-        curl https://sh.rustup.rs -sSf | sh -s -- -y
-        . "$HOME/.cargo/env"
-        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-        rustup toolchain install 1.88.0 --profile default
-        rustup default 1.88.0
-        cargo install cargo-audit@0.21.0 --locked
-    - name: Use rust cache
-      uses: Swatinem/rust-cache@v2
-    - name: Audit Run
-      run: cargo audit

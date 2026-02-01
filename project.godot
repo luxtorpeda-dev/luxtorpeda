@@ -8,22 +8,26 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="Luxtorpeda"
 run/main_scene="res://Scenes/MainScene/MainScene.tscn"
 config/use_custom_user_dir=true
-config/features=PackedStringArray("4.5")
+config/features=PackedStringArray("4.6")
 run/low_processor_mode=true
 boot_splash/bg_color=Color(0.105882, 0.105882, 0.105882, 1)
 boot_splash/show_image=false
-boot_splash/fullsize=false
+boot_splash/stretch_mode=0
 boot_splash/use_filter=false
 config/icon="res://Resources/icon.png"
 
 [autoload]
 
-ControllerIcons="*res://addons/controller_icons/ControllerIcons.gd"
+ControllerIcons="*uid://bilhd27s3pahs"
 
 [debug]
 

@@ -18,4 +18,8 @@ if [ -z "$SteamAppId" ]; then
   exit 0
 fi
 
+echo "Current directory - $PWD; DIR - $DIR"
+
+export LUX_PWD="$PWD"
+
 "$DIR/luxtorpeda.x86_64" "$@"
