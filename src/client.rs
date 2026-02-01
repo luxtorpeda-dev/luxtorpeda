@@ -151,6 +151,9 @@ impl LuxClient {
             }
         };
 
+        let lux_pwd = user_env::lux_pwd().unwrap();
+        env::set_current_dir(lux_pwd).unwrap();
+
         info!("luxtorpeda version: {}", env!("CARGO_PKG_VERSION"));
         info!("steam_app_id: {:?}", &app_id);
         info!("original command: {:?}", args);

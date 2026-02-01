@@ -2,6 +2,7 @@ extern crate xdg;
 
 use log::warn;
 use std::env;
+use std::env::VarError;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -11,6 +12,7 @@ static LUX_TOOL_DIR: &str = "LUX_TOOL_DIR";
 static STEAM_APPID: &str = "SteamAppId";
 static LUX_CONTROLLER: &str = "LUX_CONTROLLER";
 static STEAM_COMPAT_CLIENT_INSTALL_PATH: &str = "STEAM_COMPAT_CLIENT_INSTALL_PATH";
+static LUX_PWD: &str = "LUX_PWD";
 
 pub fn assure_tool_dir(arg0: &str) -> Result<(), std::io::Error> {
     let tool_path = Path::new(arg0);
@@ -34,6 +36,12 @@ pub fn steam_app_id() -> String {
         Ok(app_id) => app_id,
         Err(_) => "0".to_string(),
     }
+}
+
+// With the upgrade to Godot 4.6, the rust side is seeing the wrong directory when it starts up.
+// This looks up a new env var that is set by the initial script and uses that instead.
+pub fn lux_pwd() -> Result<String, VarError> {
+    env::var(LUX_PWD)
 }
 
 pub fn steam_install_path() -> Option<String> {
