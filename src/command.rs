@@ -299,6 +299,7 @@ fn run_iso_extract(iso_extract_info: &package_metadata::SetupIsoExtract) -> io::
 
 pub fn run_setup(
     setup_info: &package_metadata::Setup,
+    game_info: &package_metadata::Game,
     sender: &std::sync::mpsc::Sender<String>,
 ) -> io::Result<()> {
     let command_str = setup_info.command.to_string();
@@ -347,7 +348,29 @@ pub fn run_setup(
         }
     }
 
-    let setup_cmd = Command::new(command_str)
+    let mut proton_args: Vec<String> = Vec::new();
+    let mut commandline: String = command_str.clone();
+
+    if command_str.ends_with(".exe") {
+        if let Some(steam_path) = user_env::steam_install_path() {
+            if let Ok(tools) = proton_handler::list_proton_tools(&steam_path) {
+                if let Ok(proton_version) = get_proton_alias(&game_info) {
+                    if let Some(tool) = proton_handler::find_tool(&tools, &proton_version) {
+                        commandline = tool.commandline.clone();
+                        proton_args.push("waitforexitandrun".to_string());
+                        proton_args.push(command_str);
+                    } else {
+                        return Err(Error::other(std::format!(
+                            "Error finding the requested proton version of {}. Check to see if it is installed and try again.", proton_version
+                        )));
+                    }
+                }
+            }
+        }
+    }
+
+    let setup_cmd = Command::new(commandline)
+        .args(&proton_args)
         .env("LD_PRELOAD", "")
         .status()
         .expect("failed to execute process");
