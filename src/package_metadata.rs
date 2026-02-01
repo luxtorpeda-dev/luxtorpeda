@@ -48,6 +48,7 @@ pub struct Game {
     pub app_ids_deps: Option<Vec<u32>>,
     pub setup: Option<Setup>,
     pub commands: Option<Vec<GameCommand>>,
+    pub default_proton_choice: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
@@ -82,6 +83,7 @@ pub struct EngineChoice {
     notices: Option<Vec<Notice>>,
     pub commands: Option<Vec<GameCommand>>,
     pub setup: Option<Setup>,
+    pub default_proton_choice: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
@@ -653,6 +655,10 @@ impl Game {
 
         if engine_choice.setup.is_some() {
             self.setup = engine_choice.setup.clone();
+        }
+
+        if engine_choice.default_proton_choice.is_some() {
+            self.default_proton_choice = engine_choice.default_proton_choice.clone();
         }
     }
 }

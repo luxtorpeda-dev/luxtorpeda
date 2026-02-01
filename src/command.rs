@@ -423,7 +423,7 @@ pub fn run(
     Ok(game_info)
 }
 
-fn get_proton_alias() -> io::Result<String> {
+fn get_proton_alias(game_info: &package_metadata::Game) -> io::Result<String> {
     let app_id = user_env::steam_app_id();
     let check_proton_choice_file_path = package::place_config_file(&app_id, "proton_choice.txt")?;
     if check_proton_choice_file_path.exists() {
@@ -445,6 +445,9 @@ fn get_proton_alias() -> io::Result<String> {
                 proton_choice_str
             );
             return Ok(proton_choice_str);
+        } else if let Some(default_proton_choice) = &game_info.default_proton_choice {
+            info!("Found default proton choice in game info: {default_proton_choice}");
+            return Ok(default_proton_choice.to_string());
         } else {
             info!("Neither game or default specified Proton version has been found, selecting a Proton version that user has installed");
             if let Some(steam_path) = user_env::steam_install_path() {
@@ -510,7 +513,7 @@ pub fn run_wrapper(
             if cmd.ends_with(".exe") {
                 if let Some(steam_path) = user_env::steam_install_path() {
                     if let Ok(tools) = proton_handler::list_proton_tools(&steam_path) {
-                        if let Ok(proton_version) = get_proton_alias() {
+                        if let Ok(proton_version) = get_proton_alias(&game_info) {
                             if let Some(tool) = proton_handler::find_tool(&tools, &proton_version) {
                                 commandline = tool.commandline.clone();
                                 proton_args.push("waitforexitandrun".to_string());
@@ -525,6 +528,10 @@ pub fn run_wrapper(
                                     cmd
                                 );
                                 proton_args.push(tmp_path); // the original exe
+                            } else {
+                                return Err(Error::other(std::format!(
+                                    "Error finding the requested proton version of {}. Check to see if it is installed and try again.", proton_version
+                                )));
                             }
                         }
                     }
