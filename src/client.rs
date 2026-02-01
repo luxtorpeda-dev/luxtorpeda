@@ -776,7 +776,7 @@ impl LuxClient {
 
                                 return;
                             } else {
-                                match command::run_setup(setup_info, &sender) {
+                                match command::run_setup(setup_info, &game_info, &sender) {
                                     Ok(()) => {}
                                     Err(err) => {
                                         error!("command::run_setup err: {:?}", err);
@@ -810,7 +810,7 @@ impl LuxClient {
                 }
 
                 if after_setup_question_mode {
-                    match command::run_setup(setup_info, &sender) {
+                    match command::run_setup(setup_info, &game_info, &sender) {
                         Ok(()) => {}
                         Err(err) => {
                             error!("command::run_setup err: {:?}", err);
