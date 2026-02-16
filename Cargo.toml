@@ -24,7 +24,7 @@ hex = "0.4.3"
 bzip2 = "0.6.1"
 zip = "1.1.4"
 flate2 = "1.1.9"
-futures-util = "0.3.31"
+futures-util = "0.3.32"
 tokio = { version = "1.49.0", default-features = false, features = ["full"] }
 which = "8.0.0"
 steamlocate = { version = "2.0.0-alpha.0", features = ["steamid_ng"] }
