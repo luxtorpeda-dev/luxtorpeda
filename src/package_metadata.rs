@@ -581,6 +581,17 @@ impl Game {
                     }
                 }
 
+                if let Some(game_notices) = &choice.notices {
+                    for entry in game_notices {
+                        choice_info
+                        .notices
+                        .push(PackageMetadata::convert_notice_to_str(
+                            &package_metadata,
+                            entry,
+                        ));
+                    }
+                }
+
                 simple_choices.push(choice_info);
             }
         }
