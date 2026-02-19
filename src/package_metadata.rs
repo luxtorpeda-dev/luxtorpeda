@@ -584,11 +584,11 @@ impl Game {
                 if let Some(game_notices) = &choice.notices {
                     for entry in game_notices {
                         choice_info
-                        .notices
-                        .push(PackageMetadata::convert_notice_to_str(
-                            &package_metadata,
-                            entry,
-                        ));
+                            .notices
+                            .push(PackageMetadata::convert_notice_to_str(
+                                &package_metadata,
+                                entry,
+                            ));
                     }
                 }
 
