@@ -29,6 +29,7 @@ pub struct Game {
     pub command: Option<String>,
     pub command_args: Vec<String>,
     pub command_vars: Option<HashMap<String, String>>,
+    pub command_current_dir: Option<String>,
     pub download_config: Option<Vec<DownloadConfig>>,
     #[serde(alias = "cloudNotAvailable")]
     pub cloud_not_available: bool,
@@ -78,6 +79,7 @@ pub struct EngineChoice {
     pub command: Option<String>,
     pub command_args: Vec<String>,
     pub command_vars: Option<HashMap<String, String>>,
+    pub command_current_dir: Option<String>,
     pub download: Option<Vec<String>>,
     pub download_config: Option<Vec<DownloadConfig>>,
     notices: Option<Vec<Notice>>,
@@ -111,6 +113,7 @@ pub struct Setup {
     pub dialogs: Option<Vec<SetupDialog>>,
     pub bchunk: Option<SetupBChunk>,
     pub iso_extract: Option<SetupIsoExtract>,
+    pub command_current_dir: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
@@ -659,6 +662,10 @@ impl Game {
 
         if engine_choice.default_proton_choice.is_some() {
             self.default_proton_choice = engine_choice.default_proton_choice.clone();
+        }
+
+        if engine_choice.command_current_dir.is_some() {
+            self.command_current_dir = engine_choice.command_current_dir.clone();
         }
     }
 }
