@@ -369,8 +369,20 @@ pub fn run_setup(
         }
     }
 
+    let mut current_dir = env::current_dir().unwrap();
+
+    if let Some(command_current_dir) = &setup_info.command_current_dir {
+        current_dir = command_current_dir.into();
+    }
+
+    info!(
+        "setup cmd - commandline: {:?} proton_args: {:?} current_dir: {:?}",
+        commandline, proton_args, current_dir
+    );
+
     let setup_cmd = Command::new(commandline)
         .args(&proton_args)
+        .current_dir(current_dir)
         .env("LD_PRELOAD", "")
         .status()
         .expect("failed to execute process");
@@ -561,10 +573,22 @@ pub fn run_wrapper(
                 }
             }
 
+            let mut current_dir = env::current_dir().unwrap();
+
+            if let Some(command_current_dir) = &game_info.command_current_dir {
+                current_dir = command_current_dir.into();
+            }
+
+            info!(
+                "command - commandline: {:?} proton_args: {:?} current_dir: {:?}",
+                commandline, proton_args, current_dir
+            );
+
             match Command::new(commandline)
                 .args(&proton_args)
                 .args(cmd_args)
                 .args(exe_args)
+                .current_dir(current_dir)
                 .env(LUX_ORIGINAL_EXE, args[0])
                 .env(LUX_ORIGINAL_EXE_FILE, exe_file)
                 .spawn()
