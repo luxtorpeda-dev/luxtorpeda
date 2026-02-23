@@ -114,6 +114,7 @@ pub struct Setup {
     pub bchunk: Option<SetupBChunk>,
     pub iso_extract: Option<SetupIsoExtract>,
     pub command_current_dir: Option<String>,
+    pub command_args: Vec<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone)]
