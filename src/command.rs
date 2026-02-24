@@ -382,6 +382,7 @@ pub fn run_setup(
 
     let setup_cmd = Command::new(commandline)
         .args(&proton_args)
+        .args(&setup_info.command_args)
         .current_dir(current_dir)
         .env("LD_PRELOAD", "")
         .status()
