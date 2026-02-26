@@ -1,6 +1,6 @@
 [package]
 name = "luxtorpeda"
-version = "76.1.0"
+version = "76.2.0"
 authors = ["Patryk Obara <dreamer.tan@gmail.com>", "d10sfan <d10sfan+luxtorpeda@gmail.com>"]
 edition = "2021"
 
