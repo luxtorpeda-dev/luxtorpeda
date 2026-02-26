@@ -30,6 +30,7 @@ pub struct Game {
     pub command_args: Vec<String>,
     pub command_vars: Option<HashMap<String, String>>,
     pub command_current_dir: Option<String>,
+    pub command_relative_path: bool,
     pub download_config: Option<Vec<DownloadConfig>>,
     #[serde(alias = "cloudNotAvailable")]
     pub cloud_not_available: bool,
@@ -80,6 +81,7 @@ pub struct EngineChoice {
     pub command_args: Vec<String>,
     pub command_vars: Option<HashMap<String, String>>,
     pub command_current_dir: Option<String>,
+    pub command_relative_path: bool,
     pub download: Option<Vec<String>>,
     pub download_config: Option<Vec<DownloadConfig>>,
     notices: Option<Vec<Notice>>,
@@ -679,5 +681,7 @@ impl Game {
         if engine_choice.command_current_dir.is_some() {
             self.command_current_dir = engine_choice.command_current_dir.clone();
         }
+
+        self.command_relative_path = engine_choice.command_relative_path;
     }
 }

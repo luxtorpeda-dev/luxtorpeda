@@ -563,7 +563,12 @@ pub fn run_wrapper(
                                         .to_string(),
                                     cmd
                                 );
-                                proton_args.push(tmp_path); // the original exe
+
+                                if game_info.command_relative_path {
+                                    proton_args.push(cmd);
+                                } else {
+                                    proton_args.push(tmp_path); // the original exe
+                                }
                             } else {
                                 return Err(Error::other(std::format!(
                                     "Error finding the requested proton version of {}. Check to see if it is installed and try again.", proton_version
