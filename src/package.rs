@@ -18,6 +18,7 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 use tar::Archive;
+use unrar::Archive as RarArchive;
 use xz2::read::XzDecoder;
 
 use crate::client;
@@ -214,6 +215,7 @@ fn unpack_tarball(
     let mut decode_as_zip = false;
     let mut decode_as_7z = false;
     let mut decode_with_ar = false;
+    let mut decode_as_rar = false;
 
     let file_extension = Path::new(&tarball)
         .extension()
@@ -248,6 +250,9 @@ fn unpack_tarball(
     } else if file_extension == "deb" {
         decode_with_ar = true;
         info!("install changing decoder to ar");
+    } else if file_extension == "rar" {
+        decode_as_rar = true;
+        info!("install changing decoder to rar");
     }
 
     let file = fs::File::open(tarball)?;
@@ -341,6 +346,20 @@ fn unpack_tarball(
                 };
             } else {
                 info!("skipping install from ar for {}", filename);
+            }
+        }
+    } else if decode_as_rar {
+        let mut archive = RarArchive::new(&tarball).open_for_processing().unwrap();
+        while let Some(header) = archive.read_header().map_err(|e| io::Error::other(e))? {
+            info!(
+                "{} bytes: {}",
+                header.entry().unpacked_size,
+                header.entry().filename.to_string_lossy(),
+            );
+            archive = if header.entry().is_file() {
+                header.extract().map_err(|e| io::Error::other(e))?
+            } else {
+                header.skip().map_err(|e| io::Error::other(e))?
             }
         }
     } else {
