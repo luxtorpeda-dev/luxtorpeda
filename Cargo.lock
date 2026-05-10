@@ -1036,9 +1036,9 @@ dependencies = [
 
 [[package]]
 name = "lazy_static"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libbz2-rs-sys"
@@ -1127,6 +1127,7 @@ dependencies = [
  "steamlocate",
  "tar",
  "tokio",
+ "unrar",
  "url",
  "walkdir",
  "which",
@@ -2376,9 +2377,9 @@ checksum = "6af6ae20167a9ece4bcb41af5b80f8a1f1df981f6391189ce00fd257af04126a"
 
 [[package]]
 name = "typenum"
-version = "1.16.0"
+version = "1.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
+checksum = "40ce102ab67701b8526c123c1bab5cbe42d7040ccfd0f64af1a385808d2f43de"
 
 [[package]]
 name = "ucd-trie"
@@ -2391,6 +2392,29 @@ name = "unicode-ident"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
+
+[[package]]
+name = "unrar"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92ec61343a630d2b50d13216dea5125e157d3fc180a7d3f447d22fe146b648fc"
+dependencies = [
+ "bitflags 2.4.0",
+ "regex",
+ "unrar_sys",
+ "widestring",
+]
+
+[[package]]
+name = "unrar_sys"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b77675b883cfbe6bf41e6b7a5cd6008e0a83ba497de3d96e41a064bbeead765"
+dependencies = [
+ "cc",
+ "libc",
+ "winapi",
+]
 
 [[package]]
 name = "untrusted"
@@ -2601,6 +2625,12 @@ checksum = "81995fafaaaf6ae47a7d0cc83c67caf92aeb7e5331650ae6ff856f7c0c60c459"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "widestring"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72069c3113ab32ab29e5584db3c6ec55d416895e60715417b5b883a357c3e471"
 
 [[package]]
 name = "winapi"
