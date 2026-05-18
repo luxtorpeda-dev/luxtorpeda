@@ -41,7 +41,7 @@ godot = {version = "0.4.5" }
 chrono = "0.4.44"
 url = "2.5.8"
 rayon = "1.12.0"
-keyvalues-serde = "0.2.3"
+keyvalues-serde = "0.2.4"
 new-vdf-parser = "0.2.0"
 unrar = "0.5.8"
 
