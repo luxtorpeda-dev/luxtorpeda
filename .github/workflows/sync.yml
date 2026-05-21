@@ -17,6 +17,6 @@ jobs:
 
       - uses: yesolutions/mirror-action@master
         with:
-          REMOTE: 'https://codeberg.org/luxtorpeda/site'
+          REMOTE: 'https://codeberg.org/luxtorpeda/luxtorpeda'
           GIT_USERNAME: d10sfan
           GIT_PASSWORD: ${{ secrets.CODEBERG_KEY }}
